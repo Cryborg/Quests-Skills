@@ -17,8 +17,7 @@
         <!-- Onglets de navigation admin -->
         <nav class="admin-tabs">
             <button class="admin-tab-btn active" data-tab="users">👥 Utilisateurs</button>
-            <button class="admin-tab-btn" data-tab="cards">🃏 Cartes</button>
-            <button class="admin-tab-btn" data-tab="themes">🎨 Thèmes</button>
+            <button class="admin-tab-btn" data-tab="cards">🃏 Cartes & Thèmes</button>
         </nav>
 
         <main class="admin-content">
@@ -36,20 +35,17 @@
                 </div>
             </section>
 
-            <!-- Section Cartes -->
+            <!-- Section Cartes & Thèmes -->
             <section id="cards-section" class="admin-section">
                 <div class="section-header">
-                    <h2>🃏 Gestion des Cartes</h2>
-                    <button id="create-card-btn" class="admin-btn-primary">➕ Créer une carte</button>
+                    <h2>🃏 Gestion des Cartes & Thèmes</h2>
+                    <div class="section-actions">
+                        <button id="create-theme-btn" class="admin-btn-secondary">🎨 Nouveau thème</button>
+                        <button id="create-card-btn" class="admin-btn-primary">➕ Nouvelle carte</button>
+                    </div>
                 </div>
 
                 <div class="cards-filters">
-                    <select id="cards-theme-filter">
-                        <option value="">Tous les thèmes</option>
-                        <option value="minecraft">🟫 Minecraft</option>
-                        <option value="space">🌌 Astronomie</option>
-                        <option value="dinosaurs">🦕 Dinosaures</option>
-                    </select>
                     <select id="cards-rarity-filter">
                         <option value="">Toutes les raretés</option>
                         <option value="common">🤍 Commune</option>
@@ -60,19 +56,8 @@
                     </select>
                 </div>
 
-                <div class="cards-grid" id="cards-grid">
-                    <!-- Liste des cartes chargée dynamiquement -->
-                </div>
-            </section>
-
-            <!-- Section Thèmes -->
-            <section id="themes-section" class="admin-section">
-                <div class="section-header">
-                    <h2>🎨 Gestion des Thèmes</h2>
-                    <button id="create-theme-btn" class="admin-btn-primary">➕ Créer un thème</button>
-                </div>
-                <div class="themes-list" id="themes-list">
-                    <!-- Liste des thèmes chargée dynamiquement -->
+                <div id="cards-by-theme-container">
+                    <!-- Cartes groupées par thème chargées dynamiquement -->
                 </div>
             </section>
         </main>
@@ -235,7 +220,6 @@
     <script src="js/admin-ui.js"></script>
     <script src="js/admin-users.js"></script>
     <script src="js/admin-cards.js"></script>
-    <script src="js/admin-themes.js"></script>
     <script src="js/admin-app.js"></script>
 
     <!-- Auth initialization -->

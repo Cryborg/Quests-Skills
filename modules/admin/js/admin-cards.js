@@ -3,18 +3,33 @@
 class AdminCards {
     constructor() {
         this.cards = [];
+        this.themes = [];
         this.filteredCards = [];
         this.currentCard = null;
+        this.currentTheme = null;
         this.filters = {
-            theme: '',
             rarity: ''
         };
     }
 
-    // Initialiser la gestion des cartes
+    // Initialiser la gestion des cartes et thèmes
     async init() {
-        await this.loadCards();
+        await Promise.all([
+            this.loadThemes(),
+            this.loadCards()
+        ]);
         this.attachEvents();
+    }
+
+    // Charger tous les thèmes
+    async loadThemes() {
+        try {
+            const response = await authService.fetchAPI('/themes');
+            this.themes = await response.json();
+        } catch (error) {
+            console.error('Failed to load themes:', error);
+            adminUI.showToast('Erreur lors du chargement des thèmes', 'error');
+        }
     }
 
     // Charger toutes les cartes
@@ -29,12 +44,14 @@ class AdminCards {
         }
     }
 
+    // Obtenir les thèmes (pour d'autres modules)
+    getThemes() {
+        return this.themes;
+    }
+
     // Appliquer les filtres
     applyFilters() {
         this.filteredCards = this.cards.filter(card => {
-            if (this.filters.theme && card.category !== this.filters.theme) {
-                return false;
-            }
             if (this.filters.rarity && card.base_rarity !== this.filters.rarity) {
                 return false;
             }
@@ -43,50 +60,70 @@ class AdminCards {
         this.renderCards();
     }
 
-    // Afficher les cartes
+    // Afficher les cartes groupées par thème
     renderCards() {
-        const container = document.getElementById('cards-grid');
+        const container = document.getElementById('cards-by-theme-container');
 
-        if (this.filteredCards.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #999; grid-column: 1 / -1;">Aucune carte</p>';
+        if (this.themes.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">Aucun thème. Créez-en un pour commencer !</p>';
             return;
         }
 
-        container.innerHTML = this.filteredCards.map(card => {
-            const themeIcon = adminUI.getThemeIcon(card.category);
-            const themeLabel = adminUI.getThemeLabel(card.category);
-            const rarityIcon = adminUI.getRarityIcon(card.base_rarity);
-            // Convertir le chemin relatif en chemin absolu (images dans shared/)
-            const imageUrl = card.image.startsWith('http') ? card.image : `/shared/${card.image}`;
+        container.innerHTML = this.themes.map(theme => {
+            const themeCards = this.filteredCards.filter(card => card.category === theme.slug);
 
             return `
-                <div class="admin-card" data-card-id="${card.id}">
-                    <img src="${imageUrl}" alt="${card.name}" class="admin-card-image">
-                    <div class="admin-card-content">
-                        <div class="admin-card-header">
-                            <h3 class="admin-card-name">${card.name}</h3>
-                            <span class="admin-card-rarity ${card.base_rarity}">
-                                ${rarityIcon}
-                            </span>
-                        </div>
-                        <p class="admin-card-theme">
-                            ${themeIcon} ${themeLabel}
-                        </p>
-                        <p class="admin-card-description">${card.description}</p>
-                        <div class="admin-card-actions">
-                            <button class="admin-btn-primary edit-card-btn" data-card-id="${card.id}">
-                                ✏️ Modifier
+                <div class="theme-section">
+                    <div class="theme-header">
+                        <h3>${theme.icon} ${theme.name}</h3>
+                        <div class="theme-actions">
+                            <span class="theme-card-count">${themeCards.length} carte(s)</span>
+                            <button class="admin-btn-secondary edit-theme-btn" data-theme-id="${theme.id}">
+                                ✏️ Modifier le thème
                             </button>
-                            <button class="admin-btn-danger delete-card-btn" data-card-id="${card.id}">
+                            <button class="admin-btn-danger delete-theme-btn" data-theme-id="${theme.id}">
                                 🗑️ Supprimer
                             </button>
                         </div>
+                    </div>
+                    <div class="cards-grid">
+                        ${themeCards.length === 0 ?
+                            '<p style="text-align: center; color: #999; grid-column: 1 / -1; padding: 20px;">Aucune carte dans ce thème</p>' :
+                            themeCards.map(card => {
+                                const rarityIcon = adminUI.getRarityIcon(card.base_rarity);
+                                const imageUrl = card.image.startsWith('http') ? card.image : `/shared/${card.image}`;
+
+                                return `
+                                    <div class="admin-card" data-card-id="${card.id}">
+                                        <img src="${imageUrl}" alt="${card.name}" class="admin-card-image">
+                                        <div class="admin-card-content">
+                                            <div class="admin-card-header">
+                                                <h3 class="admin-card-name">${card.name}</h3>
+                                                <span class="admin-card-rarity ${card.base_rarity}">
+                                                    ${rarityIcon}
+                                                </span>
+                                            </div>
+                                            <p class="admin-card-description">${card.description}</p>
+                                            <div class="admin-card-actions">
+                                                <button class="admin-btn-primary edit-card-btn" data-card-id="${card.id}">
+                                                    ✏️ Modifier
+                                                </button>
+                                                <button class="admin-btn-danger delete-card-btn" data-card-id="${card.id}">
+                                                    🗑️ Supprimer
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')
+                        }
                     </div>
                 </div>
             `;
         }).join('');
 
         this.attachCardEvents();
+        this.attachThemeEvents();
     }
 
     // Attacher les événements
@@ -95,25 +132,29 @@ class AdminCards {
         const createBtn = document.getElementById('create-card-btn');
         createBtn.addEventListener('click', () => this.openCardModal());
 
-        // Filtres
-        const themeFilter = document.getElementById('cards-theme-filter');
-        themeFilter.addEventListener('change', (e) => {
-            this.filters.theme = e.target.value;
-            this.applyFilters();
-        });
+        // Bouton créer un thème
+        const createThemeBtn = document.getElementById('create-theme-btn');
+        createThemeBtn.addEventListener('click', () => this.openThemeModal());
 
+        // Filtre de rareté
         const rarityFilter = document.getElementById('cards-rarity-filter');
         rarityFilter.addEventListener('change', (e) => {
             this.filters.rarity = e.target.value;
             this.applyFilters();
         });
 
-        // Fermer la modale
-        const closeBtn = document.getElementById('card-modal-close');
-        closeBtn.addEventListener('click', () => adminUI.closeModal('card-modal'));
+        // Fermer les modales
+        const closeCardBtn = document.getElementById('card-modal-close');
+        closeCardBtn.addEventListener('click', () => adminUI.closeModal('card-modal'));
 
-        const cancelBtn = document.getElementById('card-form-cancel');
-        cancelBtn.addEventListener('click', () => adminUI.closeModal('card-modal'));
+        const cancelCardBtn = document.getElementById('card-form-cancel');
+        cancelCardBtn.addEventListener('click', () => adminUI.closeModal('card-modal'));
+
+        const closeThemeBtn = document.getElementById('theme-modal-close');
+        closeThemeBtn.addEventListener('click', () => adminUI.closeModal('theme-modal'));
+
+        const cancelThemeBtn = document.getElementById('theme-form-cancel');
+        cancelThemeBtn.addEventListener('click', () => adminUI.closeModal('theme-modal'));
 
         // Aperçu de l'image
         const imageInput = document.getElementById('card-image');
@@ -121,11 +162,17 @@ class AdminCards {
             this.updateImagePreview(e.target.value);
         });
 
-        // Soumettre le formulaire
-        const form = document.getElementById('card-form');
-        form.addEventListener('submit', (e) => {
+        // Soumettre les formulaires
+        const cardForm = document.getElementById('card-form');
+        cardForm.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveCard();
+        });
+
+        const themeForm = document.getElementById('theme-form');
+        themeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveTheme();
         });
     }
 
@@ -319,7 +366,147 @@ class AdminCards {
             adminUI.showToast('Erreur lors de la suppression', 'error');
         }
     }
+
+    // ==================== Gestion des Thèmes ====================
+
+    // Attacher les événements des boutons thèmes
+    attachThemeEvents() {
+        // Boutons modifier
+        document.querySelectorAll('.edit-theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const themeId = parseInt(btn.dataset.themeId);
+                this.editTheme(themeId);
+            });
+        });
+
+        // Boutons supprimer
+        document.querySelectorAll('.delete-theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const themeId = parseInt(btn.dataset.themeId);
+                this.deleteTheme(themeId);
+            });
+        });
+    }
+
+    // Ouvrir la modale pour créer/éditer un thème
+    openThemeModal(theme = null) {
+        this.currentTheme = theme;
+
+        const title = document.getElementById('theme-modal-title');
+        const themeId = document.getElementById('theme-id');
+        const slug = document.getElementById('theme-slug');
+        const name = document.getElementById('theme-name');
+        const icon = document.getElementById('theme-icon');
+
+        if (theme) {
+            title.textContent = 'Modifier un thème';
+            themeId.value = theme.id;
+            slug.value = theme.slug;
+            slug.readOnly = true; // Ne pas modifier le slug en édition
+            name.value = theme.name;
+            icon.value = theme.icon;
+        } else {
+            title.textContent = 'Créer un thème';
+            themeId.value = '';
+            slug.value = '';
+            slug.readOnly = false;
+            name.value = '';
+            icon.value = '';
+        }
+
+        adminUI.showModal('theme-modal');
+    }
+
+    // Sauvegarder un thème
+    async saveTheme() {
+        const themeId = document.getElementById('theme-id').value;
+        const slug = document.getElementById('theme-slug').value.trim();
+        const name = document.getElementById('theme-name').value.trim();
+        const icon = document.getElementById('theme-icon').value.trim();
+
+        if (!slug || !name || !icon) {
+            adminUI.showToast('Tous les champs sont requis', 'error');
+            return;
+        }
+
+        const themeData = {
+            slug,
+            name,
+            icon
+        };
+
+        try {
+            let response;
+            if (themeId) {
+                // Mise à jour
+                response = await authService.fetchAPI(`/themes/${themeId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(themeData)
+                });
+            } else {
+                // Création
+                response = await authService.fetchAPI('/themes', {
+                    method: 'POST',
+                    body: JSON.stringify(themeData)
+                });
+            }
+
+            if (response.ok) {
+                adminUI.showToast(themeId ? 'Thème modifié' : 'Thème créé', 'success');
+                adminUI.closeModal('theme-modal');
+                await this.loadThemes();
+                this.renderCards();
+            } else {
+                const error = await response.json();
+                adminUI.showToast(error.error || 'Erreur', 'error');
+            }
+        } catch (error) {
+            console.error('Failed to save theme:', error);
+            adminUI.showToast('Erreur lors de la sauvegarde', 'error');
+        }
+    }
+
+    // Modifier un thème
+    editTheme(themeId) {
+        const theme = this.themes.find(t => t.id === themeId);
+        if (theme) {
+            this.openThemeModal(theme);
+        }
+    }
+
+    // Supprimer un thème
+    async deleteTheme(themeId) {
+        const theme = this.themes.find(t => t.id === themeId);
+        if (!theme) return;
+
+        if (!await adminUI.confirm(`Voulez-vous vraiment supprimer le thème "${theme.name}" ? Les cartes utilisant ce thème ne pourront plus être affichées.`)) {
+            return;
+        }
+
+        try {
+            const response = await authService.fetchAPI(`/themes/${themeId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                adminUI.showToast('Thème supprimé', 'success');
+                await this.loadThemes();
+                this.renderCards();
+            } else {
+                const error = await response.json();
+                adminUI.showToast(error.error || 'Erreur', 'error');
+            }
+        } catch (error) {
+            console.error('Failed to delete theme:', error);
+            adminUI.showToast('Erreur lors de la suppression', 'error');
+        }
+    }
 }
 
 // Instance globale
 const adminCards = new AdminCards();
+
+// Alias pour compatibilité avec admin-ui.js qui appelle adminThemes.getThemes()
+const adminThemes = {
+    getThemes: () => adminCards.getThemes()
+};
