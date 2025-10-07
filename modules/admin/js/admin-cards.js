@@ -73,16 +73,19 @@ class AdminCards {
             const themeCards = this.filteredCards.filter(card => card.category === theme.slug);
 
             return `
-                <div class="theme-section">
+                <div class="theme-section" data-theme-slug="${theme.slug}">
                     <div class="theme-header">
                         <h3>${theme.icon} ${theme.name}</h3>
                         <div class="theme-actions">
                             <span class="theme-card-count">${themeCards.length} carte(s)</span>
-                            <button class="admin-btn-secondary edit-theme-btn" data-theme-id="${theme.id}">
-                                ✏️ Modifier le thème
+                            <button class="admin-btn-primary create-card-in-theme-btn" data-theme-slug="${theme.slug}" title="Nouvelle carte">
+                                ➕
                             </button>
-                            <button class="admin-btn-danger delete-theme-btn" data-theme-id="${theme.id}">
-                                🗑️ Supprimer
+                            <button class="admin-btn-secondary edit-theme-btn" data-theme-id="${theme.id}" title="Modifier le thème">
+                                ✏️
+                            </button>
+                            <button class="admin-btn-danger delete-theme-btn" data-theme-id="${theme.id}" title="Supprimer le thème">
+                                🗑️
                             </button>
                         </div>
                     </div>
@@ -105,11 +108,11 @@ class AdminCards {
                                             </div>
                                             <p class="admin-card-description">${card.description}</p>
                                             <div class="admin-card-actions">
-                                                <button class="admin-btn-primary edit-card-btn" data-card-id="${card.id}">
-                                                    ✏️ Modifier
+                                                <button class="edit-card-btn" data-card-id="${card.id}" title="Modifier">
+                                                    ✏️
                                                 </button>
-                                                <button class="admin-btn-danger delete-card-btn" data-card-id="${card.id}">
-                                                    🗑️ Supprimer
+                                                <button class="delete-card-btn" data-card-id="${card.id}" title="Supprimer">
+                                                    🗑️
                                                 </button>
                                             </div>
                                         </div>
@@ -128,10 +131,6 @@ class AdminCards {
 
     // Attacher les événements
     attachEvents() {
-        // Bouton créer une carte
-        const createBtn = document.getElementById('create-card-btn');
-        createBtn.addEventListener('click', () => this.openCardModal());
-
         // Bouton créer un thème
         const createThemeBtn = document.getElementById('create-theme-btn');
         createThemeBtn.addEventListener('click', () => this.openThemeModal());
@@ -196,7 +195,7 @@ class AdminCards {
     }
 
     // Ouvrir la modale pour créer/éditer une carte
-    openCardModal(card = null) {
+    openCardModal(card = null, preselectedThemeSlug = null) {
         this.currentCard = card;
 
         const title = document.getElementById('card-modal-title');
@@ -224,7 +223,7 @@ class AdminCards {
             cardId.value = '';
             name.value = '';
             description.value = '';
-            theme.value = '';
+            theme.value = preselectedThemeSlug || '';
             rarity.value = '';
             image.value = '';
             this.updateImagePreview('');
@@ -371,6 +370,14 @@ class AdminCards {
 
     // Attacher les événements des boutons thèmes
     attachThemeEvents() {
+        // Boutons créer une carte dans un thème
+        document.querySelectorAll('.create-card-in-theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const themeSlug = btn.dataset.themeSlug;
+                this.openCardModal(null, themeSlug);
+            });
+        });
+
         // Boutons modifier
         document.querySelectorAll('.edit-theme-btn').forEach(btn => {
             btn.addEventListener('click', () => {
