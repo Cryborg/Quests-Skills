@@ -38,7 +38,7 @@ class UIManager {
 
         this.cacheElements();
         this.bindEvents();
-        this.startCooldownUpdate();
+        await this.startCooldownUpdate();
 
         // Initialise l'animation de pioche
         DRAW_ANIMATION.init();
@@ -701,14 +701,14 @@ class UIManager {
     }
 
     // Démarre la mise à jour du cooldown
-    startCooldownUpdate() {
+    async startCooldownUpdate() {
         // Plus de polling ! Les crédits sont mis à jour uniquement quand :
         // 1. L'utilisateur pioche (handleDraw appelle updateDrawButton)
         // 2. L'utilisateur change de page (init appelle updateDrawButton)
         // 3. Les crédits quotidiens se vérifient à la connexion
 
         // On fait juste une première mise à jour au chargement
-        this.updateDrawButton();
+        await this.updateDrawButton();
         this.updateCreditCountdown();
     }
 

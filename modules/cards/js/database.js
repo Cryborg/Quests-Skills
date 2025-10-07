@@ -4,51 +4,56 @@ class DatabaseManager {
         this.collectionCache = null; // Cache de la collection pour éviter trop d'appels API
         this.cacheTimestamp = 0; // Timestamp du dernier fetch
         this.CACHE_DURATION = 30000; // 30 secondes de cache
-        this.initializeData();
+        this.cardsCache = null; // Cache des cartes depuis l'API
+        this.cardsTimestamp = 0; // Timestamp du cache des cartes
     }
 
-    // Initialise les données de base si elles n'existent pas
-    initializeData() {
-        // Vérifie si les cartes existent et ont la nouvelle structure
-        const cards = this.getAllCards();
-        if (!cards || cards.length === 0 || !cards[0].baseRarity) {
-            console.log('🔄 Mise à jour vers le nouveau système de rareté...');
-            this.initializeDefaultCards();
-        }
-
-        // Migre la collection si nécessaire
-        this.migrateCollection();
-
-        const collection = this.getCollection();
-        if (!collection) {
-            this.saveCollection({});
-        }
+    // Initialisation async des cartes depuis l'API
+    async init() {
+        console.log('🎴 Chargement des cartes depuis l\'API...');
+        await this.loadCardsFromAPI();
     }
 
-    // Génère un slug à partir du nom de la carte
-
-    // Migre l'ancienne collection vers le nouveau format
-    migrateCollection() {
-        const collection = this.getCollection();
-        if (!collection) return;
-
-        let needsMigration = false;
-
-        for (const [cardId, collectionItem] of Object.entries(collection)) {
-            if (!collectionItem.currentRarity) {
-                collectionItem.currentRarity = 'common';
-                needsMigration = true;
+    // Charge les cartes depuis l'API
+    async loadCardsFromAPI() {
+        try {
+            // Utilise le cache si valide (cache de 5 minutes pour les cartes)
+            const now = Date.now();
+            if (this.cardsCache && (now - this.cardsTimestamp) < 300000) {
+                return this.cardsCache;
             }
-        }
 
-        if (needsMigration) {
-            console.log('🔄 Migration de la collection vers le nouveau format...');
-            this.saveCollection(collection);
+            const response = await fetch('http://localhost:3000/api/cards');
+            if (!response.ok) {
+                console.error('Failed to load cards from API');
+                return [];
+            }
+
+            const cards = await response.json();
+
+            // Transform les cartes pour avoir le format attendu
+            // Note: On utilise maintenant les IDs INTEGER de la base directement
+            this.cardsCache = cards.map(card => ({
+                id: card.id, // ID INTEGER de la base (1, 2, 3...)
+                name: card.name,
+                theme: card.category, // category dans la base, theme dans le front
+                baseRarity: card.base_rarity,
+                image: card.image,
+                description: card.description
+            }));
+
+            this.cardsTimestamp = now;
+            console.log(`✅ ${this.cardsCache.length} cartes chargées depuis l'API`);
+            return this.cardsCache;
+        } catch (error) {
+            console.error('Error loading cards from API:', error);
+            return [];
         }
     }
 
-    // Crée les cartes par défaut pour les 3 thèmes
-    initializeDefaultCards() {
+    // ANCIENNE VERSION - Sera supprimée après migration
+    // Crée les cartes par défaut pour les 3 thèmes (DEPRECATED)
+    initializeDefaultCards_DEPRECATED() {
         const defaultCards = [
             // MINECRAFT
             {
@@ -276,14 +281,13 @@ class DatabaseManager {
         this.saveCards(defaultCards);
     }
 
-    // Sauvegarde toutes les cartes
-    saveCards(cards) {
-        return UTILS.saveToStorage('all_cards', cards);
-    }
-
-    // Récupère toutes les cartes disponibles
+    // Récupère toutes les cartes disponibles (depuis le cache API)
     getAllCards() {
-        return UTILS.loadFromStorage('all_cards', []);
+        if (!this.cardsCache) {
+            console.warn('⚠️ Cards not loaded yet! Call await DB.init() first');
+            return [];
+        }
+        return this.cardsCache;
     }
 
     // Récupère les cartes par thème
@@ -292,7 +296,7 @@ class DatabaseManager {
         return allCards.filter(card => card.theme === theme);
     }
 
-    // Récupère une carte par son ID
+    // Récupère une carte par son ID (ID INTEGER maintenant)
     getCardById(cardId) {
         const allCards = this.getAllCards();
         return allCards.find(card => card.id === cardId);
@@ -328,10 +332,10 @@ class DatabaseManager {
             // Transforme le tableau en objet indexé par card_id
             const collection = {};
             for (const userCard of cards) {
-                // userCard contient : { id, user_id, card_id, quantity, current_rarity, ... }
+                // userCard contient : { id, user_id, card_id, quantity, rarity, ... }
                 collection[userCard.card_id] = {
                     count: userCard.quantity,
-                    currentRarity: userCard.current_rarity || 'common',
+                    currentRarity: userCard.rarity || 'common',
                     level: 1, // Pas dans la DB pour l'instant
                     firstObtained: new Date(userCard.created_at).getTime()
                 };
@@ -532,7 +536,7 @@ class DatabaseManager {
     // Statistiques de la collection
     getCollectionStats() {
         const allCards = this.getAllCards();
-        const collection = this.getCollection();
+        const collection = this.getCollectionSync(); // Utilise la version sync qui lit le cache
 
         const totalCards = allCards.length;
         const ownedCards = Object.keys(collection).length;
@@ -574,7 +578,7 @@ class DatabaseManager {
 
             const response = await authService.fetchAPI(`/users/${user.id}/credits`);
             const data = await response.json();
-            return data.credits || CONFIG.CREDITS.INITIAL;
+            return data.credits ?? CONFIG.CREDITS.INITIAL;
         } catch (error) {
             console.error('Failed to get credits:', error);
             return CONFIG.CREDITS.INITIAL;

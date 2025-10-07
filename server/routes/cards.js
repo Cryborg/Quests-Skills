@@ -8,7 +8,16 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         const cards = await all('SELECT * FROM cards ORDER BY name ASC');
-        res.json(cards);
+
+        // Transformer les chemins d'images relatifs en chemins absolus
+        const cardsWithFullPaths = cards.map(card => ({
+            ...card,
+            image: card.image.startsWith('images/')
+                ? `/shared/${card.image}`
+                : card.image
+        }));
+
+        res.json(cardsWithFullPaths);
     } catch (error) {
         console.error('Error fetching cards:', error);
         res.status(500).json({ error: 'Failed to fetch cards' });
@@ -24,7 +33,15 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Card not found' });
         }
 
-        res.json(card);
+        // Transformer le chemin d'image relatif en chemin absolu
+        const cardWithFullPath = {
+            ...card,
+            image: card.image.startsWith('images/')
+                ? `/shared/${card.image}`
+                : card.image
+        };
+
+        res.json(cardWithFullPath);
     } catch (error) {
         console.error('Error fetching card:', error);
         res.status(500).json({ error: 'Failed to fetch card' });
