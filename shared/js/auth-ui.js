@@ -85,19 +85,20 @@ class AuthUI {
                 }
 
                 .auth-modal-content {
-                    background: white;
+                    background: #1a1a2e;
+                    border: 2px solid #667eea;
                     border-radius: 12px;
                     padding: 30px;
                     max-width: 450px;
                     width: 90%;
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
                 }
 
                 .auth-tabs {
                     display: flex;
                     gap: 10px;
                     margin-bottom: 25px;
-                    border-bottom: 2px solid #e0e0e0;
+                    border-bottom: 2px solid #2a2a4e;
                 }
 
                 .auth-tab {
@@ -109,18 +110,18 @@ class AuthUI {
                     cursor: pointer;
                     font-size: 16px;
                     font-weight: 500;
-                    color: #666;
+                    color: #8a8aa8;
                     transition: all 0.3s;
                 }
 
                 .auth-tab.active {
-                    color: #4a90e2;
-                    border-bottom-color: #4a90e2;
+                    color: #667eea;
+                    border-bottom-color: #667eea;
                 }
 
                 .auth-form h2 {
                     margin: 0 0 20px 0;
-                    color: #333;
+                    color: #e0e0ff;
                     font-size: 24px;
                 }
 
@@ -131,29 +132,32 @@ class AuthUI {
                 .form-group label {
                     display: block;
                     margin-bottom: 8px;
-                    color: #555;
+                    color: #b8b8d8;
                     font-weight: 500;
                 }
 
                 .form-group input {
                     width: 100%;
                     padding: 12px;
-                    border: 2px solid #e0e0e0;
+                    background: #2a2a4e;
+                    border: 2px solid #3a3a6e;
                     border-radius: 6px;
                     font-size: 15px;
+                    color: #e0e0ff;
                     transition: border-color 0.3s;
                     box-sizing: border-box;
                 }
 
                 .form-group input:focus {
                     outline: none;
-                    border-color: #4a90e2;
+                    border-color: #667eea;
+                    background: #333355;
                 }
 
                 .form-group small {
                     display: block;
                     margin-top: 5px;
-                    color: #888;
+                    color: #8a8aa8;
                     font-size: 13px;
                 }
 
