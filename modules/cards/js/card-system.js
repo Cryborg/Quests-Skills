@@ -119,8 +119,8 @@ class CardSystem {
     }
 
     // Améliore une carte en utilisant des doublons (amélioration de rareté)
-    upgradeCard(cardId) {
-        return DB.upgradeCardRarity(cardId);
+    async upgradeCard(cardId) {
+        return await DB.upgradeCardRarity(cardId);
     }
 
     // Calcule les points d'une carte selon sa rareté actuelle

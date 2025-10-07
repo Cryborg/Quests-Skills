@@ -553,7 +553,7 @@ class UIManager {
 
     // Gère l'amélioration d'une carte avec animation
     async handleCardUpgrade(card) {
-        const result = CARD_SYSTEM.upgradeCard(card.id);
+        const result = await CARD_SYSTEM.upgradeCard(card.id);
 
         if (result.success) {
             // Met à jour l'affichage général IMMÉDIATEMENT (en arrière-plan)

@@ -417,78 +417,86 @@ class DatabaseManager {
         return false;
     }
 
-    // Améliore la rareté d'une carte
-    upgradeCardRarity(cardId) {
-        const collection = this.getCollectionSync();
-        const card = this.getCardById(cardId);
+    // Améliore la rareté d'une carte via l'API
+    async upgradeCardRarity(cardId) {
+        try {
+            const user = authService.getCurrentUser();
+            if (!user) return { success: false, message: 'Utilisateur non connecté' };
 
-        if (!collection[cardId] || !card) {
-            return { success: false, message: 'Carte introuvable' };
-        }
+            const collection = this.getCollectionSync();
+            const card = this.getCardById(cardId);
 
-        const currentRarity = collection[cardId].currentRarity || 'common';
-        const rarityOrder = ['common', 'rare', 'very_rare', 'epic', 'legendary'];
-        const currentIndex = rarityOrder.indexOf(currentRarity);
-        const maxIndex = rarityOrder.indexOf(card.baseRarity);
-
-        // Toutes les cartes peuvent maintenant atteindre Légendaire
-        const legendaryIndex = rarityOrder.indexOf('legendary');
-        if (currentIndex >= legendaryIndex) {
-            return {
-                success: false,
-                message: 'Cette carte a atteint sa rareté maximale (Légendaire)',
-                maxRarity: 'legendary'
-            };
-        }
-
-        // Calcule le coût d'amélioration (de plus en plus cher)
-        const upgradeCost = Math.pow(2, currentIndex + 2); // 4, 8, 16, 32...
-
-        if (collection[cardId].count < upgradeCost) {
-            return {
-                success: false,
-                message: `Il faut ${upgradeCost} exemplaires pour cette amélioration`,
-                required: upgradeCost,
-                current: collection[cardId].count
-            };
-        }
-
-        // Effectue l'amélioration
-        const newRarity = rarityOrder[currentIndex + 1];
-        collection[cardId].currentRarity = newRarity;
-
-        // Si on atteint Légendaire, convertit les cartes restantes en crédits
-        let creditsEarned = 0;
-        let excessCards = 0;
-
-        if (newRarity === 'legendary') {
-            // Une fois Légendaire, convertit toutes les cartes en excès en crédits
-            const remainingCards = collection[cardId].count - upgradeCost;
-            excessCards = Math.max(0, remainingCards);
-            creditsEarned = excessCards * CONFIG.CREDITS.EXCESS_CARD_VALUE;
-
-            // Garde seulement 1 exemplaire Légendaire
-            collection[cardId].count = 1;
-
-            // Ajoute les crédits gagnés
-            if (creditsEarned > 0) {
-                this.addCredits(creditsEarned);
+            if (!collection[cardId] || !card) {
+                return { success: false, message: 'Carte introuvable' };
             }
-        } else {
-            // Pour les autres niveaux, consomme exactement le coût d'amélioration
-            collection[cardId].count -= upgradeCost;
+
+            const currentRarity = collection[cardId].currentRarity || 'common';
+            const rarityOrder = ['common', 'rare', 'very_rare', 'epic', 'legendary'];
+            const currentIndex = rarityOrder.indexOf(currentRarity);
+
+            // Toutes les cartes peuvent maintenant atteindre Légendaire
+            const legendaryIndex = rarityOrder.indexOf('legendary');
+            if (currentIndex >= legendaryIndex) {
+                return {
+                    success: false,
+                    message: 'Cette carte a atteint sa rareté maximale (Légendaire)',
+                    maxRarity: 'legendary'
+                };
+            }
+
+            // Calcule le coût d'amélioration (de plus en plus cher)
+            const upgradeCost = Math.pow(2, currentIndex + 2); // 4, 8, 16, 32...
+
+            if (collection[cardId].count < upgradeCost) {
+                return {
+                    success: false,
+                    message: `Il faut ${upgradeCost} exemplaires pour cette amélioration`,
+                    required: upgradeCost,
+                    current: collection[cardId].count
+                };
+            }
+
+            // Calcule la nouvelle rareté
+            const newRarity = rarityOrder[currentIndex + 1];
+
+            // Appel API pour upgrade
+            const response = await authService.fetchAPI(`/users/${user.id}/cards/${cardId}/upgrade`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to_rarity: newRarity,
+                    cost: upgradeCost
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                return {
+                    success: false,
+                    message: error.error || 'Erreur lors de l\'amélioration'
+                };
+            }
+
+            const result = await response.json();
+
+            // Invalide le cache pour forcer un refresh
+            this.invalidateCollectionCache();
+
+            return {
+                success: true,
+                newRarity,
+                message: `Carte améliorée en ${CONFIG.RARITIES[newRarity].name} !`,
+                cost: upgradeCost,
+                creditsEarned: result.creditsEarned || 0,
+                excessCards: result.excessCards || 0
+            };
+        } catch (error) {
+            console.error('Failed to upgrade card rarity:', error);
+            return {
+                success: false,
+                message: 'Erreur lors de l\'amélioration'
+            };
         }
-
-        this.saveCollection(collection);
-
-        return {
-            success: true,
-            newRarity,
-            message: `Carte améliorée en ${CONFIG.RARITIES[newRarity].name} !`,
-            cost: upgradeCost,
-            creditsEarned,
-            excessCards
-        };
     }
 
     // Retire des cartes de la collection (pour les améliorations)

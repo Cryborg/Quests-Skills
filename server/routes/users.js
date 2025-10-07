@@ -236,7 +236,7 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
                 // Insère avec current_rarity = 'common' par défaut
                 const now = new Date().toISOString();
                 await run(
-                    'INSERT INTO user_cards (user_id, card_id, quantity, rarity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+                    'INSERT INTO user_cards (user_id, card_id, quantity, current_rarity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
                     [userId, cardId, count, 'common', now, now]
                 );
             }
@@ -283,10 +283,29 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
             return res.status(400).json({ error: 'Not enough cards to upgrade' });
         }
 
+        let creditsEarned = 0;
+        let excessCards = 0;
+        let newQuantity = userCard.quantity - cost;
+
+        // Si on atteint Légendaire, convertit les cartes en excès en crédits
+        if (to_rarity === 'legendary') {
+            excessCards = Math.max(0, newQuantity);
+            creditsEarned = excessCards * 1; // 1 crédit par carte en excès
+            newQuantity = 1; // Garde seulement 1 exemplaire Légendaire
+
+            // Ajoute les crédits gagnés si nécessaire
+            if (creditsEarned > 0) {
+                await run(
+                    'UPDATE user_credits SET credits = credits + ? WHERE user_id = ?',
+                    [creditsEarned, userId]
+                );
+            }
+        }
+
         // Upgrade: déduire le coût et changer la rareté
         await run(
-            'UPDATE user_cards SET current_rarity = ?, quantity = ? WHERE id = ?',
-            [to_rarity, userCard.quantity - cost, userCard.id]
+            'UPDATE user_cards SET current_rarity = ?, quantity = ?, updated_at = ? WHERE id = ?',
+            [to_rarity, newQuantity, new Date().toISOString(), userCard.id]
         );
 
         const updated = await get(
@@ -297,7 +316,11 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
             [userCard.id]
         );
 
-        res.json(updated);
+        res.json({
+            card: updated,
+            creditsEarned,
+            excessCards
+        });
     } catch (error) {
         console.error('Error upgrading card:', error);
         res.status(500).json({ error: 'Failed to upgrade card' });

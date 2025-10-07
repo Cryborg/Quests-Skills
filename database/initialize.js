@@ -146,7 +146,7 @@ async function createTables() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
       card_id INTEGER NOT NULL,
-      rarity TEXT NOT NULL,
+      current_rarity TEXT NOT NULL DEFAULT 'common',
       quantity INTEGER DEFAULT 1,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
