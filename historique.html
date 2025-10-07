@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Historique - Bonus Maths</title>
+    <script src="../../version.js"></script>
+    <link rel="stylesheet" href="historique.css">
+    <link rel="stylesheet" href="../../arcade-theme.css">
+</head>
+<body>
+    <div class="container">
+        <header class="game-header">
+            <h1>📊 Historique des calculs</h1>
+            <div class="header-buttons">
+                <button id="debug-btn" class="debug-btn" title="Debug">🔧 Debug</button>
+                <button id="back-btn" class="back-btn" title="Retour">🔙 Retour</button>
+            </div>
+        </header>
+
+        <main class="history-content">
+            <!-- Statistiques par jour -->
+            <div class="history-by-day" id="history-by-day">
+                <!-- Rempli dynamiquement -->
+            </div>
+
+            <div class="empty-state" id="empty-state">
+                <p>📝 Aucun calcul dans l'historique</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="historique.js"></script>
+    <script src="../../arcade-theme-integration.js"></script>
+</body>
+</html>

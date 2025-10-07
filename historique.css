@@ -1,0 +1,340 @@
+/* Historique - Styles */
+
+:root {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-card: #2a2a2a;
+    --bg-hover: #3a3a3a;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted: #808080;
+    --border-color: #404040;
+    --accent-primary: #4a9eff;
+    --accent-secondary: #6b46c1;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-orange: #f59e0b;
+}
+
+body {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-primary);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.game-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: var(--text-primary);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.header-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.back-btn, .debug-btn {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.debug-btn {
+    background: linear-gradient(135deg, var(--accent-red), #dc2626);
+}
+
+.back-btn:hover, .debug-btn:hover {
+    transform: translateY(-2px);
+}
+
+.back-btn:hover {
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+}
+
+.debug-btn:hover {
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.history-content {
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+}
+
+/* Historique par jour */
+.history-by-day {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.day-section {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.day-section:hover {
+    border-color: var(--accent-primary);
+}
+
+.day-header {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.operations-grid {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.operation-stat {
+    background: var(--bg-primary);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+    flex: 1;
+}
+
+.operation-stat.has-data {
+    border-color: var(--accent-primary);
+}
+
+.operation-stat-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.operation-stat-details {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.operation-stat-rate {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--accent-primary);
+}
+
+.operation-stat-rate.good {
+    color: var(--accent-green);
+}
+
+.operation-stat-rate.medium {
+    color: var(--accent-orange);
+}
+
+.operation-stat-rate.bad {
+    color: var(--accent-red);
+}
+
+.operation-stat.no-data {
+    opacity: 0.5;
+}
+
+.operation-stat.no-data .operation-stat-rate {
+    color: var(--text-muted);
+}
+
+.operation-stat.clickable {
+    cursor: pointer;
+}
+
+.operation-stat.clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+}
+
+.day-total {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--border-color);
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.day-total strong {
+    color: var(--accent-orange);
+    font-size: 1.3rem;
+}
+
+/* Section détails */
+.details-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.details-header {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.calculations-list {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.calculation-item {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.calculation-item.success {
+    border-left: 4px solid var(--accent-green);
+}
+
+.calculation-item.failed {
+    border-left: 4px solid var(--accent-red);
+}
+
+.calculation-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.calculation-time {
+    color: var(--text-secondary);
+}
+
+.calculation-result {
+    font-weight: 600;
+}
+
+.calculation-result.success {
+    color: var(--accent-green);
+}
+
+.calculation-result.failed {
+    color: var(--accent-red);
+}
+
+.calculation-display {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    padding: 0.8rem;
+    border-radius: 6px;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+/* État vide */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    display: none;
+}
+
+.empty-state.show {
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .game-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .game-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .back-btn {
+        width: 100%;
+    }
+
+    .history-content {
+        padding: 1.5rem;
+    }
+
+    .filters {
+        justify-content: center;
+    }
+
+    .filter-btn {
+        flex: 1;
+        min-width: 100px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .history-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-header h1 {
+        font-size: 1.3rem;
+    }
+
+    .history-content {
+        padding: 1rem;
+    }
+
+    .history-calc {
+        font-size: 1rem;
+        padding: 0.8rem;
+    }
+}

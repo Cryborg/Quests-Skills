@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Bonus Mathématiques</title>
+    <script src="../../version.js"></script>
+    <link rel="stylesheet" href="bonus.css">
+    <link rel="stylesheet" href="../../arcade-theme.css">
+</head>
+<body>
+    <div class="container">
+        <header class="game-header">
+            <h1>🎓 Bonus Mathématiques</h1>
+            <div class="header-buttons">
+                <button id="history-btn" class="history-btn" title="Historique">📊 Historique</button>
+                <button id="back-btn" class="back-btn" title="Retour">🔙 Retour</button>
+            </div>
+        </header>
+
+        <main class="bonus-content">
+            <!-- Écran de sélection -->
+            <section id="selection-screen" class="screen active">
+                <h2>Choisis ton type d'opération</h2>
+                <p class="subtitle">Résous des opérations pour gagner des cartes bonus !</p>
+
+                <div class="operations-grid">
+                    <button class="operation-card" data-operation="addition">
+                        <div class="operation-icon">➕</div>
+                        <div class="operation-name">Addition</div>
+                        <div class="operation-reward">🎁 1 carte</div>
+                        <div class="operation-remaining">Restantes: <span id="remaining-addition">3</span>/3</div>
+                    </button>
+
+                    <button class="operation-card" data-operation="subtraction">
+                        <div class="operation-icon">➖</div>
+                        <div class="operation-name">Soustraction</div>
+                        <div class="operation-reward">🎁 2 cartes</div>
+                        <div class="operation-remaining">Restantes: <span id="remaining-subtraction">3</span>/3</div>
+                    </button>
+
+                    <button class="operation-card" data-operation="multiplication">
+                        <div class="operation-icon">✖️</div>
+                        <div class="operation-name">Multiplication</div>
+                        <div class="operation-reward">🎁 5 cartes</div>
+                        <div class="operation-remaining">Restantes: <span id="remaining-multiplication">3</span>/3</div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Écran d'exercice -->
+            <section id="exercise-screen" class="screen">
+                <div class="exercise-header">
+                    <button id="cancel-btn" class="cancel-btn">❌ Annuler</button>
+                    <h2 id="exercise-title">Addition</h2>
+                </div>
+
+                <div class="operation-container">
+                    <div id="operation-display"></div>
+                </div>
+
+                <div class="validation-area">
+                    <button id="validate-btn" class="validate-btn">✅ Vérifier</button>
+                    <button id="clear-btn" class="clear-btn">🔄 Effacer</button>
+                </div>
+
+                <div id="result-message" class="result-message"></div>
+            </section>
+        </main>
+
+        <!-- Toast pour les notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="bonus.js"></script>
+    <script src="../../arcade-theme-integration.js"></script>
+</body>
+</html>
