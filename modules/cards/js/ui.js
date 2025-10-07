@@ -544,7 +544,7 @@ class UIManager {
                 console.error('Erreur lors de l\'animation:', error);
                 // Fallback sans animation
                 this.showToast(`${result.totalDrawn} carte${result.totalDrawn > 1 ? 's' : ''} piochée${result.totalDrawn > 1 ? 's' : ''} !`, 'success');
-                this.render();
+                await this.render();
             }
         } else {
             this.showToast(result.message, 'error');
@@ -557,7 +557,7 @@ class UIManager {
 
         if (result.success) {
             // Met à jour l'affichage général IMMÉDIATEMENT (en arrière-plan)
-            this.render();
+            await this.render();
 
             // Lance l'animation d'amélioration
             await this.animateCardUpgrade(result.newRarity);

@@ -14,6 +14,10 @@ class App {
             // Initialise la base de données
             console.log('📊 Chargement de la base de données...');
 
+            // Charge les cartes depuis l'API
+            console.log('🎴 Chargement des cartes...');
+            await DB.init();
+
             // Charge la collection depuis l'API pour initialiser le cache
             console.log('🔄 Chargement de la collection...');
             await DB.getCollection();
@@ -61,18 +65,18 @@ class App {
         // Ajoute des raccourcis de debug au window
         window.DEBUG = {
             // Reset complet
-            reset: () => {
+            reset: async () => {
                 DB.resetDatabase();
-                UI.render();
+                await UI.render();
                 console.log('🔄 Base de données réinitialisée');
             },
 
             // Ajoute une carte spécifique
-            addCard: (cardId) => {
+            addCard: async (cardId) => {
                 const card = DB.getCardById(cardId);
                 if (card) {
-                    DB.addToCollection(cardId);
-                    UI.render();
+                    await DB.addToCollection(cardId);
+                    await UI.render();
                     console.log(`✅ Carte ${card.name} ajoutée à la collection`);
                 } else {
                     console.log(`❌ Carte ${cardId} introuvable`);
@@ -80,12 +84,12 @@ class App {
             },
 
             // Ajoute toutes les cartes
-            addAllCards: () => {
+            addAllCards: async () => {
                 const allCards = DB.getAllCards();
-                allCards.forEach(card => {
-                    DB.addToCollection(card.id);
-                });
-                UI.render();
+                for (const card of allCards) {
+                    await DB.addToCollection(card.id);
+                }
+                await UI.render();
                 console.log(`✅ Toutes les cartes (${allCards.length}) ajoutées à la collection`);
             },
 
@@ -97,13 +101,13 @@ class App {
             },
 
             // Force une pioche
-            forceDraw: () => {
+            forceDraw: async () => {
                 // Temporairement désactive le cooldown
                 const originalTime = UTILS.loadFromStorage(CONFIG.STORAGE_KEYS.LAST_DRAW, 0);
                 UTILS.saveToStorage(CONFIG.STORAGE_KEYS.LAST_DRAW, 0);
 
-                const result = CARD_SYSTEM.drawCard();
-                UI.render();
+                const result = await CARD_SYSTEM.drawCard();
+                await UI.render();
 
                 // Restaure le cooldown original
                 UTILS.saveToStorage(CONFIG.STORAGE_KEYS.LAST_DRAW, originalTime);
@@ -137,20 +141,20 @@ class App {
             },
 
             // Fonction de test : ajoute 200 cartes de test
-            addTestCards: () => {
+            addTestCards: async () => {
                 // Ajoute 200 Creeper (Minecraft)
-                for(let i = 0; i < 200; i++) { DB.addToCollection('mc_01'); }
+                for(let i = 0; i < 200; i++) { await DB.addToCollection('mc_01'); }
                 console.log('✅ 200 Creeper ajoutés');
 
                 // Ajoute 200 Lune (Astronomie)
-                for(let i = 0; i < 200; i++) { DB.addToCollection('space_02'); }
+                for(let i = 0; i < 200; i++) { await DB.addToCollection('space_02'); }
                 console.log('✅ 200 Lune ajoutés');
 
                 // Ajoute 200 Diplodocus (Dinosaures)
-                for(let i = 0; i < 200; i++) { DB.addToCollection('dino_04'); }
+                for(let i = 0; i < 200; i++) { await DB.addToCollection('dino_04'); }
                 console.log('✅ 200 Diplodocus ajoutés');
 
-                UI.render();
+                await UI.render();
                 console.log('🎉 Test prêt ! Tu peux maintenant améliorer ces cartes jusqu\'au niveau Légendaire !');
             }
         };
@@ -209,13 +213,13 @@ class App {
 
     // Gestion de la visibilité de la page
     setupVisibilityHandling() {
-        document.addEventListener('visibilitychange', () => {
+        document.addEventListener('visibilitychange', async () => {
             if (document.hidden) {
                 console.log('📱 Application en arrière-plan');
             } else {
                 console.log('📱 Application au premier plan');
                 // Actualise l'affichage au retour
-                UI.render();
+                await UI.render();
             }
         });
     }

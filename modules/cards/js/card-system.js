@@ -137,7 +137,7 @@ class CardSystem {
     // Récupère toutes les cartes avec leurs informations de collection
     getCardsWithCollectionInfo(themeFilter = null) {
         const allCards = DB.getAllCards();
-        const collection = DB.getCollection();
+        const collection = DB.getCollectionSync(); // Utilise la version sync qui lit le cache
 
         let filteredCards = allCards;
 
@@ -236,7 +236,7 @@ class CardSystem {
 
     // Vérifie si une carte peut être améliorée en rareté
     canUpgradeRarity(cardId) {
-        const collection = DB.getCollection();
+        const collection = DB.getCollectionSync();
         const card = DB.getCardById(cardId);
 
         if (!collection[cardId] || !card) {
@@ -285,7 +285,7 @@ class CardSystem {
 
     // Calcule le score total du joueur
     calculateTotalScore() {
-        const collection = DB.getCollection();
+        const collection = DB.getCollectionSync();
         const allCards = DB.getAllCards();
         let totalScore = 0;
 

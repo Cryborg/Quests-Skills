@@ -192,6 +192,8 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
         const userId = parseInt(req.params.id);
         const { cards } = req.body; // [{card_id: '...', count: 1}, ...] ou {card_id: '...'} pour une seule
 
+        console.log('📝 POST /users/:id/cards - Body:', JSON.stringify(req.body, null, 2));
+
         // Supporte aussi le format single card {card_id: '...'}
         let cardsArray;
         if (Array.isArray(cards)) {
@@ -207,14 +209,19 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
             return res.status(400).json({ error: 'Cards array cannot be empty' });
         }
 
+        console.log('📊 Cards array:', JSON.stringify(cardsArray.slice(0, 3), null, 2));
+
         // Compte les occurrences de chaque card_id
         const cardCounts = {};
         for (const card of cardsArray) {
             cardCounts[card.card_id] = (cardCounts[card.card_id] || 0) + (card.count || 1);
         }
 
+        console.log('🔢 Card counts:', cardCounts);
+
         // Pour chaque carte unique, update ou insert
         for (const [cardId, count] of Object.entries(cardCounts)) {
+            console.log(`🔍 Processing card ${cardId} (type: ${typeof cardId})`);
             const existing = await get(
                 'SELECT * FROM user_cards WHERE user_id = ? AND card_id = ?',
                 [userId, cardId]
@@ -226,9 +233,11 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
                     [existing.quantity + count, existing.id]
                 );
             } else {
+                // Insère avec current_rarity = 'common' par défaut
+                const now = new Date().toISOString();
                 await run(
-                    'INSERT INTO user_cards (user_id, card_id, quantity) VALUES (?, ?, ?)',
-                    [userId, cardId, count]
+                    'INSERT INTO user_cards (user_id, card_id, quantity, rarity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+                    [userId, cardId, count, 'common', now, now]
                 );
             }
         }

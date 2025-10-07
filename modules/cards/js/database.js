@@ -406,7 +406,7 @@ class DatabaseManager {
 
     // Met à jour le niveau d'une carte
     upgradeCard(cardId, newLevel) {
-        const collection = this.getCollection();
+        const collection = this.getCollectionSync();
 
         if (collection[cardId]) {
             collection[cardId].level = newLevel;
@@ -419,7 +419,7 @@ class DatabaseManager {
 
     // Améliore la rareté d'une carte
     upgradeCardRarity(cardId) {
-        const collection = this.getCollection();
+        const collection = this.getCollectionSync();
         const card = this.getCardById(cardId);
 
         if (!collection[cardId] || !card) {
@@ -493,7 +493,7 @@ class DatabaseManager {
 
     // Retire des cartes de la collection (pour les améliorations)
     removeFromCollection(cardId, count) {
-        const collection = this.getCollection();
+        const collection = this.getCollectionSync();
 
         if (collection[cardId] && collection[cardId].count >= count) {
             collection[cardId].count -= count;
@@ -511,7 +511,7 @@ class DatabaseManager {
 
     // Vérifie si le joueur possède une carte
     hasCard(cardId) {
-        const collection = this.getCollection();
+        const collection = this.getCollectionSync();
         return collection[cardId] && collection[cardId].count > 0;
     }
 
