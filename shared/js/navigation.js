@@ -24,15 +24,16 @@ class NavigationUI {
                 label: 'Exercices de maths',
                 href: '/modules/math-exercises/index.html',
                 id: 'math'
-            },
-            {
-                icon: '👑',
-                label: 'Administration',
-                href: '/modules/admin/index.html',
-                id: 'admin',
-                adminOnly: true
             }
         ];
+
+        // Lien admin (sera ajouté juste avant la déconnexion)
+        this.adminLink = {
+            icon: '👑',
+            label: 'Administration',
+            href: '/modules/admin/index.html',
+            id: 'admin'
+        };
     }
 
     // Initialiser la navigation
@@ -158,14 +159,18 @@ class NavigationUI {
 
                 <!-- Navigation links -->
                 <div class="nav-menu">
-                    ${this.navLinks
-                        .filter(link => !link.adminOnly || this.currentUser.is_admin)
-                        .map(link => `
-                            <a href="${link.href}" class="nav-link" data-nav-id="${link.id}">
-                                <span class="nav-link-icon">${link.icon}</span>
-                                <span>${link.label}</span>
-                            </a>
-                        `).join('')}
+                    ${this.navLinks.map(link => `
+                        <a href="${link.href}" class="nav-link" data-nav-id="${link.id}">
+                            <span class="nav-link-icon">${link.icon}</span>
+                            <span>${link.label}</span>
+                        </a>
+                    `).join('')}
+                    ${this.currentUser.is_admin ? `
+                        <a href="${this.adminLink.href}" class="nav-link" data-nav-id="${this.adminLink.id}">
+                            <span class="nav-link-icon">${this.adminLink.icon}</span>
+                            <span>${this.adminLink.label}</span>
+                        </a>
+                    ` : ''}
                 </div>
 
                 <!-- Logout button -->
@@ -273,8 +278,9 @@ class NavigationUI {
     }
 
     // Gérer la déconnexion
-    handleLogout() {
-        if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+    async handleLogout() {
+        const confirmed = await window.confirm('Êtes-vous sûr de vouloir vous déconnecter ?');
+        if (confirmed) {
             authService.logout();
         }
     }

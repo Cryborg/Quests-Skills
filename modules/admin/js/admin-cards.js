@@ -160,6 +160,9 @@ class AdminCards {
         const rarity = document.getElementById('card-rarity');
         const image = document.getElementById('card-image');
 
+        // Charger les thèmes dans le select
+        this.loadThemesIntoSelect();
+
         if (card) {
             title.textContent = 'Modifier une carte';
             cardId.value = card.id;
@@ -181,6 +184,40 @@ class AdminCards {
         }
 
         adminUI.showModal('card-modal');
+    }
+
+    // Charger les thèmes dans le select
+    loadThemesIntoSelect() {
+        const themeSelect = document.getElementById('card-theme');
+        if (!themeSelect) return;
+
+        // Récupérer les thèmes depuis adminThemes
+        const themes = adminThemes.getThemes();
+
+        // Vider le select et ajouter l'option par défaut
+        themeSelect.innerHTML = '<option value="">-- Choisir un thème --</option>';
+
+        // Ajouter les thèmes dynamiquement
+        themes.forEach(theme => {
+            const option = document.createElement('option');
+            option.value = theme.slug;
+            option.textContent = `${theme.icon} ${theme.name}`;
+            themeSelect.appendChild(option);
+        });
+
+        // Mettre à jour aussi le filtre de thèmes dans la liste des cartes
+        const filterSelect = document.getElementById('cards-theme-filter');
+        if (filterSelect) {
+            const selectedValue = filterSelect.value; // Sauvegarder la sélection actuelle
+            filterSelect.innerHTML = '<option value="">Tous les thèmes</option>';
+            themes.forEach(theme => {
+                const option = document.createElement('option');
+                option.value = theme.slug;
+                option.textContent = `${theme.icon} ${theme.name}`;
+                filterSelect.appendChild(option);
+            });
+            filterSelect.value = selectedValue; // Restaurer la sélection
+        }
     }
 
     // Mettre à jour l'aperçu de l'image

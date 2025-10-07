@@ -9,6 +9,7 @@ async function initAdminPanel() {
 
     // Initialiser les modules
     await adminUsers.init();
+    await adminThemes.init();
     await adminCards.init();
 
     console.log('✅ Admin panel loaded successfully');

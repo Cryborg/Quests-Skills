@@ -57,11 +57,11 @@ async function ensureDatabaseExists() {
   try {
     // Tester si les tables principales existent
     const result = await query(
-      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name IN ('users', 'cards', 'user_credits')"
+      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name IN ('users', 'cards', 'user_credits', 'card_themes')"
     );
     const tableCount = result.rows[0]?.count || 0;
 
-    if (tableCount < 3) {
+    if (tableCount < 4) {
       console.log('⚠️  Missing core tables, initializing database...');
       await initializeDatabase();
     } else {
@@ -98,6 +98,19 @@ async function createTables() {
     )
   `);
   console.log('  ✓ users');
+
+  // Table card_themes
+  await query(`
+    CREATE TABLE IF NOT EXISTS card_themes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      icon TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+  console.log('  ✓ card_themes');
 
   // Table cards
   await query(`
@@ -212,6 +225,32 @@ async function createTables() {
  */
 async function seedInitialData() {
   console.log('🌱 Seeding initial data...');
+
+  // ========================================
+  // Seed Card Themes
+  // ========================================
+  console.log('🎨 Seeding card themes...');
+
+  const themes = [
+    { slug: 'minecraft', name: 'Minecraft', icon: '🟫' },
+    { slug: 'space', name: 'Astronomie', icon: '🌌' },
+    { slug: 'dinosaurs', name: 'Dinosaures', icon: '🦕' }
+  ];
+
+  let themeCount = 0;
+  for (const theme of themes) {
+    const existing = await get('SELECT * FROM card_themes WHERE slug = ?', [theme.slug]);
+    const now = new Date().toISOString();
+
+    if (!existing) {
+      await run(
+        'INSERT INTO card_themes (slug, name, icon, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+        [theme.slug, theme.name, theme.icon, now, now]
+      );
+      themeCount++;
+    }
+  }
+  console.log(`  ✅ ${themeCount} new themes seeded (${themes.length} total)`);
 
   // ========================================
   // Seed Admin User (Cryborg)

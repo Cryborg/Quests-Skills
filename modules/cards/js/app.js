@@ -18,6 +18,15 @@ class App {
             console.log('🎨 Initialisation de l\'interface...');
             await UI.init();
 
+            // Mettre à jour le titre avec le nom de l'utilisateur
+            const currentUser = authService.getCurrentUser();
+            if (currentUser) {
+                const titleEl = document.getElementById('album-title');
+                if (titleEl) {
+                    titleEl.textContent = `🃏 Album de ${currentUser.username}`;
+                }
+            }
+
             // Affiche les informations de debug si en mode développement
             if (this.isDevelopmentMode()) {
                 this.showDebugInfo();
