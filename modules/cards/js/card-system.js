@@ -28,12 +28,14 @@ class CardSystem {
 
         const results = [];
         const drawnCards = {};
+        const cardsToAdd = []; // Collecte les cards_id pour le batch
 
         // Maintenant on pioche les cartes (sans appels API supplémentaires)
         for (let i = 0; i < creditResult.used; i++) {
             const result = this.drawSingleCardLocal();
             if (result.success) {
                 results.push(result);
+                cardsToAdd.push({ card_id: result.card.id, count: 1 });
 
                 // Groupe les cartes identiques
                 const cardId = result.card.id;
@@ -46,6 +48,11 @@ class CardSystem {
                 }
                 drawnCards[cardId].count++;
             }
+        }
+
+        // UN SEUL appel API pour ajouter toutes les cartes à la collection
+        if (cardsToAdd.length > 0) {
+            await DB.addCardsToCollection(cardsToAdd);
         }
 
         // Sauvegarde l'heure de pioche
@@ -68,7 +75,7 @@ class CardSystem {
         return await this.drawMultipleCards(creditsToUse);
     }
 
-    // Pioche une carte aléatoire (fonction interne, SANS appels API)
+    // Pioche une carte aléatoire (fonction interne, SANS appels API ni modification DB)
     drawSingleCardLocal() {
         // Génère une rareté aléatoire selon la baseRarity de la carte
         const baseRarity = UTILS.getRandomRarity();
@@ -98,17 +105,15 @@ class CardSystem {
         const randomIndex = Math.floor(Math.random() * availableCards.length);
         const drawnCard = availableCards[randomIndex];
 
-        // Ajoute la carte à la collection (toujours en 'common' au début)
-        const collectionItem = DB.addToCollection(drawnCard.id);
-
-        // Détermine si c'est un doublon
-        const isDuplicate = collectionItem.count > 1;
+        // Note: on ne modifie plus la collection ici, c'est fait en batch après
+        const currentCount = DB.getCardCount(drawnCard.id);
+        const isDuplicate = currentCount > 0;
 
         return {
             success: true,
             card: drawnCard,
             isDuplicate,
-            newCount: collectionItem.count,
+            newCount: currentCount + 1,  // Valeur future après l'ajout
             message: isDuplicate ? CONFIG.MESSAGES.DUPLICATE_FOUND : CONFIG.MESSAGES.CARD_DRAWN
         };
     }

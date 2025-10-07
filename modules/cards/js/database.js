@@ -348,22 +348,27 @@ class DatabaseManager {
         }
     }
 
-    // Ajoute une carte à la collection via l'API
-    async addToCollection(cardId, level = 1) {
+    // Version synchrone qui utilise uniquement le cache (pour compatibilité)
+    getCollectionSync() {
+        return this.collectionCache || {};
+    }
+
+    // Ajoute plusieurs cartes à la collection en batch
+    async addCardsToCollection(cards) {
         try {
             const user = authService.getCurrentUser();
-            if (!user) return { count: 0 };
+            if (!user) return { success: false };
 
-            // Appel API pour ajouter la carte
+            // Appel API batch pour ajouter toutes les cartes
             const response = await authService.fetchAPI(`/users/${user.id}/cards`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ card_id: cardId })
+                body: JSON.stringify({ cards })
             });
 
             if (!response.ok) {
-                console.error('Failed to add card to collection');
-                return { count: 0 };
+                console.error('Failed to add cards to collection');
+                return { success: false };
             }
 
             const result = await response.json();
@@ -371,17 +376,28 @@ class DatabaseManager {
             // Invalide le cache pour forcer un refresh
             this.invalidateCollectionCache();
 
-            // Retourne dans le format attendu
-            return {
-                count: result.quantity || 1,
-                currentRarity: result.current_rarity || 'common',
-                level: level,
-                firstObtained: new Date(result.created_at).getTime()
-            };
+            return { success: true, collection: result.collection };
         } catch (error) {
-            console.error('Failed to add card to collection:', error);
+            console.error('Failed to add cards to collection:', error);
+            return { success: false };
+        }
+    }
+
+    // Ajoute une carte à la collection via l'API (utilise le batch en interne)
+    async addToCollection(cardId, level = 1) {
+        const result = await this.addCardsToCollection([{ card_id: cardId, count: 1 }]);
+        if (!result.success) {
             return { count: 0 };
         }
+
+        // Trouve la carte ajoutée dans le résultat
+        const addedCard = result.collection.find(c => c.card_id === cardId);
+        return {
+            count: addedCard ? addedCard.quantity : 1,
+            currentRarity: addedCard ? addedCard.current_rarity : 'common',
+            level: level,
+            firstObtained: Date.now()
+        };
     }
 
     // Met à jour le niveau d'une carte
@@ -495,21 +511,21 @@ class DatabaseManager {
         return collection[cardId] && collection[cardId].count > 0;
     }
 
-    // Récupère le nombre de cartes possédées
+    // Récupère le nombre de cartes possédées (utilise le cache)
     getCardCount(cardId) {
-        const collection = this.getCollection();
+        const collection = this.getCollectionSync();
         return collection[cardId] ? collection[cardId].count : 0;
     }
 
-    // Récupère le niveau d'une carte
+    // Récupère le niveau d'une carte (utilise le cache)
     getCardLevel(cardId) {
-        const collection = this.getCollection();
+        const collection = this.getCollectionSync();
         return collection[cardId] ? collection[cardId].level : 1;
     }
 
-    // Récupère la rareté actuelle d'une carte
+    // Récupère la rareté actuelle d'une carte (utilise le cache)
     getCardCurrentRarity(cardId) {
-        const collection = this.getCollection();
+        const collection = this.getCollectionSync();
         return collection[cardId] ? (collection[cardId].currentRarity || 'common') : 'common';
     }
 
