@@ -15,6 +15,7 @@ const cardsRouter = require('./routes/cards');
 const usersRouter = require('./routes/users');
 const bonusRouter = require('./routes/bonus');
 const authRouter = require('./routes/auth');
+const themesRouter = require('./routes/themes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,6 +34,7 @@ app.use('/api/cards', cardsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/bonus-operations', bonusRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/themes', themesRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
