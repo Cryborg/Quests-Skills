@@ -840,6 +840,17 @@ body {
     border: 2px solid #2a2a2a;
     border-radius: 15px;
     padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.theme-section.collapsed .cards-grid {
+    display: none;
+}
+
+.theme-section.collapsed .theme-header {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
 }
 
 .theme-header {
@@ -849,6 +860,29 @@ body {
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 2px solid #2a2a2a;
+}
+
+.theme-header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.theme-collapse-btn {
+    background: transparent;
+    border: 1px solid #404040;
+    color: #4a9eff;
+    font-size: 1rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 40px;
+}
+
+.theme-collapse-btn:hover {
+    background: rgba(74, 158, 255, 0.2);
+    border-color: #4a9eff;
 }
 
 .theme-header h3 {

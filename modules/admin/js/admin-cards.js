@@ -10,6 +10,8 @@ class AdminCards {
         this.filters = {
             rarity: ''
         };
+        this.collapsedThemes = new Set(); // Track collapsed themes
+        this.allCollapsed = false; // Track global collapse state
     }
 
     // Initialiser la gestion des cartes et thèmes
@@ -71,11 +73,17 @@ class AdminCards {
 
         container.innerHTML = this.themes.map(theme => {
             const themeCards = this.filteredCards.filter(card => card.category === theme.slug);
+            const isCollapsed = this.collapsedThemes.has(theme.slug);
 
             return `
-                <div class="theme-section" data-theme-slug="${theme.slug}">
+                <div class="theme-section ${isCollapsed ? 'collapsed' : ''}" data-theme-slug="${theme.slug}">
                     <div class="theme-header">
-                        <h3>${theme.icon} ${theme.name}</h3>
+                        <div class="theme-header-left">
+                            <button class="theme-collapse-btn" data-theme-slug="${theme.slug}" title="${isCollapsed ? 'Déplier' : 'Replier'}">
+                                ${isCollapsed ? '▶' : '▼'}
+                            </button>
+                            <h3>${theme.icon} ${theme.name}</h3>
+                        </div>
                         <div class="theme-actions">
                             <span class="theme-card-count">${themeCards.length} carte(s)</span>
                             <button class="admin-btn-primary create-card-in-theme-btn" data-theme-slug="${theme.slug}" title="Nouvelle carte">
@@ -131,6 +139,10 @@ class AdminCards {
 
     // Attacher les événements
     attachEvents() {
+        // Bouton toggle global
+        const toggleAllBtn = document.getElementById('toggle-all-themes-btn');
+        toggleAllBtn.addEventListener('click', () => this.toggleAllThemes());
+
         // Bouton créer un thème
         const createThemeBtn = document.getElementById('create-theme-btn');
         createThemeBtn.addEventListener('click', () => this.openThemeModal());
@@ -370,6 +382,14 @@ class AdminCards {
 
     // Attacher les événements des boutons thèmes
     attachThemeEvents() {
+        // Boutons collapse par thème
+        document.querySelectorAll('.theme-collapse-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const themeSlug = btn.dataset.themeSlug;
+                this.toggleTheme(themeSlug);
+            });
+        });
+
         // Boutons créer une carte dans un thème
         document.querySelectorAll('.create-card-in-theme-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -393,6 +413,34 @@ class AdminCards {
                 this.deleteTheme(themeId);
             });
         });
+    }
+
+    // Toggle un thème spécifique
+    toggleTheme(themeSlug) {
+        if (this.collapsedThemes.has(themeSlug)) {
+            this.collapsedThemes.delete(themeSlug);
+        } else {
+            this.collapsedThemes.add(themeSlug);
+        }
+        this.renderCards();
+    }
+
+    // Toggle tous les thèmes
+    toggleAllThemes() {
+        const toggleBtn = document.getElementById('toggle-all-themes-btn');
+
+        if (this.allCollapsed) {
+            // Tout déplier
+            this.collapsedThemes.clear();
+            this.allCollapsed = false;
+            toggleBtn.innerHTML = '📦 Tout replier';
+        } else {
+            // Tout replier
+            this.themes.forEach(theme => this.collapsedThemes.add(theme.slug));
+            this.allCollapsed = true;
+            toggleBtn.innerHTML = '📂 Tout déplier';
+        }
+        this.renderCards();
     }
 
     // Ouvrir la modale pour créer/éditer un thème
@@ -486,7 +534,14 @@ class AdminCards {
         const theme = this.themes.find(t => t.id === themeId);
         if (!theme) return;
 
-        if (!await adminUI.confirm(`Voulez-vous vraiment supprimer le thème "${theme.name}" ? Les cartes utilisant ce thème ne pourront plus être affichées.`)) {
+        // Vérifier si le thème contient des cartes
+        const themeCards = this.cards.filter(card => card.category === theme.slug);
+        if (themeCards.length > 0) {
+            adminUI.showToast(`Impossible de supprimer le thème "${theme.name}" : il contient ${themeCards.length} carte(s). Supprimez d'abord toutes les cartes de ce thème.`, 'error');
+            return;
+        }
+
+        if (!await adminUI.confirm(`Voulez-vous vraiment supprimer le thème "${theme.name}" ?`)) {
             return;
         }
 
