@@ -14,6 +14,10 @@ class App {
             // Initialise la base de données
             console.log('📊 Chargement de la base de données...');
 
+            // Charge la collection depuis l'API pour initialiser le cache
+            console.log('🔄 Chargement de la collection...');
+            await DB.getCollection();
+
             // Initialise l'interface utilisateur
             console.log('🎨 Initialisation de l\'interface...');
             await UI.init();
