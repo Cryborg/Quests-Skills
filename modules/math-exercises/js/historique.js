@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Configuration des écouteurs
 function setupEventListeners() {
     document.getElementById('back-btn').addEventListener('click', () => {
-        window.location.href = 'bonus.html';
+        window.location.href = 'index.html';
     });
 
     document.getElementById('debug-btn').addEventListener('click', () => {
