@@ -1,6 +1,9 @@
-// Gestionnaire de base de données (localStorage pour le moment, SQLite plus tard)
+// Gestionnaire de base de données (API + cache en mémoire)
 class DatabaseManager {
     constructor() {
+        this.collectionCache = null; // Cache de la collection pour éviter trop d'appels API
+        this.cacheTimestamp = 0; // Timestamp du dernier fetch
+        this.CACHE_DURATION = 30000; // 30 secondes de cache
         this.initializeData();
     }
 
@@ -295,33 +298,90 @@ class DatabaseManager {
         return allCards.find(card => card.id === cardId);
     }
 
-    // Sauvegarde la collection du joueur
-    saveCollection(collection) {
-        return UTILS.saveToStorage(CONFIG.STORAGE_KEYS.COLLECTION, collection);
+    // Invalide le cache de la collection
+    invalidateCollectionCache() {
+        this.collectionCache = null;
+        this.cacheTimestamp = 0;
     }
 
-    // Récupère la collection du joueur
-    getCollection() {
-        return UTILS.loadFromStorage(CONFIG.STORAGE_KEYS.COLLECTION, {});
-    }
+    // Récupère la collection du joueur depuis l'API
+    async getCollection() {
+        try {
+            const user = authService.getCurrentUser();
+            if (!user) return {};
 
-    // Ajoute une carte à la collection
-    addToCollection(cardId, level = 1) {
-        const collection = this.getCollection();
+            // Utilise le cache si valide
+            const now = Date.now();
+            if (this.collectionCache && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
+                return this.collectionCache;
+            }
 
-        if (collection[cardId]) {
-            collection[cardId].count += 1;
-        } else {
-            collection[cardId] = {
-                count: 1,
-                level: level,
-                currentRarity: 'common', // Toujours common au début
-                firstObtained: Date.now()
-            };
+            // Fetch depuis l'API
+            const response = await authService.fetchAPI(`/users/${user.id}/cards`);
+            if (!response.ok) {
+                console.error('Failed to fetch collection');
+                return {};
+            }
+
+            const cards = await response.json();
+
+            // Transforme le tableau en objet indexé par card_id
+            const collection = {};
+            for (const userCard of cards) {
+                // userCard contient : { id, user_id, card_id, quantity, current_rarity, ... }
+                collection[userCard.card_id] = {
+                    count: userCard.quantity,
+                    currentRarity: userCard.current_rarity || 'common',
+                    level: 1, // Pas dans la DB pour l'instant
+                    firstObtained: new Date(userCard.created_at).getTime()
+                };
+            }
+
+            // Met en cache
+            this.collectionCache = collection;
+            this.cacheTimestamp = now;
+
+            return collection;
+        } catch (error) {
+            console.error('Failed to get collection:', error);
+            return {};
         }
+    }
 
-        this.saveCollection(collection);
-        return collection[cardId];
+    // Ajoute une carte à la collection via l'API
+    async addToCollection(cardId, level = 1) {
+        try {
+            const user = authService.getCurrentUser();
+            if (!user) return { count: 0 };
+
+            // Appel API pour ajouter la carte
+            const response = await authService.fetchAPI(`/users/${user.id}/cards`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ card_id: cardId })
+            });
+
+            if (!response.ok) {
+                console.error('Failed to add card to collection');
+                return { count: 0 };
+            }
+
+            const result = await response.json();
+
+            // Invalide le cache pour forcer un refresh
+            this.invalidateCollectionCache();
+
+            // Retourne dans le format attendu
+            return {
+                count: result.quantity || 1,
+                currentRarity: result.current_rarity || 'common',
+                level: level,
+                firstObtained: new Date(result.created_at).getTime()
+            };
+        } catch (error) {
+            console.error('Failed to add card to collection:', error);
+            return { count: 0 };
+        }
     }
 
     // Met à jour le niveau d'une carte
