@@ -302,29 +302,34 @@ router.post('/:id/credits', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { amount, action } = req.body;
+        const MAX_CREDITS = 99; // Maximum de crédits stockables
 
         const existing = await get(
             'SELECT * FROM user_credits WHERE user_id = ?',
             [userId]
         );
 
+        let newCredits;
         if (existing) {
             // Si action = 'set', définir la valeur exacte, sinon ajouter
             if (action === 'set') {
+                newCredits = Math.min(amount, MAX_CREDITS);
                 await run(
                     'UPDATE user_credits SET credits = ? WHERE user_id = ?',
-                    [amount, userId]
+                    [newCredits, userId]
                 );
             } else {
+                newCredits = Math.min(existing.credits + amount, MAX_CREDITS);
                 await run(
-                    'UPDATE user_credits SET credits = credits + ? WHERE user_id = ?',
-                    [amount, userId]
+                    'UPDATE user_credits SET credits = ? WHERE user_id = ?',
+                    [newCredits, userId]
                 );
             }
         } else {
+            newCredits = Math.min(amount, MAX_CREDITS);
             await run(
                 'INSERT INTO user_credits (user_id, credits) VALUES (?, ?)',
-                [userId, amount]
+                [userId, newCredits]
             );
         }
 
