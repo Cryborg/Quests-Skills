@@ -486,6 +486,9 @@ class UIManager {
         const result = await CARD_SYSTEM.drawCard();
 
         if (result.success) {
+            // Met à jour le bouton IMMÉDIATEMENT après la pioche pour éviter les double-clics
+            await this.updateDrawButton();
+
             try {
                 // Utilise toujours l'animation multiple (qui gère aussi les cartes uniques)
                 if (result.totalDrawn >= 1) {
@@ -497,7 +500,7 @@ class UIManager {
                         this.switchTheme(firstCard.theme);
                     }
 
-                    // Après l'animation, met à jour l'affichage
+                    // Après l'animation, met à jour l'affichage complet
                     await this.render();
 
                     // Mettre à jour les compteurs de la sidebar

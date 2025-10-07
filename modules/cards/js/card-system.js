@@ -41,7 +41,7 @@ class CardSystem {
             results: results,
             groupedCards: drawnCards,
             totalDrawn: results.length,
-            creditsUsed: count,
+            creditsUsed: results.length,  // Nombre réel de crédits utilisés, pas le count demandé
             creditsRemaining
         };
     }
