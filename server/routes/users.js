@@ -290,7 +290,9 @@ router.get('/:id/credits', checkOwnership, async (req, res) => {
             [parseInt(req.params.id)]
         );
 
-        res.json(credits || { credits: 0 });
+        // S'assurer que les crédits ne sont jamais négatifs
+        const safeCredits = credits ? { ...credits, credits: Math.max(0, credits.credits) } : { credits: 0 };
+        res.json(safeCredits);
     } catch (error) {
         console.error('Error fetching user credits:', error);
         res.status(500).json({ error: 'Failed to fetch credits' });
@@ -360,9 +362,12 @@ router.post('/:id/credits/use', checkOwnership, async (req, res) => {
             return res.status(400).json({ error: 'Insufficient credits' });
         }
 
+        // Calculer les nouveaux crédits et s'assurer qu'ils ne descendent jamais en dessous de 0
+        const newCredits = Math.max(0, currentCredits.credits - amount);
+
         await run(
-            'UPDATE user_credits SET credits = credits - ? WHERE user_id = ?',
-            [amount, userId]
+            'UPDATE user_credits SET credits = ? WHERE user_id = ?',
+            [newCredits, userId]
         );
 
         const updated = await get(
