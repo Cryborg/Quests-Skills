@@ -554,30 +554,38 @@ class DatabaseManager {
     }
 
     async useCredit() {
+        return this.useCredits(1);
+    }
+
+    // Utilise plusieurs crédits en un seul appel API
+    async useCredits(amount) {
         try {
             const user = authService.getCurrentUser();
-            if (!user) return { success: false, remaining: 0 };
+            if (!user) return { success: false, remaining: 0, used: 0 };
 
             const currentCredits = await this.getCredits();
             if (currentCredits <= 0) {
-                return { success: false, remaining: 0 };
+                return { success: false, remaining: 0, used: 0 };
             }
 
-            const response = await authService.fetchAPI(`/users/${user.id}/credits`, {
+            // Utilise seulement le nombre de crédits disponibles
+            const creditsToUse = Math.min(amount, currentCredits);
+
+            const response = await authService.fetchAPI(`/users/${user.id}/credits/use`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: -1 })
+                body: JSON.stringify({ amount: creditsToUse })
             });
 
             if (!response.ok) {
-                throw new Error('Failed to use credit');
+                throw new Error('Failed to use credits');
             }
 
             const data = await response.json();
-            return { success: true, remaining: data.credits };
+            return { success: true, remaining: data.credits, used: creditsToUse };
         } catch (error) {
-            console.error('Failed to use credit:', error);
-            return { success: false, remaining: 0 };
+            console.error('Failed to use credits:', error);
+            return { success: false, remaining: 0, used: 0 };
         }
     }
 

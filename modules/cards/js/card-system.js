@@ -10,11 +10,42 @@ class CardSystem {
 
     // Pioche plusieurs cartes d'un coup
     async drawMultipleCards(count = 1) {
+        // Vérifie combien de crédits on a vraiment
+        const availableCredits = await DB.getCredits();
+        const creditsToUse = Math.min(count, availableCredits);
+
+        if (creditsToUse <= 0) {
+            return {
+                success: false,
+                results: [],
+                groupedCards: {},
+                totalDrawn: 0,
+                creditsUsed: 0,
+                creditsRemaining: 0,
+                message: 'Aucun crédit de pioche disponible'
+            };
+        }
+
+        // UN SEUL appel API pour utiliser tous les crédits d'un coup
+        const creditResult = await DB.useCredits(creditsToUse);
+        if (!creditResult.success) {
+            return {
+                success: false,
+                results: [],
+                groupedCards: {},
+                totalDrawn: 0,
+                creditsUsed: 0,
+                creditsRemaining: creditResult.remaining,
+                message: 'Impossible d\'utiliser les crédits'
+            };
+        }
+
         const results = [];
         const drawnCards = {};
 
-        for (let i = 0; i < count; i++) {
-            const result = await this.drawSingleCard();
+        // Maintenant on pioche les cartes (sans appels API supplémentaires)
+        for (let i = 0; i < creditResult.used; i++) {
+            const result = this.drawSingleCardLocal();
             if (result.success) {
                 results.push(result);
 
@@ -28,21 +59,19 @@ class CardSystem {
                     };
                 }
                 drawnCards[cardId].count++;
-            } else {
-                // Si une pioche échoue, on s'arrête
-                break;
             }
         }
 
-        const creditsRemaining = results.length > 0 ? results[results.length - 1].creditsRemaining : await DB.getCredits();
+        // Sauvegarde l'heure de pioche
+        DB.saveLastDrawTime();
 
         return {
             success: results.length > 0,
             results: results,
             groupedCards: drawnCards,
             totalDrawn: results.length,
-            creditsUsed: results.length,  // Nombre réel de crédits utilisés, pas le count demandé
-            creditsRemaining
+            creditsUsed: creditResult.used,
+            creditsRemaining: creditResult.remaining
         };
     }
 
@@ -53,26 +82,8 @@ class CardSystem {
         return await this.drawMultipleCards(creditsToUse);
     }
 
-    // Pioche une carte aléatoire (fonction interne)
-    async drawSingleCard() {
-        // Vérifie si le joueur a des crédits
-        const hasCredits = await DB.hasCredits();
-        if (!hasCredits) {
-            return {
-                success: false,
-                message: 'Aucun crédit de pioche disponible'
-            };
-        }
-
-        // Utilise un crédit
-        const creditResult = await DB.useCredit();
-        if (!creditResult.success) {
-            return {
-                success: false,
-                message: 'Impossible d\'utiliser le crédit'
-            };
-        }
-
+    // Pioche une carte aléatoire (fonction interne, SANS appels API)
+    drawSingleCardLocal() {
         // Génère une rareté aléatoire selon la baseRarity de la carte
         const baseRarity = UTILS.getRandomRarity();
 
@@ -104,9 +115,6 @@ class CardSystem {
         // Ajoute la carte à la collection (toujours en 'common' au début)
         const collectionItem = DB.addToCollection(drawnCard.id);
 
-        // Sauvegarde l'heure de pioche
-        DB.saveLastDrawTime();
-
         // Détermine si c'est un doublon
         const isDuplicate = collectionItem.count > 1;
 
@@ -115,7 +123,6 @@ class CardSystem {
             card: drawnCard,
             isDuplicate,
             newCount: collectionItem.count,
-            creditsRemaining: creditResult.remaining,
             message: isDuplicate ? CONFIG.MESSAGES.DUPLICATE_FOUND : CONFIG.MESSAGES.CARD_DRAWN
         };
     }
