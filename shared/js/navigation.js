@@ -77,12 +77,6 @@ class NavigationUI {
 
             <!-- Sidebar navigation -->
             <nav class="app-sidebar" id="app-sidebar">
-                <!-- Logo/Brand -->
-                <div class="nav-brand">
-                    <span class="nav-brand-icon">🎮</span>
-                    <span class="nav-brand-text">Quests & Skills</span>
-                </div>
-
                 <!-- User info -->
                 <div class="nav-user-info">
                     <div class="nav-username">
@@ -91,8 +85,12 @@ class NavigationUI {
                     </div>
                     <div class="nav-user-stats">
                         <div class="nav-stat">
-                            <span>Crédits:</span>
+                            <span>Cartes à piocher:</span>
                             <span class="nav-stat-value" id="nav-credits">${this.userCredits}</span>
+                        </div>
+                        <div class="nav-stat">
+                            <span>Exercices restants:</span>
+                            <span class="nav-stat-value" id="nav-math-attempts">0/9</span>
                         </div>
                     </div>
                 </div>
@@ -240,10 +238,5 @@ class NavigationUI {
 // Instance globale de la navigation
 const navigationUI = new NavigationUI();
 
-// Auto-initialisation au chargement du DOM
-document.addEventListener('DOMContentLoaded', async () => {
-    // Attendre que authService soit initialisé
-    if (authService.isAuthenticated()) {
-        await navigationUI.init();
-    }
-});
+// Note: L'initialisation doit être faite manuellement après l'authentification
+// Exemple: await navigationUI.init();

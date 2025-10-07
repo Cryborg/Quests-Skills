@@ -41,11 +41,6 @@
                         🎁 Piocher une carte
                         <span class="draw-cooldown" id="draw-cooldown"></span>
                     </button>
-                    <!-- Module math-exercises: bouton optionnel -->
-                    <button id="bonus-btn" class="bonus-btn" data-module="math-exercises">
-                        🎓 Bonus Maths
-                        <span class="bonus-counter" id="bonus-counter">0/9</span>
-                    </button>
                 </div>
                 <div class="filters">
                     <select id="rarity-filter">
@@ -129,8 +124,10 @@
             if (!isAuth) {
                 // Pas authentifié, rediriger vers la page de connexion
                 window.location.href = '/';
+            } else {
+                // Initialiser la navigation après l'auth
+                await navigationUI.init();
             }
-            // La navigation se charge automatiquement via navigation.js
         });
     </script>
 </body>

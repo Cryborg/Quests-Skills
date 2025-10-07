@@ -164,8 +164,10 @@
 }
 
 .nav-link.active {
-    background: var(--nav-active);
-    color: white;
+    background: var(--nav-hover);
+    color: var(--nav-active);
+    border-left: 3px solid var(--nav-active);
+    padding-left: 13px;
 }
 
 .nav-link-icon {
