@@ -186,53 +186,66 @@ router.get('/:id/cards', checkOwnership, async (req, res) => {
     }
 });
 
-// POST /api/users/:id/cards - Ajouter une carte à un user
+// POST /api/users/:id/cards - Ajouter une ou plusieurs cartes (batch endpoint)
 router.post('/:id/cards', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
-        const { card_id } = req.body;
+        const { cards } = req.body; // [{card_id: '...', count: 1}, ...] ou {card_id: '...'} pour une seule
 
-        // Vérifier si l'user a déjà cette carte
-        const existing = await get(
-            'SELECT * FROM user_cards WHERE user_id = ? AND card_id = ?',
-            [userId, card_id]
-        );
-
-        if (existing) {
-            // Incrémenter la quantité
-            await run(
-                'UPDATE user_cards SET quantity = ? WHERE id = ?',
-                [existing.quantity + 1, existing.id]
-            );
-
-            const updated = await get(
-                `SELECT uc.*, c.*
-                 FROM user_cards uc
-                 JOIN cards c ON uc.card_id = c.id
-                 WHERE uc.id = ?`,
-                [existing.id]
-            );
-            return res.json(updated);
+        // Supporte aussi le format single card {card_id: '...'}
+        let cardsArray;
+        if (Array.isArray(cards)) {
+            cardsArray = cards;
+        } else if (req.body.card_id) {
+            // Format legacy : {card_id: '...'}
+            cardsArray = [{ card_id: req.body.card_id, count: 1 }];
+        } else {
+            return res.status(400).json({ error: 'Cards array or card_id is required' });
         }
 
-        // Créer nouvelle relation
-        await run(
-            'INSERT INTO user_cards (user_id, card_id, quantity) VALUES (?, ?, ?)',
-            [userId, card_id, 1]
-        );
+        if (cardsArray.length === 0) {
+            return res.status(400).json({ error: 'Cards array cannot be empty' });
+        }
 
-        const userCard = await get(
+        // Compte les occurrences de chaque card_id
+        const cardCounts = {};
+        for (const card of cardsArray) {
+            cardCounts[card.card_id] = (cardCounts[card.card_id] || 0) + (card.count || 1);
+        }
+
+        // Pour chaque carte unique, update ou insert
+        for (const [cardId, count] of Object.entries(cardCounts)) {
+            const existing = await get(
+                'SELECT * FROM user_cards WHERE user_id = ? AND card_id = ?',
+                [userId, cardId]
+            );
+
+            if (existing) {
+                await run(
+                    'UPDATE user_cards SET quantity = ? WHERE id = ?',
+                    [existing.quantity + count, existing.id]
+                );
+            } else {
+                await run(
+                    'INSERT INTO user_cards (user_id, card_id, quantity) VALUES (?, ?, ?)',
+                    [userId, cardId, count]
+                );
+            }
+        }
+
+        // Retourne la collection complète
+        const userCards = await all(
             `SELECT uc.*, c.*
              FROM user_cards uc
              JOIN cards c ON uc.card_id = c.id
-             WHERE uc.user_id = ? AND uc.card_id = ?`,
-            [userId, card_id]
+             WHERE uc.user_id = ?`,
+            [userId]
         );
 
-        res.json(userCard);
+        res.json({ added: Object.keys(cardCounts).length, collection: userCards });
     } catch (error) {
-        console.error('Error adding card to user:', error);
-        res.status(500).json({ error: 'Failed to add card' });
+        console.error('Error adding cards:', error);
+        res.status(500).json({ error: 'Failed to add cards' });
     }
 });
 
