@@ -679,8 +679,8 @@ class UIManager {
 
     // Met à jour le bouton de pioche
     async updateDrawButton() {
-        const hasCredits = await DB.hasCredits();
         const creditsCount = await DB.getCredits();
+        const hasCredits = creditsCount > 0;
 
         // TODO: Réactiver le crédit quotidien quand il sera migré vers l'API
         // const canClaimDaily = DB.canClaimDailyCredit();
