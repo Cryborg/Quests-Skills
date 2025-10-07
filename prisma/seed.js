@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { get, run } = require('../server/turso-db');
 
 async function main() {
   console.log('🌱 Seeding database...');
@@ -9,17 +8,19 @@ async function main() {
   // ========================================
   console.log('👤 Seeding demo user...');
 
-  const user = await prisma.user.upsert({
-    where: { username: 'demo' },
-    update: {},
-    create: {
-      username: 'demo',
-      email: 'demo@example.com',
-      password: 'demo123'
-    }
-  });
+  let user = await get('SELECT * FROM users WHERE username = ?', ['demo']);
 
-  console.log('✅ Demo user created');
+  if (!user) {
+    const now = new Date().toISOString();
+    await run(
+      'INSERT INTO users (username, email, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+      ['demo', 'demo@example.com', 'demo123', now, now]
+    );
+    user = await get('SELECT * FROM users WHERE username = ?', ['demo']);
+    console.log('✅ Demo user created');
+  } else {
+    console.log('✅ Demo user already exists');
+  }
 
   // ========================================
   // Seed Cards
@@ -59,16 +60,20 @@ async function main() {
   ];
 
   for (const card of cards) {
-    await prisma.card.upsert({
-      where: { name: card.name },
-      update: {
-        image: card.image,
-        category: card.category,
-        base_rarity: card.base_rarity,
-        description: card.description
-      },
-      create: card,
-    });
+    const existing = await get('SELECT * FROM cards WHERE name = ?', [card.name]);
+    const now = new Date().toISOString();
+
+    if (!existing) {
+      await run(
+        'INSERT INTO cards (name, image, category, base_rarity, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [card.name, card.image, card.category, card.base_rarity, card.description, now, now]
+      );
+    } else {
+      await run(
+        'UPDATE cards SET image = ?, category = ?, base_rarity = ?, description = ?, updated_at = ? WHERE name = ?',
+        [card.image, card.category, card.base_rarity, card.description, now, card.name]
+      );
+    }
   }
 
   console.log(`✅ ${cards.length} cards seeded`);
@@ -85,7 +90,7 @@ async function main() {
       max_per_day: 3,
       min_value: 100,
       max_value: 9999,
-      is_active: true,
+      is_active: 1,
     },
     {
       type: 'subtraction',
@@ -93,7 +98,7 @@ async function main() {
       max_per_day: 3,
       min_value: 100,
       max_value: 999,
-      is_active: true,
+      is_active: 1,
     },
     {
       type: 'multiplication',
@@ -101,16 +106,20 @@ async function main() {
       max_per_day: 3,
       min_value: 10,
       max_value: 99,
-      is_active: true,
+      is_active: 1,
     },
   ];
 
   for (const op of operations) {
-    await prisma.bonusOperation.upsert({
-      where: { type: op.type },
-      update: {},
-      create: op,
-    });
+    const existing = await get('SELECT * FROM bonus_operations WHERE type = ?', [op.type]);
+
+    if (!existing) {
+      const now = new Date().toISOString();
+      await run(
+        'INSERT INTO bonus_operations (type, reward, max_per_day, min_value, max_value, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [op.type, op.reward, op.max_per_day, op.min_value, op.max_value, op.is_active, now, now]
+      );
+    }
   }
 
   console.log(`✅ ${operations.length} bonus operations seeded`);
@@ -120,16 +129,18 @@ async function main() {
   // ========================================
   console.log('💰 Seeding user credits...');
 
-  await prisma.userCredit.upsert({
-    where: { user_id: user.id },
-    update: {},
-    create: {
-      user_id: user.id,
-      credits: 10
-    }
-  });
+  const existingCredits = await get('SELECT * FROM user_credits WHERE user_id = ?', [user.id]);
 
-  console.log('✅ 10 initial credits created for demo user');
+  if (!existingCredits) {
+    const now = new Date().toISOString();
+    await run(
+      'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
+      [user.id, 10, now, now]
+    );
+    console.log('✅ 10 initial credits created for demo user');
+  } else {
+    console.log('✅ Demo user credits already exist');
+  }
 
   console.log('🎉 Seeding completed!');
 }
@@ -138,7 +149,4 @@ main()
   .catch((e) => {
     console.error('❌ Seeding failed:', e);
     process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });

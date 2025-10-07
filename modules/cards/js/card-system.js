@@ -4,7 +4,6 @@ class CardSystem {
         this.currentTheme = 'minecraft';
         this.filters = {
             rarity: '',
-            search: '',
             sort: 'default'
         };
     }
@@ -152,15 +151,6 @@ class CardSystem {
                 const currentRarity = DB.getCardCurrentRarity(card.id);
                 return currentRarity === this.filters.rarity;
             });
-        }
-
-        // Filtre par recherche
-        if (this.filters.search) {
-            const searchTerm = this.filters.search.toLowerCase();
-            filteredCards = filteredCards.filter(card =>
-                card.name.toLowerCase().includes(searchTerm) ||
-                card.description.toLowerCase().includes(searchTerm)
-            );
         }
 
         // Ajoute les informations de collection

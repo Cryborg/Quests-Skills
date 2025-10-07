@@ -1,15 +1,12 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const { all, get } = require('../turso-db');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/cards - Récupérer toutes les cartes
 router.get('/', async (req, res) => {
     try {
-        const cards = await prisma.card.findMany({
-            orderBy: { name: 'asc' }
-        });
+        const cards = await all('SELECT * FROM cards ORDER BY name ASC');
         res.json(cards);
     } catch (error) {
         console.error('Error fetching cards:', error);
@@ -20,9 +17,7 @@ router.get('/', async (req, res) => {
 // GET /api/cards/:id - Récupérer une carte
 router.get('/:id', async (req, res) => {
     try {
-        const card = await prisma.card.findUnique({
-            where: { id: parseInt(req.params.id) }
-        });
+        const card = await get('SELECT * FROM cards WHERE id = ?', [parseInt(req.params.id)]);
 
         if (!card) {
             return res.status(404).json({ error: 'Card not found' });

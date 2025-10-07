@@ -1,35 +1,29 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const { get, run } = require('../turso-db');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/auth/me - Récupérer l'user courant (pour l'instant user demo)
 router.get('/me', async (req, res) => {
     try {
         // Pour l'instant, retourner un user demo (ID 1)
         // Plus tard : vérifier session/JWT
-        let user = await prisma.user.findUnique({
-            where: { id: 1 }
-        });
+        let user = await get('SELECT * FROM users WHERE id = ?', [1]);
 
         // Si l'user demo n'existe pas, le créer
         if (!user) {
-            user = await prisma.user.create({
-                data: {
-                    username: 'demo',
-                    email: 'demo@example.com',
-                    password: 'demo' // En vrai il faudra hasher !
-                }
-            });
+            await run(
+                'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+                ['demo', 'demo@example.com', 'demo'] // En vrai il faudra hasher !
+            );
+
+            user = await get('SELECT * FROM users WHERE id = ?', [1]);
 
             // Créer les crédits initiaux
-            await prisma.userCredit.create({
-                data: {
-                    user_id: user.id,
-                    credits: 10 // 10 crédits de départ
-                }
-            });
+            await run(
+                'INSERT INTO user_credits (user_id, credits) VALUES (?, ?)',
+                [user.id, 10] // 10 crédits de départ
+            );
         }
 
         const { password, ...userWithoutPassword } = user;

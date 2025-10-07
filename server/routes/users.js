@@ -1,15 +1,12 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const { all, get, run } = require('../turso-db');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/users/:id - Récupérer un user
 router.get('/:id', async (req, res) => {
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: parseInt(req.params.id) }
-        });
+        const user = await get('SELECT * FROM users WHERE id = ?', [parseInt(req.params.id)]);
 
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
@@ -27,10 +24,13 @@ router.get('/:id', async (req, res) => {
 // GET /api/users/:id/cards - Récupérer les cartes d'un user
 router.get('/:id/cards', async (req, res) => {
     try {
-        const userCards = await prisma.userCard.findMany({
-            where: { user_id: parseInt(req.params.id) },
-            include: { card: true }
-        });
+        const userCards = await all(
+            `SELECT uc.*, c.*
+             FROM user_cards uc
+             JOIN cards c ON uc.card_id = c.id
+             WHERE uc.user_id = ?`,
+            [parseInt(req.params.id)]
+        );
 
         res.json(userCards);
     } catch (error) {
@@ -46,34 +46,41 @@ router.post('/:id/cards', async (req, res) => {
         const { card_id } = req.body;
 
         // Vérifier si l'user a déjà cette carte
-        const existing = await prisma.userCard.findUnique({
-            where: {
-                user_id_card_id: {
-                    user_id: userId,
-                    card_id: card_id
-                }
-            }
-        });
+        const existing = await get(
+            'SELECT * FROM user_cards WHERE user_id = ? AND card_id = ?',
+            [userId, card_id]
+        );
 
         if (existing) {
             // Incrémenter la quantité
-            const updated = await prisma.userCard.update({
-                where: { id: existing.id },
-                data: { quantity: existing.quantity + 1 },
-                include: { card: true }
-            });
+            await run(
+                'UPDATE user_cards SET quantity = ? WHERE id = ?',
+                [existing.quantity + 1, existing.id]
+            );
+
+            const updated = await get(
+                `SELECT uc.*, c.*
+                 FROM user_cards uc
+                 JOIN cards c ON uc.card_id = c.id
+                 WHERE uc.id = ?`,
+                [existing.id]
+            );
             return res.json(updated);
         }
 
         // Créer nouvelle relation
-        const userCard = await prisma.userCard.create({
-            data: {
-                user_id: userId,
-                card_id: card_id,
-                quantity: 1
-            },
-            include: { card: true }
-        });
+        await run(
+            'INSERT INTO user_cards (user_id, card_id, quantity) VALUES (?, ?, ?)',
+            [userId, card_id, 1]
+        );
+
+        const userCard = await get(
+            `SELECT uc.*, c.*
+             FROM user_cards uc
+             JOIN cards c ON uc.card_id = c.id
+             WHERE uc.user_id = ? AND uc.card_id = ?`,
+            [userId, card_id]
+        );
 
         res.json(userCard);
     } catch (error) {
@@ -90,12 +97,13 @@ router.post('/:id/cards/:cardId/upgrade', async (req, res) => {
         const { to_rarity, cost } = req.body;
 
         // Vérifier que l'user a la carte
-        const userCard = await prisma.userCard.findUnique({
-            where: {
-                user_id_card_id: { user_id: userId, card_id: cardId }
-            },
-            include: { card: true }
-        });
+        const userCard = await get(
+            `SELECT uc.*, c.*
+             FROM user_cards uc
+             JOIN cards c ON uc.card_id = c.id
+             WHERE uc.user_id = ? AND uc.card_id = ?`,
+            [userId, cardId]
+        );
 
         if (!userCard) {
             return res.status(404).json({ error: 'Card not owned' });
@@ -107,14 +115,18 @@ router.post('/:id/cards/:cardId/upgrade', async (req, res) => {
         }
 
         // Upgrade: déduire le coût et changer la rareté
-        const updated = await prisma.userCard.update({
-            where: { id: userCard.id },
-            data: {
-                current_rarity: to_rarity,
-                quantity: userCard.quantity - cost
-            },
-            include: { card: true }
-        });
+        await run(
+            'UPDATE user_cards SET current_rarity = ?, quantity = ? WHERE id = ?',
+            [to_rarity, userCard.quantity - cost, userCard.id]
+        );
+
+        const updated = await get(
+            `SELECT uc.*, c.*
+             FROM user_cards uc
+             JOIN cards c ON uc.card_id = c.id
+             WHERE uc.id = ?`,
+            [userCard.id]
+        );
 
         res.json(updated);
     } catch (error) {
@@ -126,9 +138,10 @@ router.post('/:id/cards/:cardId/upgrade', async (req, res) => {
 // GET /api/users/:id/credits - Récupérer les crédits d'un user
 router.get('/:id/credits', async (req, res) => {
     try {
-        const credits = await prisma.userCredit.findUnique({
-            where: { user_id: parseInt(req.params.id) }
-        });
+        const credits = await get(
+            'SELECT * FROM user_credits WHERE user_id = ?',
+            [parseInt(req.params.id)]
+        );
 
         res.json(credits || { credits: 0 });
     } catch (error) {
@@ -143,11 +156,27 @@ router.post('/:id/credits', async (req, res) => {
         const userId = parseInt(req.params.id);
         const { amount } = req.body;
 
-        const credits = await prisma.userCredit.upsert({
-            where: { user_id: userId },
-            update: { credits: { increment: amount } },
-            create: { user_id: userId, credits: amount }
-        });
+        const existing = await get(
+            'SELECT * FROM user_credits WHERE user_id = ?',
+            [userId]
+        );
+
+        if (existing) {
+            await run(
+                'UPDATE user_credits SET credits = credits + ? WHERE user_id = ?',
+                [amount, userId]
+            );
+        } else {
+            await run(
+                'INSERT INTO user_credits (user_id, credits) VALUES (?, ?)',
+                [userId, amount]
+            );
+        }
+
+        const credits = await get(
+            'SELECT * FROM user_credits WHERE user_id = ?',
+            [userId]
+        );
 
         res.json(credits);
     } catch (error) {
@@ -162,18 +191,24 @@ router.post('/:id/credits/use', async (req, res) => {
         const userId = parseInt(req.params.id);
         const { amount } = req.body;
 
-        const currentCredits = await prisma.userCredit.findUnique({
-            where: { user_id: userId }
-        });
+        const currentCredits = await get(
+            'SELECT * FROM user_credits WHERE user_id = ?',
+            [userId]
+        );
 
         if (!currentCredits || currentCredits.credits < amount) {
             return res.status(400).json({ error: 'Insufficient credits' });
         }
 
-        const updated = await prisma.userCredit.update({
-            where: { user_id: userId },
-            data: { credits: { decrement: amount } }
-        });
+        await run(
+            'UPDATE user_credits SET credits = credits - ? WHERE user_id = ?',
+            [amount, userId]
+        );
+
+        const updated = await get(
+            'SELECT * FROM user_credits WHERE user_id = ?',
+            [userId]
+        );
 
         res.json(updated);
     } catch (error) {
@@ -188,7 +223,13 @@ router.get('/:id/attempts', async (req, res) => {
         const userId = parseInt(req.params.id);
         const { date } = req.query;
 
-        const where = { user_id: userId };
+        let sql = `
+            SELECT oa.*, bo.*
+            FROM operation_attempts oa
+            JOIN bonus_operations bo ON oa.bonus_operation_id = bo.id
+            WHERE oa.user_id = ?
+        `;
+        const args = [userId];
 
         // Filtrer par date si fournie
         if (date) {
@@ -197,17 +238,13 @@ router.get('/:id/attempts', async (req, res) => {
             const endOfDay = new Date(date);
             endOfDay.setHours(23, 59, 59, 999);
 
-            where.created_at = {
-                gte: startOfDay,
-                lte: endOfDay
-            };
+            sql += ' AND oa.created_at >= ? AND oa.created_at <= ?';
+            args.push(startOfDay.toISOString(), endOfDay.toISOString());
         }
 
-        const attempts = await prisma.operationAttempt.findMany({
-            where,
-            include: { bonus_operation: true },
-            orderBy: { created_at: 'desc' }
-        });
+        sql += ' ORDER BY oa.created_at DESC';
+
+        const attempts = await all(sql, args);
 
         res.json(attempts);
     } catch (error) {
@@ -222,17 +259,30 @@ router.post('/:id/attempts', async (req, res) => {
         const userId = parseInt(req.params.id);
         const { bonus_operation_id, exercise, user_answers, success, cards_earned } = req.body;
 
-        const attempt = await prisma.operationAttempt.create({
-            data: {
-                user_id: userId,
+        await run(
+            `INSERT INTO operation_attempts
+             (user_id, bonus_operation_id, exercise, user_answers, success, cards_earned, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                userId,
                 bonus_operation_id,
-                exercise,
-                user_answers,
-                success,
-                cards_earned
-            },
-            include: { bonus_operation: true }
-        });
+                JSON.stringify(exercise),
+                JSON.stringify(user_answers),
+                success ? 1 : 0,
+                cards_earned,
+                new Date().toISOString()
+            ]
+        );
+
+        const attempt = await get(
+            `SELECT oa.*, bo.*
+             FROM operation_attempts oa
+             JOIN bonus_operations bo ON oa.bonus_operation_id = bo.id
+             WHERE oa.user_id = ?
+             ORDER BY oa.created_at DESC
+             LIMIT 1`,
+            [userId]
+        );
 
         res.json(attempt);
     } catch (error) {

@@ -55,7 +55,6 @@ class UIManager {
             collectionGrid: document.getElementById('collection-grid'),
             rarityFilter: document.getElementById('rarity-filter'),
             sortFilter: document.getElementById('sort-filter'),
-            searchFilter: document.getElementById('search-filter'),
             modal: document.getElementById('card-modal'),
             modalContent: document.getElementById('modal-card-content'),
             modalActions: document.getElementById('modal-actions'),
@@ -93,11 +92,6 @@ class UIManager {
 
         this.elements.sortFilter.addEventListener('change', (e) => {
             CARD_SYSTEM.setFilters({ sort: e.target.value });
-            this.renderCards();
-        });
-
-        this.elements.searchFilter.addEventListener('input', (e) => {
-            CARD_SYSTEM.setFilters({ search: e.target.value });
             this.renderCards();
         });
 

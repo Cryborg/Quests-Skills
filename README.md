@@ -2,7 +2,12 @@
 
 Plateforme de collection de cartes gamifiée avec système de quêtes mathématiques.
 
-Version moderne avec base de données SQLite et architecture modulaire.
+Version moderne avec base de données SQLite/Turso et architecture modulaire.
+
+## 🚀 Déploiement
+
+**Production**: Déployé sur Vercel + Turso
+**Voir**: [DEPLOYMENT.md](./DEPLOYMENT.md) pour les instructions détaillées
 
 ## 🏗️ Architecture
 

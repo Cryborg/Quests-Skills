@@ -54,7 +54,7 @@ class DatabaseManager {
                 theme: 'minecraft',
                 baseRarity: 'common',
                 emoji: '💚',
-                image: 'images/creeper.webp',
+                image: '../../shared/images/creeper.webp',
                 description: 'Une créature explosive qui détruit tout sur son passage.'
             },
             {
@@ -63,7 +63,7 @@ class DatabaseManager {
                 theme: 'minecraft',
                 baseRarity: 'rare',
                 emoji: '👤',
-                image: 'images/enderman.webp',
+                image: '../../shared/images/enderman.webp',
                 description: 'Être mystérieux capable de téléportation.'
             },
             {
@@ -72,7 +72,7 @@ class DatabaseManager {
                 theme: 'minecraft',
                 baseRarity: 'very_rare',
                 emoji: '💎',
-                image: 'images/diamant.webp',
+                image: '../../shared/images/diamant.webp',
                 description: 'Le minerai le plus précieux du monde de Minecraft.'
             },
             {
@@ -81,7 +81,7 @@ class DatabaseManager {
                 theme: 'minecraft',
                 baseRarity: 'epic',
                 emoji: '🐉',
-                image: 'images/ender_dragon.webp',
+                image: '../../shared/images/ender_dragon.webp',
                 description: 'Le boss final qui règne sur l\'End.'
             },
             {
@@ -90,7 +90,7 @@ class DatabaseManager {
                 theme: 'minecraft',
                 baseRarity: 'legendary',
                 emoji: '🧑‍🔧',
-                image: 'images/steve.webp',
+                image: '../../shared/images/steve.webp',
                 description: 'Le héros légendaire de Minecraft.'
             },
             {
@@ -99,7 +99,7 @@ class DatabaseManager {
                 theme: 'minecraft',
                 baseRarity: 'common',
                 emoji: '🧟',
-                image: 'images/zombie.webp',
+                image: '../../shared/images/zombie.webp',
                 description: 'Mort-vivant qui erre dans la nuit.'
             },
             {
@@ -108,7 +108,7 @@ class DatabaseManager {
                 theme: 'minecraft',
                 baseRarity: 'epic',
                 emoji: '💀',
-                image: 'images/wither.webp',
+                image: '../../shared/images/wither.webp',
                 description: 'Boss destructeur aux trois têtes.'
             },
             {
@@ -117,7 +117,7 @@ class DatabaseManager {
                 theme: 'minecraft',
                 baseRarity: 'rare',
                 emoji: '💚',
-                image: 'images/emeraude.webp',
+                image: '../../shared/images/emeraude.webp',
                 description: 'Gemme précieuse pour le commerce.'
             },
 
@@ -128,7 +128,7 @@ class DatabaseManager {
                 theme: 'space',
                 baseRarity: 'legendary',
                 emoji: '☀️',
-                image: 'images/soleil.jpg',
+                image: '../../shared/images/soleil.jpg',
                 description: 'Notre étoile, source de toute vie sur Terre.'
             },
             {
@@ -137,7 +137,7 @@ class DatabaseManager {
                 theme: 'space',
                 baseRarity: 'common',
                 emoji: '🌙',
-                image: 'images/lune.jpg',
+                image: '../../shared/images/lune.jpg',
                 description: 'Satellite naturel de la Terre.'
             },
             {
@@ -146,7 +146,7 @@ class DatabaseManager {
                 theme: 'space',
                 baseRarity: 'rare',
                 emoji: '🔴',
-                image: 'images/mars.jpg',
+                image: '../../shared/images/mars.jpg',
                 description: 'La planète rouge, future destination humaine.'
             },
             {
@@ -155,7 +155,7 @@ class DatabaseManager {
                 theme: 'space',
                 baseRarity: 'very_rare',
                 emoji: '🪐',
-                image: 'images/saturne.jpg',
+                image: '../../shared/images/saturne.jpg',
                 description: 'Planète aux magnifiques anneaux.'
             },
             {
@@ -164,7 +164,7 @@ class DatabaseManager {
                 theme: 'space',
                 baseRarity: 'epic',
                 emoji: '⚫',
-                image: 'images/trou_noir.webp',
+                image: '../../shared/images/trou_noir.webp',
                 description: 'Objet cosmique d\'une densité infinie.'
             },
             {
@@ -173,7 +173,7 @@ class DatabaseManager {
                 theme: 'space',
                 baseRarity: 'epic',
                 emoji: '🌌',
-                image: 'images/galaxie.jpg',
+                image: '../../shared/images/galaxie.jpg',
                 description: 'Amas de milliards d\'étoiles.'
             },
             {
@@ -182,7 +182,7 @@ class DatabaseManager {
                 theme: 'space',
                 baseRarity: 'rare',
                 emoji: '☄️',
-                image: 'images/comete.jpg',
+                image: '../../shared/images/comete.jpg',
                 description: 'Voyageuse glacée des confins du système solaire.'
             },
             {
@@ -191,7 +191,7 @@ class DatabaseManager {
                 theme: 'space',
                 baseRarity: 'very_rare',
                 emoji: '🌠',
-                image: 'images/nebuleuse.webp',
+                image: '../../shared/images/nebuleuse.webp',
                 description: 'Nuage cosmique où naissent les étoiles.'
             },
 
@@ -202,7 +202,7 @@ class DatabaseManager {
                 theme: 'dinosaurs',
                 baseRarity: 'legendary',
                 emoji: '🦖',
-                image: 'images/t_rex.png',
+                image: '../../shared/images/t_rex.png',
                 description: 'Le roi des prédateurs du Crétacé.'
             },
             {
@@ -211,7 +211,7 @@ class DatabaseManager {
                 theme: 'dinosaurs',
                 baseRarity: 'rare',
                 emoji: '🦕',
-                image: 'images/triceratops.webp',
+                image: '../../shared/images/triceratops.webp',
                 description: 'Herbivore aux trois cornes impressionnantes.'
             },
             {
@@ -220,7 +220,7 @@ class DatabaseManager {
                 theme: 'dinosaurs',
                 baseRarity: 'very_rare',
                 emoji: '🦅',
-                image: 'images/velociraptor.webp',
+                image: '../../shared/images/velociraptor.webp',
                 description: 'Chasseur intelligent et redoutable.'
             },
             {
@@ -229,7 +229,7 @@ class DatabaseManager {
                 theme: 'dinosaurs',
                 baseRarity: 'common',
                 emoji: '🦴',
-                image: 'images/diplodocus.jpg',
+                image: '../../shared/images/diplodocus.jpg',
                 description: 'Géant au long cou et à la longue queue.'
             },
             {
@@ -238,7 +238,7 @@ class DatabaseManager {
                 theme: 'dinosaurs',
                 baseRarity: 'rare',
                 emoji: '🦋',
-                image: 'images/pterodactyle.jpg',
+                image: '../../shared/images/pterodactyle.jpg',
                 description: 'Reptile volant des temps préhistoriques.'
             },
             {
@@ -247,7 +247,7 @@ class DatabaseManager {
                 theme: 'dinosaurs',
                 baseRarity: 'epic',
                 emoji: '🐊',
-                image: 'images/spinosaure.webp',
+                image: '../../shared/images/spinosaure.webp',
                 description: 'Prédateur aquatique à la voile dorsale.'
             },
             {
@@ -256,7 +256,7 @@ class DatabaseManager {
                 theme: 'dinosaurs',
                 baseRarity: 'common',
                 emoji: '🛡️',
-                image: 'images/ankylosaure.jpg',
+                image: '../../shared/images/ankylosaure.jpg',
                 description: 'Herbivore blindé comme un tank.'
             },
             {
@@ -265,7 +265,7 @@ class DatabaseManager {
                 theme: 'dinosaurs',
                 baseRarity: 'epic',
                 emoji: '🪶',
-                image: 'images/archeopteryx.jpg',
+                image: '../../shared/images/archeopteryx.jpg',
                 description: 'Lien évolutif entre dinosaures et oiseaux.'
             }
         ];

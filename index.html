@@ -3,112 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🃏 Collection de Cartes</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Quests & Skills</title>
+    <meta http-equiv="refresh" content="0; url=modules/cards/index.html">
 </head>
 <body>
-    <div class="container">
-        <header class="game-header">
-            <h1>🃏 Album de Liam</h1>
-            <button id="settings-btn" class="settings-btn" title="Paramètres">⚙️</button>
-            <div class="player-stats">
-                <div class="stat">
-                    <span class="label">Cartes uniques:</span>
-                    <span id="unique-cards">0</span>/<span id="total-cards">0</span>
-                </div>
-                <div class="stat">
-                    <span class="label">Progression:</span>
-                    <span id="completion-percentage">0%</span>
-                </div>
-                <div class="stat countdown-stat">
-                    <span class="label">Prochain crédit gratuit:</span>
-                    <span id="next-credit-countdown">--:--:--</span>
-                </div>
-            </div>
-        </header>
-
-        <nav class="theme-tabs">
-            <button class="tab-btn active" data-theme="minecraft">🟫 Minecraft</button>
-            <button class="tab-btn" data-theme="space">🌌 Astronomie</button>
-            <button class="tab-btn" data-theme="dinosaurs">🦕 Dinosaures</button>
-        </nav>
-
-        <main class="main-content">
-            <section class="action-panel">
-                <div class="action-buttons">
-                    <button id="draw-card-btn" class="draw-btn">
-                        🎁 Piocher une carte
-                        <span class="draw-cooldown" id="draw-cooldown"></span>
-                    </button>
-                    <button id="bonus-btn" class="bonus-btn">
-                        🎓 Bonus Maths
-                        <span class="bonus-counter" id="bonus-counter">0/9</span>
-                    </button>
-                </div>
-                <div class="filters">
-                    <select id="rarity-filter">
-                        <option value="">Toutes les raretés</option>
-                        <option value="common">🤍 Commune</option>
-                        <option value="rare">💙 Rare</option>
-                        <option value="very_rare">💚 Très Rare</option>
-                        <option value="epic">💛 Épique</option>
-                        <option value="legendary">❤️ Légendaire</option>
-                    </select>
-                    <select id="sort-filter">
-                        <option value="default">🔀 Ordre par défaut</option>
-                        <option value="rarity-asc">📈 Rareté croissante</option>
-                        <option value="rarity-desc">📉 Rareté décroissante</option>
-                        <option value="alpha-asc">🔤 A → Z</option>
-                        <option value="alpha-desc">🔤 Z → A</option>
-                    </select>
-                    <input type="search" id="search-filter" placeholder="Rechercher une carte...">
-                </div>
-            </section>
-
-            <section class="collection-grid" id="collection-grid">
-                <!-- Les cartes seront générées dynamiquement -->
-            </section>
-        </main>
-
-        <!-- Modal pour afficher les détails d'une carte -->
-        <div id="card-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <div id="modal-card-content"></div>
-                <div class="modal-actions" id="modal-actions"></div>
-            </div>
-        </div>
-
-        <!-- Toast pour les notifications -->
-        <div id="toast" class="toast"></div>
-
-        <!-- Modale de paramètres -->
-        <div id="settings-modal" class="modal">
-            <div class="modal-content">
-                <span class="close" id="settings-close">&times;</span>
-                <h2>⚙️ Paramètres</h2>
-                <div class="settings-content">
-                    <div class="setting-item" id="password-section">
-                        <label for="password-input">Mot de passe administrateur :</label>
-                        <input type="password" id="password-input" placeholder="Mot de passe..." inputmode="numeric">
-                    </div>
-                    <div class="setting-item" id="admin-controls" style="display: none;">
-                        <h3>🎁 Crédits bonus</h3>
-                        <div class="credits-controls">
-                            <input type="number" id="credits-amount-input" min="1" max="99" placeholder="Nombre de crédits" inputmode="numeric">
-                            <button id="add-credits-btn" class="settings-btn-action">Valider</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="js/config.js"></script>
-    <script src="js/database.js"></script>
-    <script src="js/card-system.js"></script>
-    <script src="js/draw-animation.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/app.js"></script>
+    <p>Redirection...</p>
+    <script>
+        window.location.href = 'modules/cards/index.html';
+    </script>
 </body>
 </html>

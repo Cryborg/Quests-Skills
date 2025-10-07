@@ -7,17 +7,17 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed": "node prisma/seed.js",
     "dev": "node server/index.js",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "push-to-turso": "node scripts/push-to-turso.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/client": "^6.16.3",
+    "@libsql/client": "^0.15.15",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "prisma": "^6.16.3"
+    "express": "^5.1.0"
   }
 }

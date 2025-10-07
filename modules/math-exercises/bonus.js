@@ -51,7 +51,7 @@ function initializeBonus() {
 function setupEventListeners() {
     // Boutons de retour et historique
     document.getElementById('back-btn').addEventListener('click', () => {
-        window.location.href = 'index.html';
+        window.location.href = '../cards/index.html';
     });
 
     document.getElementById('history-btn').addEventListener('click', () => {
