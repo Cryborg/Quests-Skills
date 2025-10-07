@@ -462,9 +462,11 @@ class DatabaseManager {
         const ownedCards = Object.keys(collection).length;
         const completionPercentage = totalCards > 0 ? Math.round((ownedCards / totalCards) * 100) : 0;
 
-        // Statistiques par thème
+        // Statistiques par thème (extraire les thèmes uniques depuis les cartes)
         const themeStats = {};
-        for (const theme of Object.keys(CONFIG.THEMES)) {
+        const uniqueThemes = [...new Set(allCards.map(card => card.theme))];
+
+        for (const theme of uniqueThemes) {
             const themeCards = this.getCardsByTheme(theme);
             const ownedThemeCards = themeCards.filter(card => this.hasCard(card.id));
 

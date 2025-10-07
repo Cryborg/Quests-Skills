@@ -54,25 +54,6 @@ const CONFIG = {
         DAILY_COOLDOWN: 24 * 60 * 60 * 1000 // 24h en millisecondes
     },
 
-    // Thèmes de cartes
-    THEMES: {
-        minecraft: {
-            name: 'Minecraft',
-            emoji: '🟫',
-            color: '#8B4513'
-        },
-        space: {
-            name: 'Astronomie',
-            emoji: '🌌',
-            color: '#4169E1'
-        },
-        dinosaurs: {
-            name: 'Dinosaures',
-            emoji: '🦕',
-            color: '#228B22'
-        }
-    },
-
     // Messages de toasts
     MESSAGES: {
         CARD_DRAWN: 'Nouvelle carte obtenue !',

@@ -41,10 +41,10 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
-        // Valider le thème
-        const validThemes = ['minecraft', 'space', 'dinosaurs'];
-        if (!validThemes.includes(category)) {
-            return res.status(400).json({ error: 'Invalid category' });
+        // Valider le thème (vérifier qu'il existe dans card_themes)
+        const theme = await get('SELECT * FROM card_themes WHERE slug = ?', [category]);
+        if (!theme) {
+            return res.status(400).json({ error: 'Invalid category: theme does not exist' });
         }
 
         // Valider la rareté
@@ -95,9 +95,10 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         }
 
         if (category !== undefined) {
-            const validThemes = ['minecraft', 'space', 'dinosaurs'];
-            if (!validThemes.includes(category)) {
-                return res.status(400).json({ error: 'Invalid category' });
+            // Valider le thème (vérifier qu'il existe dans card_themes)
+            const theme = await get('SELECT * FROM card_themes WHERE slug = ?', [category]);
+            if (!theme) {
+                return res.status(400).json({ error: 'Invalid category: theme does not exist' });
             }
             updates.push('category = ?');
             values.push(category);
