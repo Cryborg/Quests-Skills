@@ -92,7 +92,7 @@ const CONFIG = {
         SETTINGS: 'game_settings'
     },
 
-    // API endpoints (pour future implémentation PHP)
+    // API endpoints
     API: {
         BASE_URL: './api',
         ENDPOINTS: {
@@ -103,6 +103,11 @@ const CONFIG = {
         }
     }
 };
+
+// API Base URL pour l'authentification
+const API_BASE_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000/api'
+    : '/api';
 
 // Utilitaires globaux
 const UTILS = {
