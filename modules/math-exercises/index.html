@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎓 Bonus Mathématiques</title>
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
     <link rel="stylesheet" href="css/bonus.css">
 </head>
 <body>
@@ -71,6 +72,28 @@
     </div>
 
     <script src="../../shared/js/config.js"></script>
+    <!-- Auth system -->
+    <script src="../../shared/js/auth.js"></script>
+    <script src="../../shared/js/auth-ui.js"></script>
+    <!-- Navigation system -->
+    <script src="../../shared/js/navigation.js"></script>
+    <!-- App script -->
     <script src="js/bonus.js"></script>
+
+    <!-- Auth initialization -->
+    <script>
+        // Initialiser l'authentification au chargement
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuth = await authService.init();
+
+            if (!isAuth) {
+                // Pas authentifié, rediriger vers la page de connexion
+                window.location.href = '/';
+            } else {
+                // Initialiser la navigation après l'auth
+                await navigationUI.init();
+            }
+        });
+    </script>
 </body>
 </html>
