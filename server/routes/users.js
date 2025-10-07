@@ -1,11 +1,154 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const { all, get, run } = require('../turso-db');
-const { authenticateToken, checkOwnership } = require('../middleware/auth');
+const { authenticateToken, checkOwnership, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
 router.use(authenticateToken);
+
+// GET /api/users - Récupérer tous les utilisateurs (admin seulement)
+router.get('/', requireAdmin, async (req, res) => {
+    try {
+        const users = await all(`
+            SELECT u.*,
+                   COALESCE(uc.credits, 0) as credits
+            FROM users u
+            LEFT JOIN user_credits uc ON u.id = uc.user_id
+            ORDER BY u.created_at DESC
+        `);
+
+        // Ne pas retourner les passwords
+        const usersWithoutPasswords = users.map(({ password, ...user }) => user);
+        res.json(usersWithoutPasswords);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
+// POST /api/users - Créer un utilisateur (admin seulement)
+router.post('/', requireAdmin, async (req, res) => {
+    try {
+        const { username, email, password, is_admin } = req.body;
+
+        // Valider les champs requis
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: 'Username, email and password are required' });
+        }
+
+        // Vérifier si l'email existe déjà
+        const existingUser = await get('SELECT * FROM users WHERE email = ?', [email]);
+        if (existingUser) {
+            return res.status(409).json({ error: 'Email already exists' });
+        }
+
+        // Hasher le mot de passe
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Créer l'utilisateur
+        const result = await run(
+            'INSERT INTO users (username, email, password, is_admin, created_at) VALUES (?, ?, ?, ?, ?)',
+            [username, email, hashedPassword, is_admin ? 1 : 0, new Date().toISOString()]
+        );
+
+        // Initialiser les crédits à 0
+        await run(
+            'INSERT INTO user_credits (user_id, credits) VALUES (?, ?)',
+            [result.lastID, 0]
+        );
+
+        const newUser = await get('SELECT * FROM users WHERE id = ?', [result.lastID]);
+        const { password: _, ...userWithoutPassword } = newUser;
+
+        res.status(201).json(userWithoutPassword);
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({ error: 'Failed to create user' });
+    }
+});
+
+// PUT /api/users/:id - Modifier un utilisateur (admin ou propriétaire)
+router.put('/:id', checkOwnership, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const { username, email, password, is_admin } = req.body;
+
+        // Vérifier que l'utilisateur existe
+        const user = await get('SELECT * FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Préparer les champs à mettre à jour
+        const updates = [];
+        const values = [];
+
+        if (username !== undefined) {
+            updates.push('username = ?');
+            values.push(username);
+        }
+
+        if (email !== undefined) {
+            updates.push('email = ?');
+            values.push(email);
+        }
+
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            updates.push('password = ?');
+            values.push(hashedPassword);
+        }
+
+        // Seul un admin peut modifier le statut admin
+        if (is_admin !== undefined && req.user.is_admin) {
+            updates.push('is_admin = ?');
+            values.push(is_admin ? 1 : 0);
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+
+        values.push(userId);
+        await run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
+
+        const updatedUser = await get('SELECT * FROM users WHERE id = ?', [userId]);
+        const { password: _, ...userWithoutPassword } = updatedUser;
+
+        res.json(userWithoutPassword);
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Failed to update user' });
+    }
+});
+
+// DELETE /api/users/:id - Supprimer un utilisateur (admin seulement)
+router.delete('/:id', requireAdmin, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+
+        // Vérifier que l'utilisateur existe
+        const user = await get('SELECT * FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Empêcher de se supprimer soi-même
+        if (req.user.id === userId) {
+            return res.status(400).json({ error: 'Cannot delete your own account' });
+        }
+
+        // Supprimer l'utilisateur (les suppressions en cascade devraient gérer le reste)
+        await run('DELETE FROM users WHERE id = ?', [userId]);
+
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
 
 // GET /api/users/:id - Récupérer un user
 router.get('/:id', checkOwnership, async (req, res) => {

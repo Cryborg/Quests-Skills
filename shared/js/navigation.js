@@ -24,6 +24,13 @@ class NavigationUI {
                 label: 'Exercices de maths',
                 href: '/modules/math-exercises/index.html',
                 id: 'math'
+            },
+            {
+                icon: '👑',
+                label: 'Administration',
+                href: '/modules/admin/index.html',
+                id: 'admin',
+                adminOnly: true
             }
         ];
     }
@@ -151,12 +158,14 @@ class NavigationUI {
 
                 <!-- Navigation links -->
                 <div class="nav-menu">
-                    ${this.navLinks.map(link => `
-                        <a href="${link.href}" class="nav-link" data-nav-id="${link.id}">
-                            <span class="nav-link-icon">${link.icon}</span>
-                            <span>${link.label}</span>
-                        </a>
-                    `).join('')}
+                    ${this.navLinks
+                        .filter(link => !link.adminOnly || this.currentUser.is_admin)
+                        .map(link => `
+                            <a href="${link.href}" class="nav-link" data-nav-id="${link.id}">
+                                <span class="nav-link-icon">${link.icon}</span>
+                                <span>${link.label}</span>
+                            </a>
+                        `).join('')}
                 </div>
 
                 <!-- Logout button -->

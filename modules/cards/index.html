@@ -11,7 +11,6 @@
     <div class="container">
         <header class="game-header">
             <h1>🃏 Album de Liam</h1>
-            <button id="settings-btn" class="settings-btn" title="Paramètres">⚙️</button>
             <div class="player-stats">
                 <div class="stat">
                     <span class="label">Cartes uniques:</span>
@@ -77,27 +76,6 @@
 
         <!-- Toast pour les notifications -->
         <div id="toast" class="toast"></div>
-
-        <!-- Modale de paramètres -->
-        <div id="settings-modal" class="modal">
-            <div class="modal-content">
-                <span class="close" id="settings-close">&times;</span>
-                <h2>⚙️ Paramètres</h2>
-                <div class="settings-content">
-                    <div class="setting-item" id="password-section">
-                        <label for="password-input">Mot de passe administrateur :</label>
-                        <input type="password" id="password-input" placeholder="Mot de passe..." inputmode="numeric">
-                    </div>
-                    <div class="setting-item" id="admin-controls" style="display: none;">
-                        <h3>🎁 Crédits bonus</h3>
-                        <div class="credits-controls">
-                            <input type="number" id="credits-amount-input" min="1" max="99" placeholder="Nombre de crédits" inputmode="numeric">
-                            <button id="add-credits-btn" class="settings-btn-action">Valider</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="../../shared/js/config.js"></script>

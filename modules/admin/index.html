@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑 Administration</title>
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/modals.css">
+    <link rel="stylesheet" href="css/admin-styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="admin-header">
+            <h1>👑 Panneau d'Administration</h1>
+        </header>
+
+        <!-- Onglets de navigation admin -->
+        <nav class="admin-tabs">
+            <button class="admin-tab-btn active" data-tab="users">👥 Utilisateurs</button>
+            <button class="admin-tab-btn" data-tab="cards">🃏 Cartes</button>
+        </nav>
+
+        <main class="admin-content">
+            <!-- Section Utilisateurs -->
+            <section id="users-section" class="admin-section active">
+                <div class="section-header">
+                    <h2>👥 Gestion des Utilisateurs</h2>
+                    <button id="create-user-btn" class="admin-btn-primary">➕ Créer un compte</button>
+                </div>
+                <div class="users-search">
+                    <input type="text" id="users-search-input" placeholder="🔍 Rechercher par nom ou email..." autocomplete="search-users-filter">
+                </div>
+                <div class="users-list" id="users-list">
+                    <!-- Liste des utilisateurs chargée dynamiquement -->
+                </div>
+            </section>
+
+            <!-- Section Cartes -->
+            <section id="cards-section" class="admin-section">
+                <div class="section-header">
+                    <h2>🃏 Gestion des Cartes</h2>
+                    <button id="create-card-btn" class="admin-btn-primary">➕ Créer une carte</button>
+                </div>
+
+                <div class="cards-filters">
+                    <select id="cards-theme-filter">
+                        <option value="">Tous les thèmes</option>
+                        <option value="minecraft">🟫 Minecraft</option>
+                        <option value="space">🌌 Astronomie</option>
+                        <option value="dinosaurs">🦕 Dinosaures</option>
+                    </select>
+                    <select id="cards-rarity-filter">
+                        <option value="">Toutes les raretés</option>
+                        <option value="common">🤍 Commune</option>
+                        <option value="rare">💙 Rare</option>
+                        <option value="very_rare">💚 Très Rare</option>
+                        <option value="epic">💛 Épique</option>
+                        <option value="legendary">❤️ Légendaire</option>
+                    </select>
+                </div>
+
+                <div class="cards-grid" id="cards-grid">
+                    <!-- Liste des cartes chargée dynamiquement -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal pour créer/éditer un utilisateur -->
+        <div id="user-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="user-modal-close">&times;</span>
+                <h2 id="user-modal-title">Créer un utilisateur</h2>
+                <form id="user-form" class="admin-form">
+                    <input type="hidden" id="user-id">
+
+                    <div class="form-group">
+                        <label for="user-username">Nom d'utilisateur :</label>
+                        <input type="text" id="user-username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user-email">Email :</label>
+                        <input type="email" id="user-email" required>
+                    </div>
+
+                    <div class="form-group" id="user-password-group">
+                        <label for="user-password">Mot de passe :</label>
+                        <input type="password" id="user-password">
+                        <small>Laisser vide pour ne pas changer le mot de passe</small>
+                    </div>
+
+                    <div class="form-group" id="user-credits-group" style="display: none;">
+                        <label for="user-credits-adjustment">Ajuster les crédits :</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number" id="user-credits-adjustment" value="0" style="width: 150px; text-align: center;" placeholder="Ex: +10 ou -5">
+                            <button type="button" class="admin-btn-success" id="user-credits-add-btn">➕ Ajouter</button>
+                            <button type="button" class="admin-btn-danger" id="user-credits-remove-btn">➖ Retirer</button>
+                        </div>
+                        <small>Valeurs positives pour ajouter, négatives pour retirer (ex: 10 ou -5)</small>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="user-is-admin">
+                            Administrateur
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="admin-btn-primary">💾 Enregistrer</button>
+                        <button type="button" id="user-form-cancel" class="admin-btn-secondary">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal pour créer/éditer une carte -->
+        <div id="card-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="card-modal-close">&times;</span>
+                <h2 id="card-modal-title">Créer une carte</h2>
+                <form id="card-form" class="admin-form">
+                    <input type="hidden" id="card-id">
+
+                    <div class="form-group">
+                        <label for="card-name">Nom de la carte :</label>
+                        <input type="text" id="card-name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="card-description">Description :</label>
+                        <textarea id="card-description" rows="3" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="card-theme">Thème :</label>
+                        <select id="card-theme" required>
+                            <option value="">-- Choisir un thème --</option>
+                            <option value="minecraft">🟫 Minecraft</option>
+                            <option value="space">🌌 Astronomie</option>
+                            <option value="dinosaurs">🦕 Dinosaures</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="card-rarity">Rareté :</label>
+                        <select id="card-rarity" required>
+                            <option value="">-- Choisir une rareté --</option>
+                            <option value="common">🤍 Commune (60%)</option>
+                            <option value="rare">💙 Rare (25%)</option>
+                            <option value="very_rare">💚 Très Rare (10%)</option>
+                            <option value="epic">💛 Épique (4%)</option>
+                            <option value="legendary">❤️ Légendaire (1%)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="card-image">URL de l'image :</label>
+                        <input type="url" id="card-image" required>
+                        <small>URL d'une image hébergée en ligne</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Aperçu de l'image :</label>
+                        <div class="card-preview">
+                            <img id="card-preview-img" src="" alt="Aperçu" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="admin-btn-primary">💾 Enregistrer</button>
+                        <button type="button" id="card-form-cancel" class="admin-btn-secondary">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toast pour les notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="../../shared/js/config.js"></script>
+    <!-- Modal system -->
+    <script src="../../shared/js/modals.js"></script>
+    <!-- Auth system -->
+    <script src="../../shared/js/auth.js"></script>
+    <!-- Navigation system -->
+    <script src="../../shared/js/navigation.js"></script>
+    <!-- Admin scripts -->
+    <script src="js/admin-ui.js"></script>
+    <script src="js/admin-users.js"></script>
+    <script src="js/admin-cards.js"></script>
+    <script src="js/admin-app.js"></script>
+
+    <!-- Auth initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                console.log('🔧 Admin page: Starting authentication check');
+
+                // Initialiser l'authentification
+                const isAuth = await authService.init();
+                console.log('🔧 Admin page: isAuth =', isAuth);
+                console.log('🔧 Admin page: currentUser =', authService.getCurrentUser());
+                console.log('🔧 Admin page: isAdmin =', authService.isAdmin());
+
+                if (!isAuth) {
+                    // Pas authentifié, rediriger vers la page de connexion
+                    console.log('❌ User not authenticated, redirecting to login');
+                    window.location.href = '/';
+                    return;
+                }
+
+                // Vérifier si l'utilisateur est admin
+                if (!authService.isAdmin()) {
+                    // Pas admin, rediriger vers l'accueil
+                    console.log('❌ User is not admin, redirecting to home');
+                    await alert('Accès réservé aux administrateurs');
+                    window.location.href = '/modules/cards/index.html';
+                    return;
+                }
+
+                console.log('✅ User is admin, initializing admin panel');
+
+                // Utilisateur admin authentifié, initialiser la navigation d'abord
+                await navigationUI.init();
+
+                // PUIS initialiser les modules admin (qui ont besoin du token)
+                await initAdminPanel();
+            } catch (error) {
+                console.error('❌ Error during authentication:', error);
+                window.location.href = '/';
+            }
+        });
+    </script>
+</body>
+</html>

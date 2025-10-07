@@ -59,15 +59,7 @@ class UIManager {
             modalContent: document.getElementById('modal-card-content'),
             modalActions: document.getElementById('modal-actions'),
             toast: document.getElementById('toast'),
-            themeTabs: document.querySelectorAll('.tab-btn'),
-            settingsBtn: document.getElementById('settings-btn'),
-            settingsModal: document.getElementById('settings-modal'),
-            settingsClose: document.getElementById('settings-close'),
-            passwordSection: document.getElementById('password-section'),
-            passwordInput: document.getElementById('password-input'),
-            adminControls: document.getElementById('admin-controls'),
-            addCreditsBtn: document.getElementById('add-credits-btn'),
-            creditsAmountInput: document.getElementById('credits-amount-input')
+            themeTabs: document.querySelectorAll('.tab-btn')
         };
     }
 
@@ -114,33 +106,7 @@ class UIManager {
                 e.preventDefault();
                 this.handleDraw();
             }
-            // Touche secrète X pour ajouter un crédit bonus
-            if ((e.key === 'x' || e.key === 'X') && !this.currentModal) {
-                this.addBonusCredit();
-            }
         });
-
-        // Paramètres - événements multiples pour compatibilité tactile
-        this.elements.settingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.openSettings();
-        });
-        this.elements.settingsBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.openSettings();
-        });
-
-        this.elements.settingsClose.addEventListener('click', () => this.closeSettings());
-        this.elements.settingsModal.addEventListener('click', (e) => {
-            if (e.target === this.elements.settingsModal) {
-                this.closeSettings();
-            }
-        });
-
-        this.elements.passwordInput.addEventListener('input', (e) => this.checkPassword(e.target.value));
-        this.elements.addCreditsBtn.addEventListener('click', () => this.validateAdminCredits());
     }
 
     // Met à jour l'affichage complet
@@ -743,60 +709,6 @@ class UIManager {
         const newCredits = await DB.addCredits(1);
         this.updateStats();
         this.showToast(`+1 crédit bonus ! (${newCredits}/${CONFIG.CREDITS.MAX_STORED})`, 'success');
-    }
-
-    // Gestion des paramètres
-    openSettings() {
-        console.log('🔧 Ouverture des paramètres');
-        this.elements.settingsModal.style.display = 'block';
-        this.elements.passwordInput.value = '';
-        this.elements.passwordSection.style.display = 'block';
-        this.elements.adminControls.style.display = 'none';
-
-        // Met le focus sur le champ mot de passe avec un léger délai
-        setTimeout(() => {
-            if (this.elements.passwordInput) {
-                this.elements.passwordInput.focus();
-            }
-        }, 100);
-    }
-
-    closeSettings() {
-        this.elements.settingsModal.style.display = 'none';
-        this.elements.passwordInput.value = '';
-        this.elements.passwordSection.style.display = 'block';
-        this.elements.adminControls.style.display = 'none';
-    }
-
-    checkPassword(password) {
-        if (password === '13042018') {
-            this.elements.passwordSection.style.display = 'none';
-            this.elements.adminControls.style.display = 'block';
-            // Met le focus sur le champ de crédits avec un léger délai pour laisser le temps à l'affichage
-            setTimeout(() => {
-                if (this.elements.creditsAmountInput) {
-                    this.elements.creditsAmountInput.focus();
-                }
-            }, 100);
-        } else {
-            this.elements.adminControls.style.display = 'none';
-        }
-    }
-
-    async validateAdminCredits() {
-        const amount = parseInt(this.elements.creditsAmountInput.value);
-
-        if (!amount || amount < 1 || amount > 99) {
-            this.showToast('Veuillez entrer un nombre entre 1 et 99', 'error');
-            return;
-        }
-
-        const currentCredits = await DB.getCredits();
-        const newCredits = await DB.addCredits(amount);
-
-        this.showToast(`+${amount} crédit${amount > 1 ? 's' : ''} bonus ajouté${amount > 1 ? 's' : ''} ! (${newCredits}/${CONFIG.CREDITS.MAX_STORED})`, 'success');
-        await this.render();
-        this.closeSettings();
     }
 
     // Nettoie les ressources
