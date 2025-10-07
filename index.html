@@ -3,13 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quests & Skills</title>
-    <meta http-equiv="refresh" content="0; url=modules/cards/index.html">
+    <title>Quests & Skills - Connexion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: #1a1a2e;
+            border: 2px solid #667eea;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #e0e0ff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #8a8aa8;
+            font-size: 1.1rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2a2a4e;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #8a8aa8;
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .auth-form h2 {
+            color: #e0e0ff;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b8b8d8;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            background: #2a2a4e;
+            border: 2px solid #3a3a6e;
+            border-radius: 8px;
+            font-size: 15px;
+            color: #e0e0ff;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #333355;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #8a8aa8;
+            font-size: 13px;
+        }
+
+        .auth-error {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .auth-error.show {
+            display: block;
+        }
+
+        .auth-submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auth-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .auth-submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .info-text {
+            text-align: center;
+            margin-top: 25px;
+            color: #8a8aa8;
+            font-size: 14px;
+        }
+
+        .features {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #2a2a4e;
+        }
+
+        .features h3 {
+            color: #b8b8d8;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            color: #8a8aa8;
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✨";
+            position: absolute;
+            left: 0;
+        }
+    </style>
 </head>
 <body>
-    <p>Redirection...</p>
+    <div class="login-container">
+        <div class="logo">
+            <h1>🎮 Quests & Skills</h1>
+            <p>Collection de cartes gamifiée</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Connexion</button>
+            <button class="auth-tab" data-tab="register">Inscription</button>
+        </div>
+
+        <!-- Formulaire de connexion -->
+        <form id="login-form" class="auth-form active">
+            <h2>Connexion</h2>
+            <div class="auth-error" id="login-error"></div>
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="login-password">Mot de passe</label>
+                <input type="password" id="login-password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="auth-submit-btn">Se connecter</button>
+        </form>
+
+        <!-- Formulaire d'inscription -->
+        <form id="register-form" class="auth-form">
+            <h2>Inscription</h2>
+            <div class="auth-error" id="register-error"></div>
+            <div class="form-group">
+                <label for="register-username">Pseudo</label>
+                <input type="text" id="register-username" required minlength="3" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email" required autocomplete="email">
+            </div>
+            <div class="form-group">
+                <label for="register-password">Mot de passe</label>
+                <input type="password" id="register-password" required minlength="8" autocomplete="new-password">
+                <small>Au moins 8 caractères</small>
+            </div>
+            <div class="form-group">
+                <label for="register-password-confirm">Confirmer le mot de passe</label>
+                <input type="password" id="register-password-confirm" required autocomplete="new-password">
+            </div>
+            <button type="submit" class="auth-submit-btn">S'inscrire</button>
+        </form>
+
+        <div class="info-text">
+            <p>Collectionnez des cartes, complétez des quêtes,<br>et développez vos compétences !</p>
+        </div>
+
+        <div class="features">
+            <h3>Fonctionnalités</h3>
+            <ul class="feature-list">
+                <li>Collection de cartes Minecraft, Espace & Dinosaures</li>
+                <li>Exercices mathématiques pour gagner des crédits</li>
+                <li>Système d'amélioration des cartes</li>
+                <li>Progression et statistiques personnelles</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="shared/js/config.js"></script>
+    <script src="shared/js/auth.js"></script>
     <script>
-        window.location.href = 'modules/cards/index.html';
+        // Gestion des onglets
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Changer l'onglet actif
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Afficher le bon formulaire
+                document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+                document.getElementById(`${targetTab}-form`).classList.add('active');
+
+                // Réinitialiser les erreurs
+                document.querySelectorAll('.auth-error').forEach(e => e.classList.remove('show'));
+            });
+        });
+
+        // Gestion de la connexion
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+
+            try {
+                errorEl.classList.remove('show');
+                await authService.login(email, password);
+                // Rediriger vers l'application
+                window.location.href = '/modules/cards/index.html';
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.classList.add('show');
+            }
+        });
+
+        // Gestion de l'inscription
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+            const errorEl = document.getElementById('register-error');
+
+            try {
+                errorEl.classList.remove('show');
+
+                // Validation
+                if (password !== passwordConfirm) {
+                    throw new Error('Les mots de passe ne correspondent pas');
+                }
+
+                await authService.register(username, email, password);
+                // Rediriger vers l'application
+                window.location.href = '/modules/cards/index.html';
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.classList.add('show');
+            }
+        });
+
+        // Vérifier si déjà connecté
+        (async () => {
+            const isAuth = await authService.init();
+            if (isAuth) {
+                // Déjà connecté, rediriger vers l'app
+                window.location.href = '/modules/cards/index.html';
+            }
+        })();
     </script>
 </body>
 </html>

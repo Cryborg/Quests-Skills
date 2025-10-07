@@ -124,8 +124,8 @@
             const isAuth = await authService.init();
 
             if (!isAuth) {
-                // Pas authentifié, afficher la modale de connexion
-                authUI.show();
+                // Pas authentifié, rediriger vers la page de connexion
+                window.location.href = '/';
             } else {
                 // Authentifié, afficher la barre utilisateur
                 authUI.createUserInfoBar();
