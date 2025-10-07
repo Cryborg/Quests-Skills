@@ -828,6 +828,7 @@ body {
     animation: modalSlideIn 0.3s ease;
     max-height: 95vh;
     overflow-y: auto;
+    scrollbar-gutter: stable;
 }
 
 @keyframes modalSlideIn {
@@ -1668,7 +1669,6 @@ body {
     margin-bottom: 30px;
     max-height: 70vh;
     overflow-y: auto;
-    contain: layout; /* Empêche les animations internes de faire trembler la modale */
 }
 
 /* Quand il n'y a qu'une seule carte, centre-la et limite sa largeur */

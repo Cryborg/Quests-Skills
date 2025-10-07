@@ -413,9 +413,9 @@ function createAlignedInputs(inputLength, totalLength, prefix) {
 // Focus sur le dernier input de la première ligne d'inputs (droite de la première ligne)
 function focusFirstInput() {
     setTimeout(() => {
-        const inputs = document.querySelectorAll('.digit-input');
+        const inputs = document.querySelectorAll('.digit-input:not([data-carry])');
         if (inputs.length > 0) {
-            // Trouver le premier groupe d'inputs (première ligne)
+            // Trouver le premier groupe d'inputs non-retenue (première ligne)
             const firstPrefix = inputs[0].dataset.prefix;
             const firstLineInputs = Array.from(inputs).filter(input => input.dataset.prefix === firstPrefix);
 

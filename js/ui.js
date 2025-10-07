@@ -32,7 +32,7 @@ class UIManager {
     }
 
     // Initialise tous les éléments DOM
-    async init() {
+    init() {
         this.cacheElements();
         this.bindEvents();
         this.startCooldownUpdate();
@@ -40,7 +40,7 @@ class UIManager {
         // Initialise l'animation de pioche
         DRAW_ANIMATION.init();
 
-        await this.render();
+        this.render();
     }
 
     // Met en cache les éléments DOM fréquemment utilisés
@@ -55,6 +55,7 @@ class UIManager {
             collectionGrid: document.getElementById('collection-grid'),
             rarityFilter: document.getElementById('rarity-filter'),
             sortFilter: document.getElementById('sort-filter'),
+            searchFilter: document.getElementById('search-filter'),
             modal: document.getElementById('card-modal'),
             modalContent: document.getElementById('modal-card-content'),
             modalActions: document.getElementById('modal-actions'),
@@ -92,6 +93,11 @@ class UIManager {
 
         this.elements.sortFilter.addEventListener('change', (e) => {
             CARD_SYSTEM.setFilters({ sort: e.target.value });
+            this.renderCards();
+        });
+
+        this.elements.searchFilter.addEventListener('input', (e) => {
+            CARD_SYSTEM.setFilters({ search: e.target.value });
             this.renderCards();
         });
 
@@ -144,12 +150,11 @@ class UIManager {
     }
 
     // Met à jour l'affichage complet
-    async render() {
-        await DB.refreshCollection();
+    render() {
         this.updateStats();
         this.updateThemeTabs();
         this.renderCards();
-        await this.updateDrawButton();
+        this.updateDrawButton();
     }
 
     // Met à jour les statistiques en haut
@@ -166,7 +171,7 @@ class UIManager {
     // Met à jour le compte à rebours du crédit gratuit
     updateCreditCountdown() {
         const canClaimDaily = DB.canClaimDailyCredit();
-        const dailyTimeLeft = DB.getTimeUntilNextDailyCredit();
+        const dailyTimeLeft = DB.getDailyCreditTimeLeft();
 
         if (canClaimDaily) {
             this.elements.nextCreditCountdown.textContent = "Disponible !";
@@ -485,11 +490,11 @@ class UIManager {
     // Gère la pioche d'une carte
     async handleDraw() {
         // Vérifie d'abord si on peut récupérer le crédit quotidien
-        if (!(await DB.hasCredits()) && DB.canClaimDailyCredit()) {
-            const result = await DB.claimDailyCredit();
+        if (!DB.hasCredits() && DB.canClaimDailyCredit()) {
+            const result = DB.claimDailyCredit();
             if (result.success) {
-                this.showToast('🎁 Crédit quotidien récupéré !', 'success');
-                await this.render();
+                this.showToast(result.message, 'success');
+                this.render();
                 return;
             } else {
                 this.showToast(result.message, 'error');
@@ -502,7 +507,7 @@ class UIManager {
             return;
         }
 
-        const result = await CARD_SYSTEM.drawCard();
+        const result = CARD_SYSTEM.drawCard();
 
         if (result.success) {
             try {
@@ -513,11 +518,11 @@ class UIManager {
                     // Si une seule carte, bascule sur le thème de la carte
                     if (result.totalDrawn === 1) {
                         const firstCard = Object.values(result.groupedCards)[0].card;
-                        this.switchTheme(firstCard.category);
+                        this.switchTheme(firstCard.theme);
                     }
 
                     // Après l'animation, met à jour l'affichage
-                    await this.render();
+                    this.render();
 
                     // Animation des nouvelles cartes dans la collection
                     setTimeout(() => {
@@ -563,15 +568,14 @@ class UIManager {
 
     // Gère l'amélioration d'une carte avec animation
     async handleCardUpgrade(card) {
-        try {
-            await CARD_SYSTEM.upgradeCard(card.id);
+        const result = CARD_SYSTEM.upgradeCard(card.id);
+
+        if (result.success) {
+            // Met à jour l'affichage général IMMÉDIATEMENT (en arrière-plan)
+            this.render();
 
             // Lance l'animation d'amélioration
-            const upgradeInfo = card.upgradeInfo;
-            await this.animateCardUpgrade(upgradeInfo.nextRarity);
-
-            // Met à jour l'affichage
-            await this.render();
+            await this.animateCardUpgrade(result.newRarity);
 
             // Récupère les nouvelles informations de la carte après amélioration
             const updatedCards = CARD_SYSTEM.getCardsWithCollectionInfo();
@@ -582,9 +586,14 @@ class UIManager {
                 this.showCardModal(updatedCard);
             }
 
-            this.showToast(`✨ Carte améliorée vers ${CONFIG.RARITIES[upgradeInfo.nextRarity].name} !`, 'success');
-        } catch (error) {
-            this.showToast(error.message || 'Impossible d\'améliorer cette carte', 'error');
+            // Message avec crédits gagnés s'il y en a
+            let message = result.message;
+            if (result.creditsEarned > 0) {
+                message += ` (+${result.creditsEarned} crédit${result.creditsEarned > 1 ? 's' : ''} bonus)`;
+            }
+            this.showToast(message, 'success');
+        } else {
+            this.showToast(result.message, 'error');
         }
     }
 
@@ -684,18 +693,18 @@ class UIManager {
     }
 
     // Met à jour le bouton de pioche
-    async updateDrawButton() {
-        const hasCredits = await DB.hasCredits();
-        const creditsCount = await DB.getCredits();
+    updateDrawButton() {
+        const hasCredits = DB.hasCredits();
+        const creditsCount = DB.getCredits();
         const canClaimDaily = DB.canClaimDailyCredit();
-        const dailyTimeLeft = DB.getTimeUntilNextDailyCredit();
+        const dailyTimeLeft = DB.getDailyCreditTimeLeft();
 
         // Vérifie automatiquement si on peut récupérer le crédit quotidien
         if (canClaimDaily && creditsCount < CONFIG.CREDITS.MAX_STORED) {
-            const result = await DB.claimDailyCredit();
+            const result = DB.claimDailyCredit();
             if (result.success) {
-                this.showToast('🎁 Crédit quotidien récupéré !', 'success');
-                await this.updateStats();
+                this.showToast(result.message, 'success');
+                this.updateStats();
                 return; // Re-calcule après avoir ajouté le crédit
             }
         }
@@ -721,8 +730,8 @@ class UIManager {
 
     // Démarre la mise à jour du cooldown
     startCooldownUpdate() {
-        this.updateInterval = setInterval(async () => {
-            await this.updateDrawButton();
+        this.updateInterval = setInterval(() => {
+            this.updateDrawButton();
             this.updateCreditCountdown();
         }, 1000);
     }
@@ -794,7 +803,7 @@ class UIManager {
         }
     }
 
-    async validateAdminCredits() {
+    validateAdminCredits() {
         const amount = parseInt(this.elements.creditsAmountInput.value);
 
         if (!amount || amount < 1 || amount > 99) {
@@ -802,10 +811,11 @@ class UIManager {
             return;
         }
 
-        const newCredits = await DB.addCredits(amount);
+        const currentCredits = DB.getCredits();
+        const newCredits = DB.addCredits(amount);
 
         this.showToast(`+${amount} crédit${amount > 1 ? 's' : ''} bonus ajouté${amount > 1 ? 's' : ''} ! (${newCredits}/${CONFIG.CREDITS.MAX_STORED})`, 'success');
-        await this.render();
+        this.updateStats();
         this.closeSettings();
     }
 

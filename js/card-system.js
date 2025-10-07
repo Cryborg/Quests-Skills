@@ -1,20 +1,21 @@
-// Système de gestion des cartes et mécaniques de jeu (adapté pour l'API)
+// Système de gestion des cartes et mécaniques de jeu
 class CardSystem {
     constructor() {
         this.currentTheme = 'minecraft';
         this.filters = {
             rarity: '',
+            search: '',
             sort: 'default'
         };
     }
 
     // Pioche plusieurs cartes d'un coup
-    async drawMultipleCards(count = 1) {
+    drawMultipleCards(count = 1) {
         const results = [];
         const drawnCards = {};
 
         for (let i = 0; i < count; i++) {
-            const result = await this.drawSingleCard();
+            const result = this.drawSingleCard();
             if (result.success) {
                 results.push(result);
 
@@ -40,23 +41,21 @@ class CardSystem {
             groupedCards: drawnCards,
             totalDrawn: results.length,
             creditsUsed: count,
-            creditsRemaining: await DB.getCredits()
+            creditsRemaining: results.length > 0 ? results[results.length - 1].creditsRemaining : DB.getCredits()
         };
     }
 
     // Pioche des cartes (interface publique)
-    async drawCard(count = null) {
+    drawCard(count = null) {
         // Si pas de count spécifié, utilise tous les crédits disponibles
-        const credits = await DB.getCredits();
-        const creditsToUse = count || credits;
-        return await this.drawMultipleCards(creditsToUse);
+        const creditsToUse = count || DB.getCredits();
+        return this.drawMultipleCards(creditsToUse);
     }
 
     // Pioche une carte aléatoire (fonction interne)
-    async drawSingleCard() {
+    drawSingleCard() {
         // Vérifie si le joueur a des crédits
-        const credits = await DB.getCredits();
-        if (credits < 1) {
+        if (!DB.hasCredits()) {
             return {
                 success: false,
                 message: 'Aucun crédit de pioche disponible'
@@ -64,203 +63,187 @@ class CardSystem {
         }
 
         // Utilise un crédit
-        await DB.useCredits(1);
-
-        // Génère une rareté aléatoire
-        const rarity = UTILS.getRandomRarity();
-
-        // Récupère toutes les cartes de cette rareté (base_rarity)
-        const allCards = DB.getAllCards();
-        const cardsOfRarity = allCards.filter(c => c.base_rarity === rarity);
-
-        if (cardsOfRarity.length === 0) {
-            // Fallback sur une carte commune si aucune carte de cette rareté
-            const commonCards = allCards.filter(c => c.base_rarity === 'common');
-            const randomCard = commonCards[Math.floor(Math.random() * commonCards.length)];
-            await DB.addToCollection(randomCard.id);
-
+        const creditResult = DB.useCredit();
+        if (!creditResult.success) {
             return {
-                success: true,
-                card: randomCard,
-                isDuplicate: false,
-                creditsRemaining: await DB.getCredits()
+                success: false,
+                message: 'Impossible d\'utiliser le crédit'
+            };
+        }
+
+        // Génère une rareté aléatoire selon la baseRarity de la carte
+        const baseRarity = UTILS.getRandomRarity();
+
+        // Récupère toutes les cartes de cette rareté de base
+        const allCards = DB.getAllCards();
+
+        // Filtre les cartes : même baseRarity ET pas encore légendaires
+        const availableCards = allCards.filter(card => {
+            if (card.baseRarity !== baseRarity) {
+                return false;
+            }
+
+            // Vérifie si cette carte a déjà atteint le niveau légendaire
+            const currentRarity = DB.getCardCurrentRarity(card.id);
+            return currentRarity !== 'legendary';
+        });
+
+        if (availableCards.length === 0) {
+            return {
+                success: false,
+                message: 'Toutes les cartes ont atteint le niveau légendaire !'
             };
         }
 
         // Sélectionne une carte aléatoire
-        const randomCard = cardsOfRarity[Math.floor(Math.random() * cardsOfRarity.length)];
+        const randomIndex = Math.floor(Math.random() * availableCards.length);
+        const drawnCard = availableCards[randomIndex];
 
-        // Vérifie si c'est un doublon
-        const collection = DB.getCollection();
-        const isDuplicate = !!collection[randomCard.id];
+        // Ajoute la carte à la collection (toujours en 'common' au début)
+        const collectionItem = DB.addToCollection(drawnCard.id);
 
-        // Ajoute à la collection
-        await DB.addToCollection(randomCard.id);
+        // Sauvegarde l'heure de pioche
+        DB.saveLastDrawTime();
+
+        // Détermine si c'est un doublon
+        const isDuplicate = collectionItem.count > 1;
 
         return {
             success: true,
-            card: randomCard,
-            isDuplicate: isDuplicate,
-            creditsRemaining: await DB.getCredits()
+            card: drawnCard,
+            isDuplicate,
+            newCount: collectionItem.count,
+            creditsRemaining: creditResult.remaining,
+            message: isDuplicate ? CONFIG.MESSAGES.DUPLICATE_FOUND : CONFIG.MESSAGES.CARD_DRAWN
         };
     }
 
-    // Définit le thème actuel
-    setTheme(theme) {
-        this.currentTheme = theme;
+    // Améliore une carte en utilisant des doublons (amélioration de rareté)
+    upgradeCard(cardId) {
+        return DB.upgradeCardRarity(cardId);
     }
 
-    // Récupère le thème actuel
-    getTheme() {
-        return this.currentTheme;
+    // Calcule les points d'une carte selon sa rareté actuelle
+    calculateCardPoints(card, currentRarity) {
+        // Sécurité : vérifier que la rareté existe
+        if (!currentRarity || !CONFIG.RARITIES[currentRarity]) {
+            console.warn(`Rareté invalide pour la carte ${card?.id}: ${currentRarity}`);
+            return 0;
+        }
+        const basePoints = CONFIG.RARITIES[currentRarity].points;
+        return basePoints;
     }
 
-    // Alias pour setTheme (compatibilité)
-    setCurrentTheme(theme) {
-        this.setTheme(theme);
-    }
-
-    // Récupère les cartes du thème actuel avec filtres appliqués
-    getCurrentThemeCards() {
+    // Récupère toutes les cartes avec leurs informations de collection
+    getCardsWithCollectionInfo(themeFilter = null) {
         const allCards = DB.getAllCards();
-        const filtered = this.applyFilters(allCards);
-
-        // Enrichit avec les infos de collection
         const collection = DB.getCollection();
-        return filtered.map(card => {
-            const collectionItem = collection[card.id];
-            const currentRarity = collectionItem?.currentRarity || 'common';
-            const canUpgrade = this.canUpgradeRarity(card.id);
 
-            return {
-                ...card,
-                owned: !!collectionItem,
-                count: collectionItem?.quantity || 0,
-                quantity: collectionItem?.quantity || 0,
-                currentRarity: currentRarity,
-                baseRarity: card.base_rarity,
-                canUpgrade: canUpgrade.canUpgrade,
-                upgradeInfo: canUpgrade
-            };
-        });
-    }
-
-    // Applique les filtres
-    applyFilters(cards) {
-        let filtered = [...cards];
+        let filteredCards = allCards;
 
         // Filtre par thème
-        if (this.currentTheme) {
-            const themeMap = {
-                'minecraft': 'minecraft',
-                'space': 'espace',
-                'espace': 'espace',
-                'dinosaurs': 'dinosaure',
-                'dinosaure': 'dinosaure'
-            };
-            const mappedTheme = themeMap[this.currentTheme] || this.currentTheme;
-            filtered = filtered.filter(card => card.category === mappedTheme);
+        if (themeFilter) {
+            filteredCards = filteredCards.filter(card => card.theme === themeFilter);
         }
 
-        // Filtre par rareté (base_rarity)
+        // Filtre par rareté (basé sur la rareté actuelle)
         if (this.filters.rarity) {
-            filtered = filtered.filter(card => card.base_rarity === this.filters.rarity);
+            filteredCards = filteredCards.filter(card => {
+                const currentRarity = DB.getCardCurrentRarity(card.id);
+                return currentRarity === this.filters.rarity;
+            });
         }
 
-        // Tri
-        filtered = this.sortCards(filtered, this.filters.sort);
+        // Filtre par recherche
+        if (this.filters.search) {
+            const searchTerm = this.filters.search.toLowerCase();
+            filteredCards = filteredCards.filter(card =>
+                card.name.toLowerCase().includes(searchTerm) ||
+                card.description.toLowerCase().includes(searchTerm)
+            );
+        }
 
-        return filtered;
+        // Ajoute les informations de collection
+        let cardsWithInfo = filteredCards.map(card => {
+            const collectionItem = collection[card.id];
+            const currentRarity = DB.getCardCurrentRarity(card.id);
+            const canUpgradeRarity = this.canUpgradeRarity(card.id);
+
+            const result = {
+                ...card,
+                owned: !!collectionItem,
+                count: collectionItem ? collectionItem.count : 0,
+                currentRarity: currentRarity,
+                baseRarity: card.baseRarity,
+                points: this.calculateCardPoints(card, currentRarity),
+                canUpgrade: canUpgradeRarity.canUpgrade,
+                upgradeInfo: canUpgradeRarity
+            };
+
+            // Debug : vérifie les propriétés manquantes
+            if (!result.baseRarity) {
+                console.error('baseRarity manquante pour la carte:', card);
+            }
+
+            return result;
+        });
+
+        // Applique le tri
+        cardsWithInfo = this.applySorting(cardsWithInfo);
+
+        return cardsWithInfo;
     }
 
-    // Trie les cartes selon le critère choisi
-    sortCards(cards, sortType) {
-        const sorted = [...cards];
-        const rarityOrder = { common: 1, rare: 2, very_rare: 3, epic: 4, legendary: 5 };
+    // Applique le tri sur les cartes
+    applySorting(cards) {
+        const sortType = this.filters.sort;
 
         switch (sortType) {
             case 'rarity-asc':
-                return sorted.sort((a, b) => rarityOrder[a.base_rarity] - rarityOrder[b.base_rarity]);
+                return this.sortByRarity(cards, 'asc');
             case 'rarity-desc':
-                return sorted.sort((a, b) => rarityOrder[b.base_rarity] - rarityOrder[a.base_rarity]);
+                return this.sortByRarity(cards, 'desc');
             case 'alpha-asc':
-                return sorted.sort((a, b) => a.name.localeCompare(b.name));
+                return this.sortAlphabetically(cards, 'asc');
             case 'alpha-desc':
-                return sorted.sort((a, b) => b.name.localeCompare(a.name));
+                return this.sortAlphabetically(cards, 'desc');
             case 'default':
             default:
-                return sorted; // Ordre par défaut (tel que défini dans la DB)
+                return cards; // Ordre original
         }
     }
 
-    // Met à jour les filtres
-    setFilter(filterName, value) {
-        if (this.filters.hasOwnProperty(filterName)) {
-            this.filters[filterName] = value;
-        }
-    }
+    // Tri par rareté (basé sur la rareté actuelle de la carte)
+    sortByRarity(cards, order = 'asc') {
+        const rarityOrder = ['common', 'rare', 'very_rare', 'epic', 'legendary'];
 
-    // Met à jour plusieurs filtres à la fois
-    setFilters(filters) {
-        Object.keys(filters).forEach(key => {
-            if (this.filters.hasOwnProperty(key)) {
-                this.filters[key] = filters[key];
+        return cards.slice().sort((a, b) => {
+            const rarityA = rarityOrder.indexOf(a.currentRarity);
+            const rarityB = rarityOrder.indexOf(b.currentRarity);
+
+            if (order === 'asc') {
+                return rarityA - rarityB;
+            } else {
+                return rarityB - rarityA;
             }
         });
     }
 
-    // Récupère les statistiques détaillées
-    getDetailedStats() {
-        const collection = DB.getCollection();
-        const allCards = DB.getAllCards();
+    // Tri alphabétique par nom
+    sortAlphabetically(cards, order = 'asc') {
+        return cards.slice().sort((a, b) => {
+            const nameA = a.name.toLowerCase();
+            const nameB = b.name.toLowerCase();
 
-        const stats = {
-            totalCards: allCards.length,
-            ownedCards: Object.keys(collection).length,
-            completionPercentage: 0,
-            rarityStats: {
-                common: { total: 0, owned: 0 },
-                rare: { total: 0, owned: 0 },
-                epic: { total: 0, owned: 0 },
-                legendary: { total: 0, owned: 0 }
-            }
-        };
-
-        // Calcule les stats par rareté
-        allCards.forEach(card => {
-            if (stats.rarityStats[card.rarity]) {
-                stats.rarityStats[card.rarity].total++;
-                if (collection[card.id]) {
-                    stats.rarityStats[card.rarity].owned++;
-                }
+            if (order === 'asc') {
+                return nameA.localeCompare(nameB, 'fr');
+            } else {
+                return nameB.localeCompare(nameA, 'fr');
             }
         });
-
-        stats.completionPercentage = stats.totalCards > 0
-            ? Math.round((stats.ownedCards / stats.totalCards) * 100)
-            : 0;
-
-        return stats;
     }
 
-    // Simule des pioches (pour debug)
-    async simulateDraws(count) {
-        const results = {
-            common: 0,
-            rare: 0,
-            epic: 0,
-            legendary: 0
-        };
-
-        for (let i = 0; i < count; i++) {
-            const rarity = UTILS.getRandomRarity();
-            results[rarity]++;
-        }
-
-        return results;
-    }
-
-    // Vérifie si une carte peut être upgradée
+    // Vérifie si une carte peut être améliorée en rareté
     canUpgradeRarity(cardId) {
         const collection = DB.getCollection();
         const card = DB.getCardById(cardId);
@@ -282,76 +265,122 @@ class CardSystem {
             };
         }
 
-        // Coût = 2^(index + 2) (4, 8, 16, 32...)
         const upgradeCost = Math.pow(2, currentIndex + 2);
-        const hasEnoughCards = collection[cardId].quantity >= upgradeCost;
+        const hasEnoughCards = collection[cardId].count >= upgradeCost;
 
         return {
             canUpgrade: hasEnoughCards,
             cost: upgradeCost,
-            current: collection[cardId].quantity,
+            current: collection[cardId].count,
             nextRarity: rarityOrder[currentIndex + 1],
             reason: hasEnoughCards ? 'Peut être améliorée' : `Besoin de ${upgradeCost} exemplaires`
         };
     }
 
-    // Upgrade une carte
-    async upgradeCard(cardId) {
-        const upgradeInfo = this.canUpgradeRarity(cardId);
-
-        if (!upgradeInfo.canUpgrade) {
-            throw new Error(upgradeInfo.reason);
-        }
-
-        await DB.upgradeCard(cardId, upgradeInfo.nextRarity, upgradeInfo.cost);
+    // Met à jour les filtres
+    setFilters(filters) {
+        this.filters = { ...this.filters, ...filters };
     }
 
-    // Calcule les points d'une carte selon sa rareté
-    calculateCardPoints(card, currentRarity) {
-        const rarityPoints = {
-            'common': 1,
-            'rare': 3,
-            'very_rare': 6,
-            'epic': 10,
-            'legendary': 20
-        };
-
-        return rarityPoints[currentRarity] || 1;
+    // Change le thème actuel
+    setCurrentTheme(theme) {
+        this.currentTheme = theme;
     }
 
-    // Récupère les cartes améliorables
-    getUpgradeableCards() {
+    // Récupère les cartes du thème actuel
+    getCurrentThemeCards() {
+        return this.getCardsWithCollectionInfo(this.currentTheme);
+    }
+
+    // Calcule le score total du joueur
+    calculateTotalScore() {
         const collection = DB.getCollection();
         const allCards = DB.getAllCards();
+        let totalScore = 0;
 
-        return allCards.filter(card => {
-            if (!collection[card.id]) return false;
-            const upgradeInfo = this.canUpgradeRarity(card.id);
-            return upgradeInfo.canUpgrade;
-        });
+        for (const [cardId, collectionItem] of Object.entries(collection)) {
+            const card = allCards.find(c => c.id === cardId);
+            if (card) {
+                const cardScore = this.calculateCardPoints(card, collectionItem.currentRarity);
+                totalScore += cardScore;
+            }
+        }
+
+        return totalScore;
     }
 
-    // Récupère les cartes avec info de collection (pour l'UI)
-    getCardsWithCollectionInfo(theme = null) {
-        let cards = theme ? DB.getCardsByTheme(theme) : DB.getAllCards();
+    // Récupère les statistiques détaillées
+    getDetailedStats() {
+        const basicStats = DB.getCollectionStats();
+        const totalScore = this.calculateTotalScore();
         const collection = DB.getCollection();
 
-        return cards.map(card => {
-            const collectionItem = collection[card.id];
-            const currentRarity = collectionItem?.currentRarity || 'common';
-            const canUpgrade = this.canUpgradeRarity(card.id);
+        // Statistiques par rareté
+        const rarityStats = {};
+        for (const [rarityKey, rarity] of Object.entries(CONFIG.RARITIES)) {
+            const allCardsOfRarity = DB.getAllCards().filter(card => card.rarity === rarityKey);
+            const ownedCardsOfRarity = allCardsOfRarity.filter(card => DB.hasCard(card.id));
 
-            return {
-                ...card,
-                owned: !!collectionItem,
-                count: collectionItem?.quantity || 0,
-                quantity: collectionItem?.quantity || 0,
-                currentRarity: currentRarity,
-                baseRarity: card.base_rarity,
-                canUpgrade: canUpgrade.canUpgrade,
-                upgradeInfo: canUpgrade
+            rarityStats[rarityKey] = {
+                name: rarity.name,
+                total: allCardsOfRarity.length,
+                owned: ownedCardsOfRarity.length,
+                percentage: allCardsOfRarity.length > 0 ?
+                    Math.round((ownedCardsOfRarity.length / allCardsOfRarity.length) * 100) : 0
             };
-        });
+        }
+
+        // Carte la plus élevée en niveau
+        let highestLevelCard = null;
+        let highestLevel = 0;
+
+        for (const [cardId, collectionItem] of Object.entries(collection)) {
+            if (collectionItem.level > highestLevel) {
+                highestLevel = collectionItem.level;
+                highestLevelCard = DB.getCardById(cardId);
+            }
+        }
+
+        return {
+            ...basicStats,
+            totalScore,
+            rarityStats,
+            highestLevelCard,
+            highestLevel
+        };
+    }
+
+    // Vérifie s'il y a des améliorations possibles
+    hasUpgradeableCards() {
+        const cards = this.getCardsWithCollectionInfo();
+        return cards.some(card => card.canUpgrade);
+    }
+
+    // Récupère les cartes qui peuvent être améliorées
+    getUpgradeableCards() {
+        const cards = this.getCardsWithCollectionInfo();
+        return cards.filter(card => card.canUpgrade);
+    }
+
+    // Simulation de pioche (pour les probabilités)
+    simulateDraws(numberOfDraws = 100) {
+        const results = {};
+
+        for (const rarityKey of Object.keys(CONFIG.RARITIES)) {
+            results[rarityKey] = 0;
+        }
+
+        for (let i = 0; i < numberOfDraws; i++) {
+            const rarity = UTILS.getRandomRarity();
+            results[rarity]++;
+        }
+
+        // Convertit en pourcentages
+        for (const rarityKey of Object.keys(results)) {
+            results[rarityKey] = Math.round((results[rarityKey] / numberOfDraws) * 100);
+        }
+
+        return results;
     }
 }
 
