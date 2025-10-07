@@ -33,6 +33,9 @@ class UIManager {
 
     // Initialise tous les éléments DOM
     async init() {
+        // Charger les thèmes depuis l'API et générer les onglets
+        await this.loadThemeTabs();
+
         this.cacheElements();
         this.bindEvents();
         this.startCooldownUpdate();
@@ -41,6 +44,26 @@ class UIManager {
         DRAW_ANIMATION.init();
 
         await this.render();
+    }
+
+    // Charger les thèmes depuis l'API et générer les onglets
+    async loadThemeTabs() {
+        try {
+            const response = await authService.fetchAPI('/themes');
+            const themes = await response.json();
+
+            const tabsContainer = document.querySelector('.theme-tabs');
+            if (tabsContainer && themes.length > 0) {
+                tabsContainer.innerHTML = themes.map((theme, index) => `
+                    <button class="tab-btn ${index === 0 ? 'active' : ''}" data-theme="${theme.slug}">
+                        ${theme.icon} ${theme.name}
+                    </button>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Failed to load themes:', error);
+            // En cas d'erreur, garder les thèmes par défaut du HTML
+        }
     }
 
     // Met en cache les éléments DOM fréquemment utilisés

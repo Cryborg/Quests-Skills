@@ -127,24 +127,34 @@ class AdminUI {
         return labels[rarity] || rarity;
     }
 
-    // Icône de thème
-    getThemeIcon(theme) {
-        const icons = {
+    // Icône de thème (récupère depuis la base de données)
+    getThemeIcon(themeSlug) {
+        if (typeof adminThemes !== 'undefined') {
+            const theme = adminThemes.getThemes().find(t => t.slug === themeSlug);
+            if (theme) return theme.icon;
+        }
+        // Fallback pour les thèmes existants si adminThemes n'est pas encore chargé
+        const fallbackIcons = {
             minecraft: '🟫',
             space: '🌌',
             dinosaurs: '🦕'
         };
-        return icons[theme] || '❓';
+        return fallbackIcons[themeSlug] || '❓';
     }
 
-    // Label de thème
-    getThemeLabel(theme) {
-        const labels = {
+    // Label de thème (récupère depuis la base de données)
+    getThemeLabel(themeSlug) {
+        if (typeof adminThemes !== 'undefined') {
+            const theme = adminThemes.getThemes().find(t => t.slug === themeSlug);
+            if (theme) return theme.name;
+        }
+        // Fallback pour les thèmes existants si adminThemes n'est pas encore chargé
+        const fallbackLabels = {
             minecraft: 'Minecraft',
             space: 'Astronomie',
             dinosaurs: 'Dinosaures'
         };
-        return labels[theme] || theme;
+        return fallbackLabels[themeSlug] || themeSlug;
     }
 }
 
