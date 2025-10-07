@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🃏 Collection de Cartes</title>
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -108,6 +109,8 @@
     <!-- Auth system (chargé en premier) -->
     <script src="../../shared/js/auth.js"></script>
     <script src="../../shared/js/auth-ui.js"></script>
+    <!-- Navigation system -->
+    <script src="../../shared/js/navigation.js"></script>
     <!-- App scripts -->
     <script src="js/database.js"></script>
     <script src="js/card-system.js"></script>
@@ -126,10 +129,8 @@
             if (!isAuth) {
                 // Pas authentifié, rediriger vers la page de connexion
                 window.location.href = '/';
-            } else {
-                // Authentifié, afficher la barre utilisateur
-                authUI.createUserInfoBar();
             }
+            // La navigation se charge automatiquement via navigation.js
         });
     </script>
 </body>
