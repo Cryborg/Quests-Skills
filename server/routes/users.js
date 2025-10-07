@@ -292,6 +292,12 @@ router.get('/:id/credits', checkOwnership, async (req, res) => {
 
         // S'assurer que les crédits ne sont jamais négatifs
         const safeCredits = credits ? { ...credits, credits: Math.max(0, credits.credits) } : { credits: 0 };
+
+        // Empêcher le cache pour les crédits
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+
         res.json(safeCredits);
     } catch (error) {
         console.error('Error fetching user credits:', error);
