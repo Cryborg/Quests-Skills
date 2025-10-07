@@ -563,26 +563,25 @@ class DatabaseManager {
             const user = authService.getCurrentUser();
             if (!user) return { success: false, remaining: 0, used: 0 };
 
-            const currentCredits = await this.getCredits();
-            if (currentCredits <= 0) {
-                return { success: false, remaining: 0, used: 0 };
-            }
-
-            // Utilise seulement le nombre de crédits disponibles
-            const creditsToUse = Math.min(amount, currentCredits);
-
+            // L'endpoint /credits/use vérifie déjà les crédits disponibles côté serveur
+            // et retourne le montant réellement utilisé
             const response = await authService.fetchAPI(`/users/${user.id}/credits/use`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: creditsToUse })
+                body: JSON.stringify({ amount })
             });
 
             if (!response.ok) {
-                throw new Error('Failed to use credits');
+                const data = await response.json();
+                // Si pas assez de crédits, le serveur retourne une erreur
+                if (response.status === 400) {
+                    return { success: false, remaining: 0, used: 0 };
+                }
+                throw new Error(data.error || 'Failed to use credits');
             }
 
             const data = await response.json();
-            return { success: true, remaining: data.credits, used: creditsToUse };
+            return { success: true, remaining: data.credits, used: amount };
         } catch (error) {
             console.error('Failed to use credits:', error);
             return { success: false, remaining: 0, used: 0 };

@@ -10,25 +10,11 @@ class CardSystem {
 
     // Pioche plusieurs cartes d'un coup
     async drawMultipleCards(count = 1) {
-        // Vérifie combien de crédits on a vraiment
-        const availableCredits = await DB.getCredits();
-        const creditsToUse = Math.min(count, availableCredits);
-
-        if (creditsToUse <= 0) {
-            return {
-                success: false,
-                results: [],
-                groupedCards: {},
-                totalDrawn: 0,
-                creditsUsed: 0,
-                creditsRemaining: 0,
-                message: 'Aucun crédit de pioche disponible'
-            };
-        }
-
         // UN SEUL appel API pour utiliser tous les crédits d'un coup
-        const creditResult = await DB.useCredits(creditsToUse);
-        if (!creditResult.success) {
+        // useCredits() vérifie déjà les crédits disponibles et retourne le nombre réel utilisé
+        const creditResult = await DB.useCredits(count);
+
+        if (!creditResult.success || creditResult.used === 0) {
             return {
                 success: false,
                 results: [],
@@ -36,7 +22,7 @@ class CardSystem {
                 totalDrawn: 0,
                 creditsUsed: 0,
                 creditsRemaining: creditResult.remaining,
-                message: 'Impossible d\'utiliser les crédits'
+                message: 'Aucun crédit de pioche disponible'
             };
         }
 
