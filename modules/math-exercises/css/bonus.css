@@ -15,7 +15,8 @@
     --accent-red: #ef4444;
 }
 
-body {
+/* Styles globaux déplacés vers .app-content pour éviter conflits avec navigation */
+.app-content {
     background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 100%);
     min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

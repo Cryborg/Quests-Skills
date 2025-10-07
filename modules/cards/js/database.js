@@ -488,35 +488,100 @@ class DatabaseManager {
         UTILS.saveToStorage(CONFIG.STORAGE_KEYS.LAST_DRAW, Date.now());
     }
 
-    // Gestion des crédits de pioche
-    getCredits() {
-        return UTILS.loadFromStorage(CONFIG.STORAGE_KEYS.CREDITS, CONFIG.CREDITS.INITIAL);
-    }
+    // Gestion des crédits de pioche via API
+    async getCredits() {
+        try {
+            const user = authService.getCurrentUser();
+            if (!user) return CONFIG.CREDITS.INITIAL;
 
-    saveCredits(credits) {
-        const maxCredits = Math.min(credits, CONFIG.CREDITS.MAX_STORED);
-        return UTILS.saveToStorage(CONFIG.STORAGE_KEYS.CREDITS, maxCredits);
-    }
-
-    addCredits(amount) {
-        const currentCredits = this.getCredits();
-        const newCredits = Math.min(currentCredits + amount, CONFIG.CREDITS.MAX_STORED);
-        this.saveCredits(newCredits);
-        return newCredits;
-    }
-
-    useCredit() {
-        const currentCredits = this.getCredits();
-        if (currentCredits > 0) {
-            const newCredits = currentCredits - 1;
-            this.saveCredits(newCredits);
-            return { success: true, remaining: newCredits };
+            const response = await authService.fetchAPI(`/users/${user.id}/credits`);
+            const data = await response.json();
+            return data.credits || CONFIG.CREDITS.INITIAL;
+        } catch (error) {
+            console.error('Failed to get credits:', error);
+            return CONFIG.CREDITS.INITIAL;
         }
-        return { success: false, remaining: 0 };
     }
 
-    hasCredits() {
-        return this.getCredits() > 0;
+    async saveCredits(credits) {
+        try {
+            const user = authService.getCurrentUser();
+            if (!user) return credits;
+
+            const maxCredits = Math.min(credits, CONFIG.CREDITS.MAX_STORED);
+
+            // Mettre à jour via API
+            const response = await authService.fetchAPI(`/users/${user.id}/credits`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: maxCredits, action: 'set' })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save credits');
+            }
+
+            return maxCredits;
+        } catch (error) {
+            console.error('Failed to save credits:', error);
+            return credits;
+        }
+    }
+
+    async addCredits(amount) {
+        try {
+            const user = authService.getCurrentUser();
+            if (!user) return 0;
+
+            const response = await authService.fetchAPI(`/users/${user.id}/credits`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to add credits');
+            }
+
+            const data = await response.json();
+            return Math.min(data.credits, CONFIG.CREDITS.MAX_STORED);
+        } catch (error) {
+            console.error('Failed to add credits:', error);
+            return 0;
+        }
+    }
+
+    async useCredit() {
+        try {
+            const user = authService.getCurrentUser();
+            if (!user) return { success: false, remaining: 0 };
+
+            const currentCredits = await this.getCredits();
+            if (currentCredits <= 0) {
+                return { success: false, remaining: 0 };
+            }
+
+            const response = await authService.fetchAPI(`/users/${user.id}/credits`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: -1 })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to use credit');
+            }
+
+            const data = await response.json();
+            return { success: true, remaining: data.credits };
+        } catch (error) {
+            console.error('Failed to use credit:', error);
+            return { success: false, remaining: 0 };
+        }
+    }
+
+    async hasCredits() {
+        const credits = await this.getCredits();
+        return credits > 0;
     }
 
     // Gestion du crédit quotidien

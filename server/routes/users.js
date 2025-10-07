@@ -154,11 +154,11 @@ router.get('/:id/credits', checkOwnership, async (req, res) => {
     }
 });
 
-// POST /api/users/:id/credits - Ajouter des crédits
+// POST /api/users/:id/credits - Ajouter ou définir des crédits
 router.post('/:id/credits', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
-        const { amount } = req.body;
+        const { amount, action } = req.body;
 
         const existing = await get(
             'SELECT * FROM user_credits WHERE user_id = ?',
@@ -166,10 +166,18 @@ router.post('/:id/credits', checkOwnership, async (req, res) => {
         );
 
         if (existing) {
-            await run(
-                'UPDATE user_credits SET credits = credits + ? WHERE user_id = ?',
-                [amount, userId]
-            );
+            // Si action = 'set', définir la valeur exacte, sinon ajouter
+            if (action === 'set') {
+                await run(
+                    'UPDATE user_credits SET credits = ? WHERE user_id = ?',
+                    [amount, userId]
+                );
+            } else {
+                await run(
+                    'UPDATE user_credits SET credits = credits + ? WHERE user_id = ?',
+                    [amount, userId]
+                );
+            }
         } else {
             await run(
                 'INSERT INTO user_credits (user_id, credits) VALUES (?, ?)',
@@ -184,8 +192,8 @@ router.post('/:id/credits', checkOwnership, async (req, res) => {
 
         res.json(credits);
     } catch (error) {
-        console.error('Error adding credits:', error);
-        res.status(500).json({ error: 'Failed to add credits' });
+        console.error('Error modifying credits:', error);
+        res.status(500).json({ error: 'Failed to modify credits' });
     }
 });
 
@@ -228,9 +236,9 @@ router.get('/:id/attempts', checkOwnership, async (req, res) => {
         const { date } = req.query;
 
         let sql = `
-            SELECT oa.*, bo.*
+            SELECT oa.*, bo.reward, bo.type
             FROM operation_attempts oa
-            JOIN bonus_operations bo ON oa.bonus_operation_id = bo.id
+            LEFT JOIN bonus_operations bo ON oa.operation_type = bo.type
             WHERE oa.user_id = ?
         `;
         const args = [userId];
@@ -261,27 +269,27 @@ router.get('/:id/attempts', checkOwnership, async (req, res) => {
 router.post('/:id/attempts', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
-        const { bonus_operation_id, exercise, user_answers, success, cards_earned } = req.body;
+        const { operation_type, exercise, user_answers, success, cards_earned } = req.body;
 
         await run(
             `INSERT INTO operation_attempts
-             (user_id, bonus_operation_id, exercise, user_answers, success, cards_earned, created_at)
+             (user_id, operation_type, exercise, user_answers, success, cards_earned, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 userId,
-                bonus_operation_id,
+                operation_type,
                 JSON.stringify(exercise),
                 JSON.stringify(user_answers),
                 success ? 1 : 0,
-                cards_earned,
+                cards_earned || 0,
                 new Date().toISOString()
             ]
         );
 
         const attempt = await get(
-            `SELECT oa.*, bo.*
+            `SELECT oa.*, bo.reward, bo.type
              FROM operation_attempts oa
-             JOIN bonus_operations bo ON oa.bonus_operation_id = bo.id
+             LEFT JOIN bonus_operations bo ON oa.operation_type = bo.type
              WHERE oa.user_id = ?
              ORDER BY oa.created_at DESC
              LIMIT 1`,

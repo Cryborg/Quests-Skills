@@ -7,6 +7,9 @@ const path = require('path');
 // Load environment variables
 dotenv.config();
 
+// Import database initialization
+const { ensureDatabaseExists } = require('../database/initialize');
+
 // Import routes
 const cardsRouter = require('./routes/cards');
 const usersRouter = require('./routes/users');
@@ -37,7 +40,15 @@ app.get('/api/health', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`📊 API available at http://localhost:${PORT}/api`);
+
+    // Initialize database on server startup
+    try {
+        await ensureDatabaseExists();
+        console.log('💾 Database ready');
+    } catch (error) {
+        console.error('❌ Database initialization failed:', error);
+    }
 });

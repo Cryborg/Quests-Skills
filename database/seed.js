@@ -20,10 +20,10 @@ async function main() {
     );
     adminUser = await get('SELECT * FROM users WHERE email = ?', ['cryborg.live@gmail.com']);
 
-    // Créer les crédits initiaux pour l'admin
+    // Créer les crédits initiaux pour l'admin (5 crédits de départ)
     await run(
       'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
-      [adminUser.id, 1000, now, now]
+      [adminUser.id, 5, now, now]
     );
 
     console.log('✅ Admin user created');

@@ -24,14 +24,15 @@
     --transition-slow: 0.5s ease;
 }
 
-/* Reset et base */
-* {
+/* Reset scopé au contenu du module uniquement */
+.app-content * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
+/* Styles globaux déplacés vers .app-content pour éviter conflits avec navigation */
+.app-content {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 100%);
     color: var(--text-primary);

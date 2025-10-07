@@ -16,7 +16,7 @@ class App {
 
             // Initialise l'interface utilisateur
             console.log('🎨 Initialisation de l\'interface...');
-            UI.init();
+            await UI.init();
 
             // Affiche les informations de debug si en mode développement
             if (this.isDevelopmentMode()) {
@@ -116,9 +116,9 @@ class App {
             },
 
             // Ajoute des crédits (pratique pour les tests)
-            addCredits: (amount = 100) => {
-                const newCredits = DB.addCredits(amount);
-                UI.render();
+            addCredits: async (amount = 100) => {
+                const newCredits = await DB.addCredits(amount);
+                await UI.render();
                 console.log(`✅ +${amount} crédits ajoutés ! Total: ${newCredits}/${CONFIG.CREDITS.MAX_STORED}`);
                 return newCredits;
             },

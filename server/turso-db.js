@@ -6,11 +6,28 @@ if (!process.env.TURSO_DATABASE_URL) {
     dotenv.config();
 }
 
+// Détecter l'environnement
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+const isDevelopment = !isProduction;
+
+// Utiliser Turso en prod, SQLite local en dev
+const dbUrl = isProduction && process.env.TURSO_DATABASE_URL
+    ? process.env.TURSO_DATABASE_URL
+    : 'file:./database/dev.db';
+
+const dbConfig = {
+    url: dbUrl
+};
+
+// Ajouter le token seulement si on utilise Turso
+if (isProduction && process.env.TURSO_AUTH_TOKEN) {
+    dbConfig.authToken = process.env.TURSO_AUTH_TOKEN;
+}
+
+console.log(`💾 Using database: ${isProduction ? 'Turso (production)' : 'SQLite (local dev)'}`);
+
 // Create database client
-const db = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:./database/dev.db',
-    authToken: process.env.TURSO_AUTH_TOKEN
-});
+const db = createClient(dbConfig);
 
 // Helper function to execute SQL queries
 async function query(sql, args = []) {

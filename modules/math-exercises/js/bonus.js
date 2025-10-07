@@ -2,9 +2,6 @@
 
 // Configuration des bonus
 const BONUS_CONFIG = {
-    STORAGE_KEY: 'bonus_operations_count',
-    HISTORY_KEY: 'bonus_operations_history',
-    STATS_KEY: 'bonus_operations_stats',
     MAX_OPERATIONS_PER_TYPE: 3,
     REWARDS: {
         addition: 1,
@@ -21,30 +18,24 @@ const BONUS_CONFIG = {
 // État de l'application
 let currentOperation = null;
 let currentExercise = null;
+let currentUser = null; // Utilisateur connecté
 
-// Initialisation
-document.addEventListener('DOMContentLoaded', () => {
-    initializeBonus();
-    setupEventListeners();
-    updateRemainingCounts();
-    updateStatsDisplay();
-});
+// Initialisation du système de bonus (appelée depuis index.html après l'auth)
+async function initializeBonus() {
+    // Récupérer l'utilisateur connecté
+    currentUser = authService.getCurrentUser();
 
-// Initialisation du système de bonus
-function initializeBonus() {
-    const today = new Date().toDateString();
-    const stored = UTILS.loadFromStorage(BONUS_CONFIG.STORAGE_KEY, {});
-
-    // Réinitialiser si c'est un nouveau jour
-    if (stored.date !== today) {
-        const newData = {
-            date: today,
-            addition: 0,
-            subtraction: 0,
-            multiplication: 0
-        };
-        UTILS.saveToStorage(BONUS_CONFIG.STORAGE_KEY, newData);
+    if (!currentUser) {
+        console.error('User not authenticated');
+        window.location.href = '/';
+        return;
     }
+
+    // Configurer les événements
+    setupEventListeners();
+
+    // Mettre à jour l'affichage
+    await updateRemainingCounts();
 }
 
 // Configuration des écouteurs d'événements
@@ -66,9 +57,9 @@ function setupEventListeners() {
 
     // Sélection d'opération
     document.querySelectorAll('.operation-card').forEach(card => {
-        card.addEventListener('click', (e) => {
+        card.addEventListener('click', async (e) => {
             const operation = card.dataset.operation;
-            if (canDoOperation(operation)) {
+            if (await canDoOperation(operation)) {
                 startOperation(operation);
             }
         });
@@ -79,19 +70,63 @@ function setupEventListeners() {
     document.getElementById('clear-btn').addEventListener('click', clearInputs);
 }
 
+// Charge les tentatives d'aujourd'hui depuis l'API
+async function getTodayAttempts() {
+    try {
+        const response = await authService.fetchAPI(`/users/${currentUser.id}/attempts`);
+        const allAttempts = await response.json();
+
+        // Filtrer pour aujourd'hui uniquement
+        const today = new Date().toDateString();
+        return allAttempts.filter(attempt => {
+            const attemptDate = new Date(attempt.created_at).toDateString();
+            return attemptDate === today;
+        });
+    } catch (error) {
+        console.error('Failed to load attempts:', error);
+        return [];
+    }
+}
+
+// Compte les tentatives par type d'opération
+function countAttemptsByOperation(attempts) {
+    const counts = {
+        addition: 0,
+        subtraction: 0,
+        multiplication: 0
+    };
+
+    attempts.forEach(attempt => {
+        try {
+            const exercise = JSON.parse(attempt.exercise);
+            if (exercise.operation && counts.hasOwnProperty(exercise.operation)) {
+                counts[exercise.operation]++;
+            }
+        } catch (e) {
+            console.error('Failed to parse attempt:', e);
+        }
+    });
+
+    return counts;
+}
+
 // Vérifie si l'opération est disponible
-function canDoOperation(operation) {
-    const data = UTILS.loadFromStorage(BONUS_CONFIG.STORAGE_KEY, {});
-    return (data[operation] || 0) < BONUS_CONFIG.MAX_OPERATIONS_PER_TYPE;
+async function canDoOperation(operation) {
+    const attempts = await getTodayAttempts();
+    const counts = countAttemptsByOperation(attempts);
+    return counts[operation] < BONUS_CONFIG.MAX_OPERATIONS_PER_TYPE;
 }
 
 // Met à jour les compteurs restants
-function updateRemainingCounts() {
-    const data = UTILS.loadFromStorage(BONUS_CONFIG.STORAGE_KEY, {});
+async function updateRemainingCounts() {
+    const attempts = await getTodayAttempts();
+    const counts = countAttemptsByOperation(attempts);
+    let totalRemaining = 0;
 
     ['addition', 'subtraction', 'multiplication'].forEach(operation => {
-        const used = data[operation] || 0;
+        const used = counts[operation] || 0;
         const remaining = BONUS_CONFIG.MAX_OPERATIONS_PER_TYPE - used;
+        totalRemaining += remaining;
         document.getElementById(`remaining-${operation}`).textContent = remaining;
 
         // Désactiver si épuisé
@@ -102,6 +137,12 @@ function updateRemainingCounts() {
             card.classList.remove('disabled');
         }
     });
+
+    // Mettre à jour la sidebar si elle existe
+    if (window.navigationUI) {
+        const totalMax = BONUS_CONFIG.MAX_OPERATIONS_PER_TYPE * 3; // 3 types d'opérations
+        navigationUI.updateMathAttempts(totalRemaining, totalMax);
+    }
 }
 
 // Affiche un écran
@@ -621,24 +662,14 @@ function markInputsAs(prefix, className) {
 }
 
 // Gère le succès
-function handleSuccess() {
+async function handleSuccess() {
     const reward = BONUS_CONFIG.REWARDS[currentOperation];
 
-    // Sauvegarder dans l'historique
-    saveToHistory(true);
+    // Sauvegarder l'exercice dans l'historique via API
+    await saveExerciseToAPI(true);
 
-    // Mettre à jour le compteur
-    const data = UTILS.loadFromStorage(BONUS_CONFIG.STORAGE_KEY, {});
-    data[currentOperation] = (data[currentOperation] || 0) + 1;
-    UTILS.saveToStorage(BONUS_CONFIG.STORAGE_KEY, data);
-
-    // Mettre à jour les stats
-    updateStats(currentOperation, true, reward);
-
-    // Ajouter les crédits
-    let credits = UTILS.loadFromStorage(CONFIG.STORAGE_KEYS.CREDITS, CONFIG.CREDITS.INITIAL);
-    credits = Math.min(credits + reward, CONFIG.CREDITS.MAX_STORED);
-    UTILS.saveToStorage(CONFIG.STORAGE_KEYS.CREDITS, credits);
+    // Ajouter les crédits via API
+    await addCreditsViaAPI(reward);
 
     // Afficher le message
     const resultMsg = document.getElementById('result-message');
@@ -648,28 +679,24 @@ function handleSuccess() {
     showToast(`🎁 +${reward} carte${reward > 1 ? 's' : ''} !`);
 
     // Retour à la sélection après 2 secondes
-    setTimeout(() => {
-        updateRemainingCounts();
-        updateStatsDisplay();
+    setTimeout(async () => {
+        await updateRemainingCounts();
         showScreen('selection');
         resultMsg.classList.remove('show');
         currentOperation = null;
         currentExercise = null;
+
+        // Rafraîchir la sidebar
+        if (window.navigationUI) {
+            await navigationUI.refresh();
+        }
     }, 2000);
 }
 
 // Gère l'erreur
-function handleError() {
-    // Sauvegarder dans l'historique
-    saveToHistory(false);
-
-    // Incrémenter le compteur (échec = essai utilisé)
-    const data = UTILS.loadFromStorage(BONUS_CONFIG.STORAGE_KEY, {});
-    data[currentOperation] = (data[currentOperation] || 0) + 1;
-    UTILS.saveToStorage(BONUS_CONFIG.STORAGE_KEY, data);
-
-    // Mettre à jour les stats
-    updateStats(currentOperation, false, 0);
+async function handleError() {
+    // Sauvegarder l'exercice raté dans l'historique via API
+    await saveExerciseToAPI(false);
 
     const resultMsg = document.getElementById('result-message');
     resultMsg.textContent = '❌ Oups ! C\'était pas bon, tu as perdu un essai !';
@@ -678,13 +705,17 @@ function handleError() {
     showToast('❌ Mauvaise réponse ! Un essai en moins.');
 
     // Retour à la sélection après 2 secondes
-    setTimeout(() => {
-        updateRemainingCounts();
-        updateStatsDisplay();
+    setTimeout(async () => {
+        await updateRemainingCounts();
         showScreen('selection');
         resultMsg.classList.remove('show');
         currentOperation = null;
         currentExercise = null;
+
+        // Rafraîchir la sidebar
+        if (window.navigationUI) {
+            await navigationUI.refresh();
+        }
     }, 2000);
 }
 
@@ -699,111 +730,59 @@ function showToast(message) {
     }, 3000);
 }
 
-// Sauvegarde dans l'historique
-function saveToHistory(success) {
-    const history = UTILS.loadFromStorage(BONUS_CONFIG.HISTORY_KEY, []);
-    const today = new Date().toDateString();
+// Sauvegarde l'exercice dans l'API
+async function saveExerciseToAPI(success) {
+    try {
+        // Récupérer les réponses de l'utilisateur
+        const userAnswers = {};
+        const allInputs = document.querySelectorAll('.digit-input');
+        allInputs.forEach(input => {
+            const prefix = input.dataset.prefix;
+            if (!userAnswers[prefix]) userAnswers[prefix] = '';
+            userAnswers[prefix] += input.value;
+        });
 
-    // Récupérer les réponses de l'utilisateur
-    const userAnswers = {};
-    const allInputs = document.querySelectorAll('.digit-input');
-    allInputs.forEach(input => {
-        const prefix = input.dataset.prefix;
-        if (!userAnswers[prefix]) userAnswers[prefix] = '';
-        userAnswers[prefix] += input.value;
-    });
+        // Construire l'objet exercice avec toutes les informations
+        const exerciseData = {
+            operation: currentOperation,
+            exercise: currentExercise,
+            userAnswers: userAnswers,
+            cardsEarned: success ? BONUS_CONFIG.REWARDS[currentOperation] : 0
+        };
 
-    const entry = {
-        date: today,
-        timestamp: Date.now(),
-        operation: currentOperation,
-        exercise: currentExercise,
-        userAnswers: userAnswers,
-        success: success,
-        cardsEarned: success ? BONUS_CONFIG.REWARDS[currentOperation] : 0
-    };
+        // Sauvegarder via API
+        const response = await authService.fetchAPI(`/users/${currentUser.id}/attempts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                exercise: JSON.stringify(exerciseData),
+                success: success
+            })
+        });
 
-    history.push(entry);
-    UTILS.saveToStorage(BONUS_CONFIG.HISTORY_KEY, history);
-}
-
-// Met à jour les statistiques
-function updateStats(operation, success, cardsEarned) {
-    const today = new Date().toDateString();
-    const stats = UTILS.loadFromStorage(BONUS_CONFIG.STATS_KEY, {});
-
-    // Réinitialiser si nouveau jour
-    if (stats.date !== today) {
-        stats.date = today;
-        stats.addition = { success: 0, failed: 0, cards: 0 };
-        stats.subtraction = { success: 0, failed: 0, cards: 0 };
-        stats.multiplication = { success: 0, failed: 0, cards: 0 };
-    }
-
-    // Mettre à jour les stats
-    if (!stats[operation]) {
-        stats[operation] = { success: 0, failed: 0, cards: 0 };
-    }
-
-    if (success) {
-        stats[operation].success++;
-        stats[operation].cards += cardsEarned;
-    } else {
-        stats[operation].failed++;
-    }
-
-    UTILS.saveToStorage(BONUS_CONFIG.STATS_KEY, stats);
-}
-
-// Affiche les statistiques du jour
-function updateStatsDisplay() {
-    const today = new Date().toDateString();
-    const stats = UTILS.loadFromStorage(BONUS_CONFIG.STATS_KEY, {});
-
-    // Créer le conteneur s'il n'existe pas
-    let statsContainer = document.getElementById('stats-display');
-    if (!statsContainer) {
-        statsContainer = document.createElement('div');
-        statsContainer.id = 'stats-display';
-        statsContainer.className = 'stats-display';
-        const selectionScreen = document.getElementById('selection-screen');
-        if (selectionScreen) {
-            selectionScreen.appendChild(statsContainer);
+        if (!response.ok) {
+            throw new Error('Failed to save exercise');
         }
+    } catch (error) {
+        console.error('Failed to save exercise to API:', error);
+        showToast('⚠️ Erreur lors de la sauvegarde');
     }
+}
 
-    // Si pas de stats ou ancien jour
-    if (!stats.date || stats.date !== today) {
-        statsContainer.innerHTML = '<p class="stats-empty">Aucune carte gagnée aujourd\'hui</p>';
-        return;
+// Ajoute des crédits via l'API
+async function addCreditsViaAPI(amount) {
+    try {
+        const response = await authService.fetchAPI(`/users/${currentUser.id}/credits`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to add credits');
+        }
+    } catch (error) {
+        console.error('Failed to add credits via API:', error);
+        showToast('⚠️ Erreur lors de l\'ajout des crédits');
     }
-
-    // Calculer le total
-    const additionSucces = stats.addition?.success || 0;
-    const subtractionSuccess = stats.subtraction?.success || 0;
-    const multiplicationSuccess = stats.multiplication?.success || 0;
-
-    const additionCards = additionSucces * BONUS_CONFIG.REWARDS.addition;
-    const subtractionCards = subtractionSuccess * BONUS_CONFIG.REWARDS.subtraction;
-    const multiplicationCards = multiplicationSuccess * BONUS_CONFIG.REWARDS.multiplication;
-
-    const total = additionCards + subtractionCards + multiplicationCards;
-
-    if (total === 0) {
-        statsContainer.innerHTML = '<p class="stats-empty">Aucune carte gagnée aujourd\'hui</p>';
-        return;
-    }
-
-    // Construire le calcul
-    const parts = [];
-    if (additionSucces > 0) parts.push(`(${additionSucces} × 1)`);
-    if (subtractionSuccess > 0) parts.push(`(${subtractionSuccess} × 2)`);
-    if (multiplicationSuccess > 0) parts.push(`(${multiplicationSuccess} × 5)`);
-
-    const calculation = parts.join(' + ');
-
-    statsContainer.innerHTML = `
-        <div class="stats-title">🎁 Cartes gagnées aujourd'hui :</div>
-        <div class="stats-calculation">${calculation} = <strong>${total}</strong> carte${total > 1 ? 's' : ''}</div>
-    `;
 }

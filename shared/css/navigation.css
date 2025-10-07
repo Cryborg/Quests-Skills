@@ -12,9 +12,33 @@
     --header-height: 60px;
 }
 
-/* Reset pour éviter les conflits */
-.app-navigation * {
-    box-sizing: border-box;
+/* Styles globaux pour body (partagés par toute l'app) */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    color: #ffffff;
+    min-height: 100vh;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+/* Prevent flash: cache le contenu jusqu'à ce que la nav soit prête */
+body:not(.nav-loaded) .container {
+    visibility: hidden;
+}
+
+body.nav-loaded .container {
+    visibility: visible;
+}
+
+/* Reset pour éviter les conflits - protège la navigation des resets modules */
+.app-sidebar,
+.app-sidebar *,
+.app-header,
+.app-header *,
+.nav-overlay {
+    box-sizing: border-box !important;
 }
 
 /* Header avec hamburger (mobile uniquement) */

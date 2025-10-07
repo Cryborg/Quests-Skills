@@ -32,7 +32,7 @@ class UIManager {
     }
 
     // Initialise tous les éléments DOM
-    init() {
+    async init() {
         this.cacheElements();
         this.bindEvents();
         this.startCooldownUpdate();
@@ -40,7 +40,7 @@ class UIManager {
         // Initialise l'animation de pioche
         DRAW_ANIMATION.init();
 
-        this.render();
+        await this.render();
     }
 
     // Met en cache les éléments DOM fréquemment utilisés
@@ -144,11 +144,17 @@ class UIManager {
     }
 
     // Met à jour l'affichage complet
-    render() {
+    async render() {
         this.updateStats();
         this.updateThemeTabs();
         this.renderCards();
-        this.updateDrawButton();
+        await this.updateDrawButton();
+
+        // Mettre à jour la sidebar si elle existe
+        if (window.navigationUI) {
+            const credits = await DB.getCredits();
+            navigationUI.updateCredits(credits);
+        }
     }
 
     // Met à jour les statistiques en haut
@@ -483,25 +489,12 @@ class UIManager {
 
     // Gère la pioche d'une carte
     async handleDraw() {
-        // Vérifie d'abord si on peut récupérer le crédit quotidien
-        if (!DB.hasCredits() && DB.canClaimDailyCredit()) {
-            const result = DB.claimDailyCredit();
-            if (result.success) {
-                this.showToast(result.message, 'success');
-                this.render();
-                return;
-            } else {
-                this.showToast(result.message, 'error');
-                return;
-            }
-        }
-
         // Vérifie si une animation est déjà en cours
         if (DRAW_ANIMATION.isCurrentlyAnimating()) {
             return;
         }
 
-        const result = CARD_SYSTEM.drawCard();
+        const result = await CARD_SYSTEM.drawCard();
 
         if (result.success) {
             try {
@@ -516,7 +509,13 @@ class UIManager {
                     }
 
                     // Après l'animation, met à jour l'affichage
-                    this.render();
+                    await this.render();
+
+                    // Mettre à jour les compteurs de la sidebar
+                    if (window.navigationUI) {
+                        const credits = await DB.getCredits();
+                        navigationUI.updateCredits(credits);
+                    }
 
                     // Animation des nouvelles cartes dans la collection
                     setTimeout(() => {
@@ -687,38 +686,25 @@ class UIManager {
     }
 
     // Met à jour le bouton de pioche
-    updateDrawButton() {
-        const hasCredits = DB.hasCredits();
-        const creditsCount = DB.getCredits();
-        const canClaimDaily = DB.canClaimDailyCredit();
-        const dailyTimeLeft = DB.getDailyCreditTimeLeft();
+    async updateDrawButton() {
+        const hasCredits = await DB.hasCredits();
+        const creditsCount = await DB.getCredits();
 
-        // Vérifie automatiquement si on peut récupérer le crédit quotidien
-        if (canClaimDaily && creditsCount < CONFIG.CREDITS.MAX_STORED) {
-            const result = DB.claimDailyCredit();
-            if (result.success) {
-                this.showToast(result.message, 'success');
-                this.updateStats();
-                return; // Re-calcule après avoir ajouté le crédit
-            }
-        }
+        // TODO: Réactiver le crédit quotidien quand il sera migré vers l'API
+        // const canClaimDaily = DB.canClaimDailyCredit();
+        // const dailyTimeLeft = DB.getDailyCreditTimeLeft();
 
-        // Active le bouton si on a des crédits OU si on peut récupérer le crédit quotidien
-        this.elements.drawButton.disabled = !hasCredits && !canClaimDaily;
+        // Active le bouton si on a des crédits
+        this.elements.drawButton.disabled = !hasCredits;
 
         // Met à jour le texte du bouton selon la situation
         if (hasCredits) {
             const cardText = creditsCount === 1 ? 'carte' : 'cartes';
             this.elements.drawButton.innerHTML = `🎁 Piocher ${creditsCount} ${cardText}`;
             this.elements.drawCooldown.style.display = 'none';
-        } else if (canClaimDaily) {
-            this.elements.drawButton.innerHTML = `🎁 Récupérer crédit gratuit`;
-            this.elements.drawCooldown.style.display = 'none';
         } else {
             this.elements.drawButton.innerHTML = `🎁 Piocher une carte`;
-            const formattedTime = UTILS.formatTimeLeft(dailyTimeLeft);
-            this.elements.drawCooldown.textContent = `Prochain crédit gratuit dans ${formattedTime}`;
-            this.elements.drawCooldown.style.display = 'block';
+            this.elements.drawCooldown.style.display = 'none';
         }
     }
 
@@ -747,14 +733,14 @@ class UIManager {
     }
 
     // Ajoute un crédit bonus (touche secrète X)
-    addBonusCredit() {
-        const currentCredits = DB.getCredits();
+    async addBonusCredit() {
+        const currentCredits = await DB.getCredits();
         if (currentCredits >= CONFIG.CREDITS.MAX_STORED) {
             this.showToast('Maximum de crédits atteint !', 'warning');
             return;
         }
 
-        const newCredits = DB.addCredits(1);
+        const newCredits = await DB.addCredits(1);
         this.updateStats();
         this.showToast(`+1 crédit bonus ! (${newCredits}/${CONFIG.CREDITS.MAX_STORED})`, 'success');
     }
@@ -797,7 +783,7 @@ class UIManager {
         }
     }
 
-    validateAdminCredits() {
+    async validateAdminCredits() {
         const amount = parseInt(this.elements.creditsAmountInput.value);
 
         if (!amount || amount < 1 || amount > 99) {
@@ -805,11 +791,11 @@ class UIManager {
             return;
         }
 
-        const currentCredits = DB.getCredits();
-        const newCredits = DB.addCredits(amount);
+        const currentCredits = await DB.getCredits();
+        const newCredits = await DB.addCredits(amount);
 
         this.showToast(`+${amount} crédit${amount > 1 ? 's' : ''} bonus ajouté${amount > 1 ? 's' : ''} ! (${newCredits}/${CONFIG.CREDITS.MAX_STORED})`, 'success');
-        this.updateStats();
+        await this.render();
         this.closeSettings();
     }
 

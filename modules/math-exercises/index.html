@@ -92,6 +92,9 @@
             } else {
                 // Initialiser la navigation après l'auth
                 await navigationUI.init();
+
+                // Initialiser le module bonus après l'auth
+                await initializeBonus();
             }
         });
     </script>

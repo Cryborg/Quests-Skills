@@ -9,12 +9,12 @@ class CardSystem {
     }
 
     // Pioche plusieurs cartes d'un coup
-    drawMultipleCards(count = 1) {
+    async drawMultipleCards(count = 1) {
         const results = [];
         const drawnCards = {};
 
         for (let i = 0; i < count; i++) {
-            const result = this.drawSingleCard();
+            const result = await this.drawSingleCard();
             if (result.success) {
                 results.push(result);
 
@@ -34,27 +34,30 @@ class CardSystem {
             }
         }
 
+        const creditsRemaining = results.length > 0 ? results[results.length - 1].creditsRemaining : await DB.getCredits();
+
         return {
             success: results.length > 0,
             results: results,
             groupedCards: drawnCards,
             totalDrawn: results.length,
             creditsUsed: count,
-            creditsRemaining: results.length > 0 ? results[results.length - 1].creditsRemaining : DB.getCredits()
+            creditsRemaining
         };
     }
 
     // Pioche des cartes (interface publique)
-    drawCard(count = null) {
+    async drawCard(count = null) {
         // Si pas de count spécifié, utilise tous les crédits disponibles
-        const creditsToUse = count || DB.getCredits();
-        return this.drawMultipleCards(creditsToUse);
+        const creditsToUse = count || await DB.getCredits();
+        return await this.drawMultipleCards(creditsToUse);
     }
 
     // Pioche une carte aléatoire (fonction interne)
-    drawSingleCard() {
+    async drawSingleCard() {
         // Vérifie si le joueur a des crédits
-        if (!DB.hasCredits()) {
+        const hasCredits = await DB.hasCredits();
+        if (!hasCredits) {
             return {
                 success: false,
                 message: 'Aucun crédit de pioche disponible'
@@ -62,7 +65,7 @@ class CardSystem {
         }
 
         // Utilise un crédit
-        const creditResult = DB.useCredit();
+        const creditResult = await DB.useCredit();
         if (!creditResult.success) {
             return {
                 success: false,
