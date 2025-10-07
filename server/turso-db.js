@@ -8,7 +8,7 @@ if (!process.env.TURSO_DATABASE_URL) {
 
 // Create database client
 const db = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:./prisma/dev.db',
+    url: process.env.TURSO_DATABASE_URL || 'file:./database/dev.db',
     authToken: process.env.TURSO_AUTH_TOKEN
 });
 

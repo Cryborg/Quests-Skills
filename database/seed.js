@@ -1,10 +1,38 @@
 const { get, run } = require('../server/turso-db');
+const bcrypt = require('bcrypt');
 
 async function main() {
   console.log('🌱 Seeding database...');
 
   // ========================================
-  // Seed User Demo
+  // Seed Admin User (Franck / Cryborg)
+  // ========================================
+  console.log('👤 Seeding admin user...');
+
+  let adminUser = await get('SELECT * FROM users WHERE email = ?', ['cryborg.live@gmail.com']);
+
+  if (!adminUser) {
+    const now = new Date().toISOString();
+    const hashedPassword = await bcrypt.hash('Célibataire1979$', 10);
+    await run(
+      'INSERT INTO users (username, email, password, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      ['Cryborg', 'cryborg.live@gmail.com', hashedPassword, 1, now, now]
+    );
+    adminUser = await get('SELECT * FROM users WHERE email = ?', ['cryborg.live@gmail.com']);
+
+    // Créer les crédits initiaux pour l'admin
+    await run(
+      'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
+      [adminUser.id, 1000, now, now]
+    );
+
+    console.log('✅ Admin user created');
+  } else {
+    console.log('✅ Admin user already exists');
+  }
+
+  // ========================================
+  // Seed Demo User
   // ========================================
   console.log('👤 Seeding demo user...');
 
@@ -12,9 +40,10 @@ async function main() {
 
   if (!user) {
     const now = new Date().toISOString();
+    const hashedPassword = await bcrypt.hash('demo123', 10);
     await run(
-      'INSERT INTO users (username, email, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
-      ['demo', 'demo@example.com', 'demo123', now, now]
+      'INSERT INTO users (username, email, password, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      ['demo', 'demo@example.com', hashedPassword, 0, now, now]
     );
     user = await get('SELECT * FROM users WHERE username = ?', ['demo']);
     console.log('✅ Demo user created');

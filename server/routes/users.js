@@ -1,10 +1,14 @@
 const express = require('express');
 const { all, get, run } = require('../turso-db');
+const { authenticateToken, checkOwnership } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Toutes les routes nécessitent une authentification
+router.use(authenticateToken);
+
 // GET /api/users/:id - Récupérer un user
-router.get('/:id', async (req, res) => {
+router.get('/:id', checkOwnership, async (req, res) => {
     try {
         const user = await get('SELECT * FROM users WHERE id = ?', [parseInt(req.params.id)]);
 
@@ -22,7 +26,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // GET /api/users/:id/cards - Récupérer les cartes d'un user
-router.get('/:id/cards', async (req, res) => {
+router.get('/:id/cards', checkOwnership, async (req, res) => {
     try {
         const userCards = await all(
             `SELECT uc.*, c.*
@@ -40,7 +44,7 @@ router.get('/:id/cards', async (req, res) => {
 });
 
 // POST /api/users/:id/cards - Ajouter une carte à un user
-router.post('/:id/cards', async (req, res) => {
+router.post('/:id/cards', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { card_id } = req.body;
@@ -90,7 +94,7 @@ router.post('/:id/cards', async (req, res) => {
 });
 
 // POST /api/users/:id/cards/:cardId/upgrade - Upgrader une carte
-router.post('/:id/cards/:cardId/upgrade', async (req, res) => {
+router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const cardId = parseInt(req.params.cardId);
@@ -136,7 +140,7 @@ router.post('/:id/cards/:cardId/upgrade', async (req, res) => {
 });
 
 // GET /api/users/:id/credits - Récupérer les crédits d'un user
-router.get('/:id/credits', async (req, res) => {
+router.get('/:id/credits', checkOwnership, async (req, res) => {
     try {
         const credits = await get(
             'SELECT * FROM user_credits WHERE user_id = ?',
@@ -151,7 +155,7 @@ router.get('/:id/credits', async (req, res) => {
 });
 
 // POST /api/users/:id/credits - Ajouter des crédits
-router.post('/:id/credits', async (req, res) => {
+router.post('/:id/credits', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { amount } = req.body;
@@ -186,7 +190,7 @@ router.post('/:id/credits', async (req, res) => {
 });
 
 // POST /api/users/:id/credits/use - Utiliser des crédits
-router.post('/:id/credits/use', async (req, res) => {
+router.post('/:id/credits/use', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { amount } = req.body;
@@ -218,7 +222,7 @@ router.post('/:id/credits/use', async (req, res) => {
 });
 
 // GET /api/users/:id/attempts - Récupérer l'historique des tentatives
-router.get('/:id/attempts', async (req, res) => {
+router.get('/:id/attempts', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { date } = req.query;
@@ -254,7 +258,7 @@ router.get('/:id/attempts', async (req, res) => {
 });
 
 // POST /api/users/:id/attempts - Enregistrer une tentative
-router.post('/:id/attempts', async (req, res) => {
+router.post('/:id/attempts', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { bonus_operation_id, exercise, user_answers, success, cards_earned } = req.body;

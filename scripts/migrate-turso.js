@@ -29,7 +29,7 @@ async function main() {
 
         // Lire les migrations
         console.log('📜 Reading migrations...');
-        const migrationsDir = join(__dirname, '../prisma/migrations');
+        const migrationsDir = join(__dirname, '../database/migrations');
         const migrations = readdirSync(migrationsDir)
             .filter(f => f.match(/^\d{14}_/))
             .sort();

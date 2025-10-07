@@ -10,4 +10,4 @@ if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
 }
 
 // Maintenant on peut require le seed qui utilisera Turso
-require('../prisma/seed.js');
+require('../database/seed.js');
