@@ -26,6 +26,14 @@
     flex: 1;
 }
 
+/* L'icône emoji ne doit pas être affectée par le gradient */
+.page-header-icon {
+    -webkit-text-fill-color: initial;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+}
+
 .page-header-subtitle {
     color: var(--text-secondary);
     font-size: 1rem;

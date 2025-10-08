@@ -1,26 +1,10 @@
-/* Note: Les variables globales sont maintenant dans shared/css/theme.css */
+/* Note: Les styles globaux (font, background, reset) sont maintenant dans shared/css/theme.css */
 /* Variables locales spécifiques au module cards */
 :root {
     /* Animations */
     --transition-fast: 0.2s ease;
     --transition-normal: 0.3s ease;
     --transition-slow: 0.5s ease;
-}
-
-/* Reset scopé au contenu du module uniquement */
-.app-content * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Styles globaux déplacés vers .app-content pour éviter conflits avec navigation */
-.app-content {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 100%);
-    color: var(--text-primary);
-    min-height: 100vh;
-    line-height: 1.6;
 }
 
 .container {
@@ -30,6 +14,7 @@
 }
 
 /* Header - maintenant géré par page-header.css */
+/* Note: Ne pas ajouter de styles pour .page-header ici, utiliser shared/css/page-header.css */
 
 .settings-btn {
     position: absolute;
@@ -69,11 +54,8 @@
     }
 }
 
-.game-header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-}
+/* Legacy styles - à supprimer si plus utilisés */
+/* .game-header est remplacé par .page-header (shared) */
 
 .player-stats {
     display: flex;

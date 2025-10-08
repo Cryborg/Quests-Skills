@@ -16,7 +16,7 @@ class PageHeader {
         let headerHTML = `
             <header class="page-header">
                 <div class="page-header-top">
-                    <h1 class="page-header-title">${icon} ${title}</h1>
+                    <h1 class="page-header-title"><span class="page-header-icon">${icon}</span> ${title}</h1>
         `;
 
         // Ajouter les boutons d'action si présents

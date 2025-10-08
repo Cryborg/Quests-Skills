@@ -3,6 +3,21 @@
    Palette de couleurs unifiée pour tout le site
    ============================================ */
 
+/* Base globale pour tous les modules */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
 :root {
     /* === BACKGROUNDS === */
     --bg-primary: #0a0a0a;

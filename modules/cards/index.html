@@ -93,6 +93,9 @@
             } else {
                 // Initialiser la navigation après l'auth
                 await navigationUI.init();
+
+                // PUIS initialiser l'app (qui va créer le header)
+                await app.init();
             }
         });
     </script>

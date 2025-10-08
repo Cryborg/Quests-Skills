@@ -37,11 +37,7 @@ class App {
             const currentUser = authService.getCurrentUser();
             PageHeader.render({
                 icon: '🃏',
-                title: currentUser ? `Album de ${currentUser.username}` : 'Album de cartes',
-                stats: [
-                    { label: 'Cartes uniques', id: 'unique-cards', value: '0/0' },
-                    { label: 'Progression', id: 'completion-percentage', value: '0%' }
-                ]
+                title: currentUser ? `Album de ${currentUser.username}` : 'Album de cartes'
             });
 
             // Initialise l'interface utilisateur
@@ -253,13 +249,10 @@ class App {
 // Initialisation de l'application
 const app = new App();
 
-// Démarre l'application quand le DOM est prêt
-document.addEventListener('DOMContentLoaded', () => {
-    app.setupErrorHandling();
-    app.setupAutoSave();
-    app.setupVisibilityHandling();
-    app.init();
-});
+// Setup des handlers globaux
+app.setupErrorHandling();
+app.setupAutoSave();
+app.setupVisibilityHandling();
 
 // Nettoyage avant fermeture de la page
 window.addEventListener('beforeunload', () => {
