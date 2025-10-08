@@ -580,11 +580,7 @@ class GridNavigationGame {
 
         this.score += earnedPoints;
         this.correctCount++;
-
-        // Niveau up toutes les 2 étapes
-        if (this.correctCount % 2 === 0) {
-            this.level++;
-        }
+        this.level++;
 
         this.updateStats();
 
@@ -613,8 +609,8 @@ class GridNavigationGame {
         this.elements.validateBtn.disabled = true;
         this.elements.clearBtn.disabled = true;
 
-        // Vérifier si c'est la fin du jeu (niveau 10, puzzle 2)
-        if (this.level === 10 && this.correctCount % 2 === 0) {
+        // Vérifier si c'est la fin du jeu (niveau 10 terminé)
+        if (this.level > 10) {
             setTimeout(() => {
                 this.showGameEnd();
             }, 2000);
@@ -635,11 +631,7 @@ class GridNavigationGame {
             const minPoints = 1;
             this.score += minPoints;
             this.correctCount++;
-
-            // Niveau up toutes les 2 étapes
-            if (this.correctCount % 2 === 0) {
-                this.level++;
-            }
+            this.level++;
 
             this.updateStats();
 
@@ -649,8 +641,8 @@ class GridNavigationGame {
             this.elements.validateBtn.disabled = true;
             this.elements.clearBtn.disabled = true;
 
-            // Vérifier si c'est la fin du jeu (niveau 10, puzzle 2)
-            if (this.level === 10 && this.correctCount % 2 === 0) {
+            // Vérifier si c'est la fin du jeu (niveau 10 terminé)
+            if (this.level > 10) {
                 setTimeout(() => {
                     this.showGameEnd();
                 }, 2000);
@@ -776,18 +768,33 @@ class GridNavigationGame {
             ctx.fill();
         });
 
-        // Dessiner les répétitions en rouge
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+        // Dessiner les répétitions en rouge (étoile d'explosion)
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
+        ctx.strokeStyle = 'rgba(220, 38, 38, 1)';
+        ctx.lineWidth = 2;
         this.repeatedPositions.forEach(pos => {
+            const cx = pos.x * size + size / 2;
+            const cy = pos.y * size + size / 2;
+            const outerRadius = 12;
+            const innerRadius = 5;
+            const spikes = 8;
+
             ctx.beginPath();
-            ctx.arc(
-                pos.x * size + size / 2,
-                pos.y * size + size / 2,
-                8,
-                0,
-                Math.PI * 2
-            );
+            for (let i = 0; i < spikes * 2; i++) {
+                const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                const angle = (Math.PI / spikes) * i - Math.PI / 2;
+                const x = cx + Math.cos(angle) * radius;
+                const y = cy + Math.sin(angle) * radius;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
             ctx.fill();
+            ctx.stroke();
         });
 
         // Dessiner le joueur (par-dessus le trail)
