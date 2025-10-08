@@ -61,15 +61,18 @@ async function ensureDatabaseExists() {
     );
     const tableCount = result.rows[0]?.count || 0;
 
+    console.log(`📊 Found ${tableCount}/7 required tables`);
+
     if (tableCount < 7) {
       console.log('⚠️  Missing core tables, initializing database...');
       await initializeDatabase();
     } else {
-      console.log('✅ Database tables verified');
+      console.log('✅ Database tables verified (7/7)');
       databaseInitialized = true;
     }
   } catch (error) {
     console.log('⚠️  Database check failed, attempting initialization...');
+    console.error('Check error:', error);
     try {
       await initializeDatabase();
     } catch (initError) {
