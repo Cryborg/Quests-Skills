@@ -469,20 +469,41 @@ class GridNavigationGame {
     }
 
     movePlayer(direction) {
+        // Retourne true si le mouvement est valide, false si on tape un mur
+        let hitWall = false;
+
         switch (direction) {
             case 'up':
-                this.currentPosition.y = Math.max(0, this.currentPosition.y - 1);
+                if (this.currentPosition.y === 0) {
+                    hitWall = true;
+                } else {
+                    this.currentPosition.y--;
+                }
                 break;
             case 'down':
-                this.currentPosition.y = Math.min(this.gridSize - 1, this.currentPosition.y + 1);
+                if (this.currentPosition.y === this.gridSize - 1) {
+                    hitWall = true;
+                } else {
+                    this.currentPosition.y++;
+                }
                 break;
             case 'left':
-                this.currentPosition.x = Math.max(0, this.currentPosition.x - 1);
+                if (this.currentPosition.x === 0) {
+                    hitWall = true;
+                } else {
+                    this.currentPosition.x--;
+                }
                 break;
             case 'right':
-                this.currentPosition.x = Math.min(this.gridSize - 1, this.currentPosition.x + 1);
+                if (this.currentPosition.x === this.gridSize - 1) {
+                    hitWall = true;
+                } else {
+                    this.currentPosition.x++;
+                }
                 break;
         }
+
+        return !hitWall;
     }
 
     clearProgram() {
@@ -521,12 +542,10 @@ class GridNavigationGame {
         // Exécuter chaque mouvement avec animation
         let hitObstacle = false;
         for (let i = 0; i < this.programmedMoves.length; i++) {
-            const previousPosition = { ...this.currentPosition };
-            await this.animateMove(this.programmedMoves[i]);
+            const validMove = await this.animateMove(this.programmedMoves[i]);
 
-            // Vérifier si on est sorti de la grille (collision mur)
-            if (this.currentPosition.x < 0 || this.currentPosition.x >= this.gridSize ||
-                this.currentPosition.y < 0 || this.currentPosition.y >= this.gridSize) {
+            // Vérifier si on a tapé un mur
+            if (!validMove) {
                 hitObstacle = true;
                 Toast.error('💥 Collision avec un mur !');
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -577,8 +596,9 @@ class GridNavigationGame {
     }
 
     async animateMove(direction) {
-        this.movePlayer(direction);
+        const validMove = this.movePlayer(direction);
         this.drawGrid();
+        return validMove;
     }
 
     async correctAnswer() {
