@@ -327,16 +327,16 @@ class ClockReadingGame {
     }
 
     async correctAnswer() {
-        this.score += 10;
+        this.score += APP_CONSTANTS.SCORES.CORRECT_ANSWER;
         this.correctCount++;
         this.updateStats();
 
         let message = 'Bravo ! Bonne réponse !';
 
         // Récompense tous les 3 bonnes réponses
-        if (this.correctCount % 3 === 0) {
-            await this.addCredits(2);
-            message += ' +2 🪙';
+        if (this.correctCount % APP_CONSTANTS.GAME_LIMITS.STREAK_FOR_BONUS === 0) {
+            await this.addCredits(APP_CONSTANTS.CREDITS.BONUS_STREAK_3);
+            message += ` +${APP_CONSTANTS.CREDITS.BONUS_STREAK_3} 🪙`;
         }
 
         Toast.success(message);
