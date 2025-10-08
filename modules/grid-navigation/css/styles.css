@@ -59,6 +59,40 @@
     height: auto;
 }
 
+/* Statistiques du niveau */
+.level-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px 30px;
+    margin-bottom: 20px;
+}
+
+.level-stats .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.level-stats .stat-label {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.level-stats .stat-value {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
 /* Instructions de déplacement */
 .movement-instructions {
     display: flex;
@@ -226,6 +260,63 @@
     border-color: #667eea;
 }
 
+/* Écran de fin de jeu */
+.game-end-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    padding: 40px;
+    background: var(--bg-card);
+    border: 3px solid var(--border-color);
+    border-radius: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.game-end-title {
+    font-size: 2rem;
+    color: var(--text-primary);
+    margin: 0;
+    text-align: center;
+}
+
+.game-end-stats {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.end-stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px 30px;
+    border-radius: 15px;
+    text-align: center;
+    min-width: 150px;
+}
+
+.end-stat-label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.end-stat-value {
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.game-end-message {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     #grid-canvas {
@@ -243,6 +334,22 @@
     }
 
     .question {
+        font-size: 1.1rem;
+    }
+
+    .game-end-screen {
+        padding: 20px;
+    }
+
+    .game-end-title {
+        font-size: 1.5rem;
+    }
+
+    .end-stat-value {
+        font-size: 2rem;
+    }
+
+    .game-end-message {
         font-size: 1.1rem;
     }
 }

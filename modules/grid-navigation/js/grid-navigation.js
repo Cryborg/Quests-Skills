@@ -10,7 +10,14 @@ class GridNavigationGame {
         this.targetPosition = { x: 0, y: 0 };
         this.startPosition = { x: 0, y: 0 };
         this.programmedMoves = []; // Les mouvements programmés par le joueur
+        this.obstacles = []; // Les obstacles sur la grille
         this.hintUsed = false;
+        this.visitedCells = new Set(); // Cases uniques visitées
+        this.visitedOrder = []; // Ordre des cases visitées (pour détecter les répétitions)
+        this.minPathLength = 0; // Chemin le plus court
+        this.maxPathLength = 0; // Chemin le plus long possible
+        this.hasRepeatedCell = false; // Flag pour détecter si le joueur repasse sur une case
+        this.repeatedPositions = []; // Positions où il y a eu répétition (pour affichage en rouge)
     }
 
     async init() {
@@ -85,6 +92,11 @@ class GridNavigationGame {
             if (keyMap[e.key]) {
                 e.preventDefault();
                 this.handleMove(keyMap[e.key]);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!this.elements.validateBtn.disabled) {
+                    this.executeProgram();
+                }
             }
         });
     }
@@ -98,27 +110,68 @@ class GridNavigationGame {
     generateChallenge() {
         this.hintUsed = false;
         this.programmedMoves = [];
+        this.visitedCells = new Set();
+        this.visitedOrder = [];
+        this.visitedPositions = []; // Pour afficher le trail visuel
+        this.repeatedPositions = [];
+        this.hasRepeatedCell = false;
         this.elements.nextBtn.style.display = 'none';
         this.clearFeedback();
 
-        // Position de départ aléatoire
-        this.startPosition = {
-            x: Math.floor(Math.random() * this.gridSize),
-            y: Math.floor(Math.random() * this.gridSize)
-        };
+        // Distance minimale basée sur le niveau (3 à 7 cases)
+        const minDistance = Math.min(3 + Math.floor(this.level / 3), 7);
 
-        // Position cible aléatoire (différente du départ)
-        do {
-            this.targetPosition = {
+        let validLevel = false;
+        let attempts = 0;
+        const maxAttempts = 50;
+
+        // Générer un niveau valide avec pathfinding
+        while (!validLevel && attempts < maxAttempts) {
+            attempts++;
+
+            // Position de départ aléatoire
+            this.startPosition = {
                 x: Math.floor(Math.random() * this.gridSize),
                 y: Math.floor(Math.random() * this.gridSize)
             };
-        } while (this.targetPosition.x === this.startPosition.x && this.targetPosition.y === this.startPosition.y);
+
+            // Position cible avec distance minimale
+            do {
+                this.targetPosition = {
+                    x: Math.floor(Math.random() * this.gridSize),
+                    y: Math.floor(Math.random() * this.gridSize)
+                };
+            } while (this.getManhattanDistance(this.startPosition, this.targetPosition) < minDistance);
+
+            // Générer des obstacles
+            this.generateObstacles();
+
+            // Vérifier qu'un chemin existe avec A*
+            const shortestPath = this.findPath(this.startPosition, this.targetPosition);
+            if (shortestPath && shortestPath.length >= minDistance) {
+                validLevel = true;
+                this.minPathLength = shortestPath.length;
+
+                // Calculer le chemin le plus long
+                const longestPath = this.findLongestPath(this.startPosition, this.targetPosition);
+                this.maxPathLength = longestPath ? longestPath.length : this.minPathLength;
+            }
+        }
+
+        // Si pas de niveau valide après 50 tentatives, générer sans obstacles
+        if (!validLevel) {
+            this.obstacles = [];
+            const shortestPath = this.findPath(this.startPosition, this.targetPosition);
+            this.minPathLength = shortestPath ? shortestPath.length : 0;
+            const longestPath = this.findLongestPath(this.startPosition, this.targetPosition);
+            this.maxPathLength = longestPath ? longestPath.length : this.minPathLength;
+        }
 
         this.currentPosition = { ...this.startPosition };
 
-        // Afficher le programme vide
+        // Afficher le programme vide et les stats du niveau
         this.renderInstructions();
+        this.renderLevelStats();
 
         // Dessiner la grille
         this.drawGrid();
@@ -129,10 +182,195 @@ class GridNavigationGame {
         this.elements.clearBtn.disabled = false;
     }
 
+    getManhattanDistance(pos1, pos2) {
+        return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y);
+    }
+
     clearFeedback() {
         // Réinitialiser le feedback visuel
         this.elements.movementInstructions.classList.remove('correct', 'incorrect');
         this.elements.instructions.classList.remove('correct', 'incorrect');
+    }
+
+    generateObstacles() {
+        this.obstacles = [];
+
+        // Nombre d'obstacles basé sur le niveau (minimum 3, max 8)
+        const numObstacles = Math.min(3 + Math.floor(this.level / 2), 8);
+
+        for (let i = 0; i < numObstacles; i++) {
+            let obstacle;
+            let attempts = 0;
+
+            // Générer un obstacle qui n'est ni sur le départ ni sur la cible ni sur un autre obstacle
+            do {
+                obstacle = {
+                    x: Math.floor(Math.random() * this.gridSize),
+                    y: Math.floor(Math.random() * this.gridSize)
+                };
+                attempts++;
+
+                // Éviter une boucle infinie si la grille est trop pleine
+                if (attempts > 50) break;
+
+            } while (
+                (obstacle.x === this.startPosition.x && obstacle.y === this.startPosition.y) ||
+                (obstacle.x === this.targetPosition.x && obstacle.y === this.targetPosition.y) ||
+                this.obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y)
+            );
+
+            if (attempts <= 50) {
+                this.obstacles.push(obstacle);
+            }
+        }
+    }
+
+    isObstacle(x, y) {
+        return this.obstacles.some(obs => obs.x === x && obs.y === y);
+    }
+
+    // Algorithme pour trouver le chemin le plus long (DFS avec backtracking)
+    findLongestPath(start, end) {
+        const visited = new Set();
+        const key = (pos) => `${pos.x},${pos.y}`;
+        let longestPath = null;
+
+        const dfs = (current, path) => {
+            const currentKey = key(current);
+
+            // Si on atteint la cible
+            if (current.x === end.x && current.y === end.y) {
+                if (!longestPath || path.length > longestPath.length) {
+                    longestPath = [...path];
+                }
+                return;
+            }
+
+            // Marquer comme visité
+            visited.add(currentKey);
+
+            // Explorer les voisins
+            const neighbors = [
+                { x: current.x, y: current.y - 1 },
+                { x: current.x, y: current.y + 1 },
+                { x: current.x - 1, y: current.y },
+                { x: current.x + 1, y: current.y }
+            ];
+
+            for (const neighbor of neighbors) {
+                // Vérifier si valide
+                if (neighbor.x < 0 || neighbor.x >= this.gridSize ||
+                    neighbor.y < 0 || neighbor.y >= this.gridSize) {
+                    continue;
+                }
+
+                // Vérifier si obstacle
+                if (this.isObstacle(neighbor.x, neighbor.y)) {
+                    continue;
+                }
+
+                // Vérifier si déjà visité
+                const neighborKey = key(neighbor);
+                if (visited.has(neighborKey)) {
+                    continue;
+                }
+
+                // Récursion
+                path.push(neighbor);
+                dfs(neighbor, path);
+                path.pop();
+            }
+
+            // Démarquer comme visité (backtracking)
+            visited.delete(currentKey);
+        };
+
+        // Lancer la recherche
+        dfs(start, [start]);
+        return longestPath;
+    }
+
+    // Algorithme A* pour trouver un chemin
+    findPath(start, end) {
+        const openSet = [start];
+        const closedSet = [];
+        const cameFrom = new Map();
+        const gScore = new Map();
+        const fScore = new Map();
+
+        const key = (pos) => `${pos.x},${pos.y}`;
+
+        gScore.set(key(start), 0);
+        fScore.set(key(start), this.getManhattanDistance(start, end));
+
+        while (openSet.length > 0) {
+            // Trouver le nœud avec le plus petit fScore
+            let current = openSet[0];
+            let currentIndex = 0;
+            for (let i = 1; i < openSet.length; i++) {
+                if (fScore.get(key(openSet[i])) < fScore.get(key(current))) {
+                    current = openSet[i];
+                    currentIndex = i;
+                }
+            }
+
+            // Si on a atteint la cible
+            if (current.x === end.x && current.y === end.y) {
+                const path = [];
+                let temp = current;
+                while (cameFrom.has(key(temp))) {
+                    path.unshift(temp);
+                    temp = cameFrom.get(key(temp));
+                }
+                path.unshift(start);
+                return path;
+            }
+
+            openSet.splice(currentIndex, 1);
+            closedSet.push(current);
+
+            // Vérifier les voisins (haut, bas, gauche, droite)
+            const neighbors = [
+                { x: current.x, y: current.y - 1 }, // haut
+                { x: current.x, y: current.y + 1 }, // bas
+                { x: current.x - 1, y: current.y }, // gauche
+                { x: current.x + 1, y: current.y }  // droite
+            ];
+
+            for (const neighbor of neighbors) {
+                // Vérifier si le voisin est valide
+                if (neighbor.x < 0 || neighbor.x >= this.gridSize ||
+                    neighbor.y < 0 || neighbor.y >= this.gridSize) {
+                    continue;
+                }
+
+                // Vérifier si c'est un obstacle
+                if (this.isObstacle(neighbor.x, neighbor.y)) {
+                    continue;
+                }
+
+                // Vérifier si déjà dans closedSet
+                if (closedSet.some(pos => pos.x === neighbor.x && pos.y === neighbor.y)) {
+                    continue;
+                }
+
+                const tentativeGScore = gScore.get(key(current)) + 1;
+
+                const neighborInOpenSet = openSet.find(pos => pos.x === neighbor.x && pos.y === neighbor.y);
+
+                if (!neighborInOpenSet) {
+                    openSet.push(neighbor);
+                } else if (tentativeGScore >= gScore.get(key(neighbor))) {
+                    continue;
+                }
+
+                cameFrom.set(key(neighbor), current);
+                gScore.set(key(neighbor), tentativeGScore);
+                fScore.set(key(neighbor), tentativeGScore + this.getManhattanDistance(neighbor, end));
+            }
+        }
+
+        return null; // Pas de chemin trouvé
     }
 
     generateMovementSequence(numMoves) {
@@ -182,6 +420,27 @@ class GridNavigationGame {
         return pos;
     }
 
+    renderLevelStats() {
+        const statsHtml = `
+            <div class="level-stats">
+                <div class="stat-item">
+                    <span class="stat-label">🌟 Score à atteindre :</span>
+                    <span class="stat-value">${this.maxPathLength} cases</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">⚠️ Pas de répétition !</span>
+                </div>
+            </div>
+        `;
+
+        // Insérer avant les instructions de mouvement
+        const existingStats = document.querySelector('.level-stats');
+        if (existingStats) {
+            existingStats.remove();
+        }
+        this.elements.movementInstructions.insertAdjacentHTML('beforebegin', statsHtml);
+    }
+
     renderInstructions() {
         const directionEmojis = {
             up: '⬆️',
@@ -190,20 +449,13 @@ class GridNavigationGame {
             right: '➡️'
         };
 
-        const directionNames = {
-            up: 'Haut',
-            down: 'Bas',
-            left: 'Gauche',
-            right: 'Droite'
-        };
-
         if (this.programmedMoves.length === 0) {
             this.elements.movementInstructions.innerHTML = '<p style="color: var(--text-secondary);">Programme ton chemin avec les flèches ci-dessous</p>';
         } else {
             this.elements.movementInstructions.innerHTML = this.programmedMoves
                 .map((dir, index) => {
                     return `<div class="instruction-step">
-                        ${directionEmojis[dir]} ${directionNames[dir]}
+                        ${directionEmojis[dir]}
                     </div>`;
                 })
                 .join('');
@@ -235,7 +487,10 @@ class GridNavigationGame {
 
     clearProgram() {
         this.programmedMoves = [];
+        this.currentPosition = { ...this.startPosition };
+        this.visitedPositions = []; // Effacer le trail
         this.renderInstructions();
+        this.drawGrid();
     }
 
     async executeProgram() {
@@ -249,19 +504,63 @@ class GridNavigationGame {
         this.elements.validateBtn.disabled = true;
         this.elements.clearBtn.disabled = true;
 
-        // Réinitialiser la position
+        // Réinitialiser la position et les cases visitées
         this.currentPosition = { ...this.startPosition };
+        this.visitedCells = new Set();
+        this.visitedOrder = [];
+        this.visitedPositions = [];
+        this.hasRepeatedCell = false;
+
+        // Ajouter la position de départ
+        const key = (pos) => `${pos.x},${pos.y}`;
+        const currentKey = key(this.currentPosition);
+        this.visitedCells.add(currentKey);
+        this.visitedOrder.push(currentKey);
+        this.visitedPositions.push({ ...this.currentPosition });
 
         // Exécuter chaque mouvement avec animation
+        let hitObstacle = false;
         for (let i = 0; i < this.programmedMoves.length; i++) {
             await this.animateMove(this.programmedMoves[i]);
+
+            const cellKey = key(this.currentPosition);
+
+            // Vérifier si on repasse sur une case déjà visitée
+            if (this.visitedCells.has(cellKey)) {
+                this.hasRepeatedCell = true;
+                this.repeatedPositions.push({ ...this.currentPosition });
+                // Ne pas arrêter, juste marquer la répétition
+            }
+
+            // Ajouter la case visitée
+            this.visitedCells.add(cellKey);
+            this.visitedOrder.push(cellKey);
+            this.visitedPositions.push({ ...this.currentPosition });
+
+            // Vérifier si on a heurté un obstacle
+            if (this.isObstacle(this.currentPosition.x, this.currentPosition.y)) {
+                hitObstacle = true;
+                Toast.error('💥 Collision avec un obstacle !');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                break;
+            }
+
             await new Promise(resolve => setTimeout(resolve, 300));
         }
 
-        // Vérifier si on est arrivé
-        if (this.currentPosition.x === this.targetPosition.x &&
+        // Vérifier le résultat
+        if (hitObstacle) {
+            this.incorrectAnswer();
+        } else if (this.currentPosition.x === this.targetPosition.x &&
             this.currentPosition.y === this.targetPosition.y) {
-            this.correctAnswer();
+            // Arrivé à destination
+            if (this.hasRepeatedCell) {
+                // Score minimal si répétition
+                this.incorrectAnswer();
+            } else {
+                // Score normal
+                this.correctAnswer();
+            }
         } else {
             this.incorrectAnswer();
         }
@@ -273,21 +572,37 @@ class GridNavigationGame {
     }
 
     async correctAnswer() {
-        this.score += this.hintUsed ? 5 : 10;
+        const uniqueCells = this.visitedCells.size;
+
+        // Nouveau système de scoring : casesVisitées directement
+        // Plus on visite de cases, plus on gagne de points !
+        const earnedPoints = uniqueCells;
+
+        this.score += earnedPoints;
         this.correctCount++;
 
-        if (this.correctCount % 5 === 0) {
+        // Niveau up toutes les 2 étapes
+        if (this.correctCount % 2 === 0) {
             this.level++;
         }
 
         this.updateStats();
 
-        // Message de succès
-        let message = 'Bravo ! Tu as atteint la case cible !';
+        // Message de succès avec statistiques
+        let message = `Bravo ! ${uniqueCells}/${this.maxPathLength} cases visitées (+${earnedPoints} pts)`;
 
-        // Récompense
+        // Évaluation
+        if (uniqueCells === this.maxPathLength) {
+            message = '🌟 SCORE PARFAIT ! Toutes les cases visitées ! ' + message;
+        } else if (uniqueCells >= this.maxPathLength - 2) {
+            message = '🎯 Excellent ! ' + message;
+        } else if (uniqueCells >= this.maxPathLength - 5) {
+            message = '👍 Bien ! ' + message;
+        }
+
+        // Récompense en crédits toutes les 3 réussites
         if (this.correctCount % 3 === 0) {
-            const credits = this.hintUsed ? 1 : 2;
+            const credits = 2;
             await this.addCredits(credits);
             message += ` +${credits} 🪙`;
         }
@@ -297,20 +612,75 @@ class GridNavigationGame {
         this.elements.controlButtons.forEach(btn => btn.disabled = true);
         this.elements.validateBtn.disabled = true;
         this.elements.clearBtn.disabled = true;
-        this.elements.nextBtn.style.display = 'block';
+
+        // Vérifier si c'est la fin du jeu (niveau 10, puzzle 2)
+        if (this.level === 10 && this.correctCount % 2 === 0) {
+            setTimeout(() => {
+                this.showGameEnd();
+            }, 2000);
+        } else {
+            // Lancer automatiquement le niveau suivant après 2 secondes
+            setTimeout(() => {
+                this.generateChallenge();
+            }, 2000);
+        }
     }
 
-    incorrectAnswer() {
+    async incorrectAnswer() {
+        // Si le joueur a repassé sur une case mais est arrivé à destination, il gagne 1 point
+        if (this.hasRepeatedCell &&
+            this.currentPosition.x === this.targetPosition.x &&
+            this.currentPosition.y === this.targetPosition.y) {
+
+            const minPoints = 1;
+            this.score += minPoints;
+            this.correctCount++;
+
+            // Niveau up toutes les 2 étapes
+            if (this.correctCount % 2 === 0) {
+                this.level++;
+            }
+
+            this.updateStats();
+
+            Toast.warning(`⚠️ Cases répétées ! Score minimum : +${minPoints} pt`);
+
+            this.elements.controlButtons.forEach(btn => btn.disabled = true);
+            this.elements.validateBtn.disabled = true;
+            this.elements.clearBtn.disabled = true;
+
+            // Vérifier si c'est la fin du jeu (niveau 10, puzzle 2)
+            if (this.level === 10 && this.correctCount % 2 === 0) {
+                setTimeout(() => {
+                    this.showGameEnd();
+                }, 2000);
+            } else {
+                setTimeout(() => {
+                    this.generateChallenge();
+                }, 2000);
+            }
+            return;
+        }
+
+        // Sinon, échec total - réessayer
         Toast.error('Tu n\'es pas arrivé à la bonne case ! Réessaye.');
 
-        // Réinitialiser le programme
-        this.programmedMoves = [];
-        this.renderInstructions();
+        this.elements.controlButtons.forEach(btn => btn.disabled = true);
+        this.elements.validateBtn.disabled = true;
+        this.elements.clearBtn.disabled = true;
 
-        // Réactiver les boutons pour réessayer
-        this.elements.controlButtons.forEach(btn => btn.disabled = false);
-        this.elements.validateBtn.disabled = false;
-        this.elements.clearBtn.disabled = false;
+        // Auto-restart après 2 secondes
+        setTimeout(() => {
+            this.programmedMoves = [];
+            this.currentPosition = { ...this.startPosition };
+            this.visitedPositions = []; // Effacer le trail
+            this.renderInstructions();
+            this.drawGrid();
+
+            this.elements.controlButtons.forEach(btn => btn.disabled = false);
+            this.elements.validateBtn.disabled = false;
+            this.elements.clearBtn.disabled = false;
+        }, 2000);
     }
 
     showHint() {
@@ -371,7 +741,56 @@ class GridNavigationGame {
             size - 10
         );
 
-        // Dessiner le joueur
+        // Dessiner les obstacles
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
+        this.obstacles.forEach(obstacle => {
+            ctx.fillRect(
+                obstacle.x * size + 5,
+                obstacle.y * size + 5,
+                size - 10,
+                size - 10
+            );
+
+            // Dessiner une croix sur l'obstacle
+            ctx.strokeStyle = '#dc2626';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(obstacle.x * size + 15, obstacle.y * size + 15);
+            ctx.lineTo(obstacle.x * size + size - 15, obstacle.y * size + size - 15);
+            ctx.moveTo(obstacle.x * size + size - 15, obstacle.y * size + 15);
+            ctx.lineTo(obstacle.x * size + 15, obstacle.y * size + size - 15);
+            ctx.stroke();
+        });
+
+        // Dessiner le trail (cases visitées)
+        ctx.fillStyle = 'rgba(102, 126, 234, 0.5)';
+        this.visitedPositions.forEach(pos => {
+            ctx.beginPath();
+            ctx.arc(
+                pos.x * size + size / 2,
+                pos.y * size + size / 2,
+                8,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        });
+
+        // Dessiner les répétitions en rouge
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+        this.repeatedPositions.forEach(pos => {
+            ctx.beginPath();
+            ctx.arc(
+                pos.x * size + size / 2,
+                pos.y * size + size / 2,
+                8,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        });
+
+        // Dessiner le joueur (par-dessus le trail)
         ctx.fillStyle = '#667eea';
         ctx.beginPath();
         ctx.arc(
@@ -399,6 +818,42 @@ class GridNavigationGame {
         this.elements.score.textContent = this.score;
         this.elements.correctCount.textContent = this.correctCount;
         this.elements.level.textContent = this.level;
+    }
+
+    showGameEnd() {
+        // Créer un écran de fin de jeu
+        const gameArea = document.querySelector('.game-area');
+        gameArea.innerHTML = `
+            <div class="game-end-screen">
+                <h2 class="game-end-title">🎉 PARTIE TERMINÉE ! 🎉</h2>
+                <div class="game-end-stats">
+                    <div class="end-stat-card">
+                        <div class="end-stat-label">Score final</div>
+                        <div class="end-stat-value">${this.score}</div>
+                    </div>
+                    <div class="end-stat-card">
+                        <div class="end-stat-label">Puzzles résolus</div>
+                        <div class="end-stat-value">${this.correctCount}</div>
+                    </div>
+                    <div class="end-stat-card">
+                        <div class="end-stat-label">Niveau atteint</div>
+                        <div class="end-stat-value">${this.level}</div>
+                    </div>
+                </div>
+                <p class="game-end-message">
+                    ${this.score >= 200 ? '🌟 Performance légendaire !' :
+                      this.score >= 150 ? '🎯 Excellent score !' :
+                      this.score >= 100 ? '👍 Bon travail !' :
+                      '💪 Continue de t\'entraîner !'}
+                </p>
+                <button id="restart-game-btn" class="btn-primary">🔄 Rejouer</button>
+            </div>
+        `;
+
+        // Gérer le bouton rejouer
+        document.getElementById('restart-game-btn').addEventListener('click', () => {
+            location.reload();
+        });
     }
 
     async addCredits(amount) {
