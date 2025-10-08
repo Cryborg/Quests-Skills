@@ -250,25 +250,28 @@ class NavigationUI {
                     }).join('')}
                 </div>
 
-                <!-- Help button (before admin or logout) -->
-                <a href="${this.helpLink.href}" class="nav-link nav-help-link" data-nav-id="${this.helpLink.id}">
-                    <span class="nav-link-icon">${this.helpLink.icon}</span>
-                    <span>${this.helpLink.label}</span>
-                </a>
-
-                <!-- Admin button (before logout) -->
-                ${this.currentUser.is_admin ? `
-                    <a href="${this.adminLink.href}" class="nav-link nav-admin-link" data-nav-id="${this.adminLink.id}">
-                        <span class="nav-link-icon">${this.adminLink.icon}</span>
-                        <span>${this.adminLink.label}</span>
+                <!-- Footer: Help, Admin, Logout -->
+                <div class="nav-footer">
+                    <!-- Help button -->
+                    <a href="${this.helpLink.href}" class="nav-link nav-help-link" data-nav-id="${this.helpLink.id}">
+                        <span class="nav-link-icon">${this.helpLink.icon}</span>
+                        <span>${this.helpLink.label}</span>
                     </a>
-                ` : ''}
 
-                <!-- Logout button -->
-                <button class="nav-logout" id="nav-logout-btn">
-                    <span class="nav-link-icon">🚪</span>
-                    <span>Déconnexion</span>
-                </button>
+                    <!-- Admin button -->
+                    ${this.currentUser.is_admin ? `
+                        <a href="${this.adminLink.href}" class="nav-link nav-admin-link" data-nav-id="${this.adminLink.id}">
+                            <span class="nav-link-icon">${this.adminLink.icon}</span>
+                            <span>${this.adminLink.label}</span>
+                        </a>
+                    ` : ''}
+
+                    <!-- Logout button -->
+                    <button class="nav-logout" id="nav-logout-btn">
+                        <span class="nav-link-icon">🚪</span>
+                        <span>Déconnexion</span>
+                    </button>
+                </div>
             </nav>
         `;
 

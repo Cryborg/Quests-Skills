@@ -212,14 +212,15 @@ body.nav-loaded .container {
 }
 
 /* Footer section (Help, Admin, Logout) */
+.nav-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
 .nav-help-link {
     border-top: 1px solid var(--nav-border);
     padding-top: 5px;
-    margin-bottom: 5px;
-}
-
-.nav-admin-link {
-    margin-bottom: 5px;
 }
 
 .nav-logout {
