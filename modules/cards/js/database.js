@@ -53,7 +53,7 @@ class DatabaseManager {
                 return this.cardsCache;
             }
 
-            const response = await fetch('http://localhost:3000/api/cards');
+            const response = await fetch('/api/cards');
             if (!response.ok) {
                 console.error('Failed to load cards from API');
                 return [];
