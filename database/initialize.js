@@ -57,11 +57,11 @@ async function ensureDatabaseExists() {
   try {
     // Tester si les tables principales existent
     const result = await query(
-      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name IN ('users', 'cards', 'user_credits', 'card_themes', 'user_themes')"
+      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name IN ('users', 'cards', 'user_credits', 'card_themes', 'user_themes', 'word_search_words', 'game_sessions')"
     );
     const tableCount = result.rows[0]?.count || 0;
 
-    if (tableCount < 5) {
+    if (tableCount < 7) {
       console.log('⚠️  Missing core tables, initializing database...');
       await initializeDatabase();
     } else {
