@@ -5,56 +5,7 @@ class NumberSequenceGame {
         this.streak = 0;
         this.level = 1;
         this.currentSequence = null;
-        this.hintUsed = false;
-
-        // Types de suites
-        this.sequenceTypes = [
-            {
-                name: 'addition',
-                generate: (start, step, length) => {
-                    const seq = [];
-                    for (let i = 0; i < length; i++) {
-                        seq.push(start + i * step);
-                    }
-                    return seq;
-                },
-                hint: (step) => `Chaque nombre augmente de ${step}`
-            },
-            {
-                name: 'multiplication',
-                generate: (start, step, length) => {
-                    const seq = [];
-                    for (let i = 0; i < length; i++) {
-                        seq.push(start * Math.pow(step, i));
-                    }
-                    return seq;
-                },
-                hint: (step) => `Chaque nombre est multiplié par ${step}`
-            },
-            {
-                name: 'squares',
-                generate: (start, step, length) => {
-                    const seq = [];
-                    for (let i = 0; i < length; i++) {
-                        const n = start + i;
-                        seq.push(n * n);
-                    }
-                    return seq;
-                },
-                hint: () => `Suite des carrés (n × n)`
-            },
-            {
-                name: 'alternating',
-                generate: (start, step, length) => {
-                    const seq = [];
-                    for (let i = 0; i < length; i++) {
-                        seq.push(start + (i % 2 === 0 ? 0 : step));
-                    }
-                    return seq;
-                },
-                hint: (step) => `Les nombres alternent entre deux valeurs`
-            }
-        ];
+        this.maxLevel = 8;
     }
 
     async init() {
@@ -90,10 +41,7 @@ class NumberSequenceGame {
             sequenceDisplay: document.getElementById('sequence-display'),
             answerInput: document.getElementById('answer-input'),
             validateBtn: document.getElementById('validate-btn'),
-            hintBtn: document.getElementById('hint-btn'),
-            skipBtn: document.getElementById('skip-btn'),
-            hintSection: document.getElementById('hint-section'),
-            hintText: document.getElementById('hint-text')
+            skipBtn: document.getElementById('skip-btn')
         };
     }
 
@@ -102,62 +50,94 @@ class NumberSequenceGame {
         this.elements.answerInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.validateAnswer();
         });
-        this.elements.hintBtn.addEventListener('click', () => this.showHint());
         this.elements.skipBtn.addEventListener('click', () => this.skipSequence());
     }
 
     generateSequence() {
-        this.hintUsed = false;
-        this.elements.hintSection.style.display = 'none';
         this.elements.answerInput.value = '';
         this.elements.answerInput.focus();
 
-        // Difficulté basée sur le niveau
-        const sequenceLength = Math.min(4 + Math.floor(this.level / 3), 7);
+        const sequenceLength = 4;
+        let sequence, answer;
 
-        // Choisir le type de suite selon le niveau
-        let type;
-        if (this.level <= 3) {
-            type = this.sequenceTypes[0]; // Addition simple
+        if (this.level <= 2) {
+            // Niveau 1-2 : Addition avec step 2 à 5
+            const step = Math.floor(Math.random() * 4) + 2; // 2 à 5
+            const start = Math.floor(Math.random() * 10) + 1; // 1 à 10
+            sequence = [];
+            for (let i = 0; i < sequenceLength; i++) {
+                sequence.push(start + i * step);
+            }
+            answer = start + sequenceLength * step;
+
+        } else if (this.level <= 4) {
+            // Niveau 3-4 : Soustraction avec step -1 à -3
+            const step = -(Math.floor(Math.random() * 3) + 1); // -1 à -3
+            const start = Math.floor(Math.random() * 20) + 20; // 20 à 40 pour éviter les négatifs
+            sequence = [];
+            for (let i = 0; i < sequenceLength; i++) {
+                sequence.push(start + i * step);
+            }
+            answer = start + sequenceLength * step;
+
         } else if (this.level <= 6) {
-            const idx = Math.random() < 0.7 ? 0 : 1;
-            type = this.sequenceTypes[idx]; // Addition ou multiplication
+            // Niveau 5-6 : Multiplication x2 à x3 (résultat final ≤ 100)
+            const step = Math.floor(Math.random() * 2) + 2; // 2 ou 3
+            let start;
+
+            // Choix sécurisé du start pour garantir résultat ≤ 100
+            // Pour x2 : max start = 100 / (2^4) = 6.25 → max 6
+            // Pour x3 : max start = 100 / (3^4) = 1.23 → max 1, mais on prend 2 minimum
+            if (step === 2) {
+                start = Math.floor(Math.random() * 4) + 2; // 2 à 5
+            } else { // step === 3
+                start = 2; // Fixe à 2 pour x3 (2*81 = 162 > 100, donc on limite)
+            }
+
+            sequence = [];
+            for (let i = 0; i < sequenceLength; i++) {
+                sequence.push(start * Math.pow(step, i));
+            }
+            answer = start * Math.pow(step, sequenceLength);
+
         } else {
-            type = this.sequenceTypes[Math.floor(Math.random() * this.sequenceTypes.length)];
+            // Niveau 7-8 : Multiplication x3 à x5 (résultat final ≤ 1000)
+            const step = Math.floor(Math.random() * 3) + 3; // 3 à 5
+            let start;
+
+            // Choix sécurisé du start pour garantir résultat ≤ 1000
+            // Pour x3 : max start = 1000 / (3^4) = 12.3 → max 12
+            // Pour x4 : max start = 1000 / (4^4) = 3.9 → max 3
+            // Pour x5 : max start = 1000 / (5^4) = 1.6 → max 1, mais on prend 2 minimum
+            if (step === 3) {
+                start = Math.floor(Math.random() * 3) + 2; // 2 à 4
+            } else if (step === 4) {
+                start = Math.floor(Math.random() * 2) + 2; // 2 à 3
+            } else { // step === 5
+                start = 2; // Fixe à 2 pour x5
+            }
+
+            sequence = [];
+            for (let i = 0; i < sequenceLength; i++) {
+                sequence.push(start * Math.pow(step, i));
+            }
+            answer = start * Math.pow(step, sequenceLength);
         }
-
-        // Paramètres selon le niveau
-        const start = Math.floor(Math.random() * (this.level * 2)) + 1;
-        let step;
-
-        if (type.name === 'addition') {
-            step = Math.floor(Math.random() * Math.min(this.level + 2, 10)) + 1;
-        } else if (type.name === 'multiplication') {
-            step = Math.floor(Math.random() * 3) + 2; // 2 ou 3
-        } else if (type.name === 'squares') {
-            step = 1;
-        } else if (type.name === 'alternating') {
-            step = Math.floor(Math.random() * 5) + 3;
-        }
-
-        const fullSequence = type.generate(start, step, sequenceLength + 1);
-        const answer = fullSequence[fullSequence.length - 1];
-        const displaySequence = fullSequence.slice(0, -1);
 
         this.currentSequence = {
-            display: displaySequence,
-            answer,
-            type: type.name,
-            hint: type.hint(step)
+            display: sequence,
+            answer
         };
 
         this.renderSequence();
     }
 
     renderSequence() {
-        this.elements.sequenceDisplay.innerHTML = this.currentSequence.display
+        const numbersHtml = this.currentSequence.display
             .map(num => `<div class="sequence-number">${num}</div>`)
             .join('');
+
+        this.elements.sequenceDisplay.innerHTML = numbersHtml + '<div class="question-mark" id="question-mark">?</div>';
     }
 
     validateAnswer() {
@@ -176,20 +156,28 @@ class NumberSequenceGame {
     }
 
     async correctAnswer() {
-        this.score += this.hintUsed ? 5 : 10;
+        this.score += 10;
         this.streak++;
 
-        if (this.streak % 5 === 0) {
+        if (this.streak % 2 === 0 && this.level < this.maxLevel) {
             this.level++;
         }
 
         this.updateStats();
 
+        // Animation de validation
+        this.showValidationAnimation('✅');
+
+        // Vérifier si tous les niveaux sont terminés
+        if (this.level === this.maxLevel && this.streak % 2 === 0) {
+            await this.completeAllLevels();
+            return;
+        }
+
         // Récompense
         if (this.streak % 3 === 0) {
-            const credits = this.hintUsed ? 1 : 2;
-            await this.addCredits(credits);
-            Toast.success(`Bravo ! La réponse était ${this.currentSequence.answer} - Bonus : +${credits} 🪙`);
+            await this.addCredits(2);
+            Toast.success(`Bravo ! La réponse était ${this.currentSequence.answer} - Bonus : +2 🪙`);
         } else {
             Toast.success(`Bravo ! La réponse était ${this.currentSequence.answer}`);
         }
@@ -197,22 +185,57 @@ class NumberSequenceGame {
         setTimeout(() => this.generateSequence(), 2000);
     }
 
+    showValidationAnimation(emoji) {
+        const questionMark = document.getElementById('question-mark');
+        if (!questionMark) return;
+
+        // Remplacer le ? par l'emoji
+        questionMark.textContent = emoji;
+        questionMark.className = 'question-mark';
+
+        // Force reflow pour redémarrer l'animation
+        void questionMark.offsetWidth;
+
+        if (emoji === '✅') {
+            questionMark.classList.add('show-correct');
+        } else {
+            questionMark.classList.add('show-incorrect');
+        }
+    }
+
+    async completeAllLevels() {
+        // Bloquer le jeu pour aujourd'hui
+        await GameAttempts.recordAttempt('number-sequence', {
+            score: this.score,
+            completed: true,
+            allLevelsCompleted: true
+        });
+
+        // Donner 10 crédits bonus
+        await this.addCredits(10);
+
+        Toast.success('🎉 Félicitations ! Tu as terminé tous les niveaux ! +10 🪙 bonus !');
+
+        // Désactiver les contrôles
+        this.elements.answerInput.disabled = true;
+        this.elements.validateBtn.disabled = true;
+        this.elements.skipBtn.disabled = true;
+
+        setTimeout(() => {
+            Toast.info('Reviens demain pour un nouveau défi !');
+        }, 3000);
+    }
+
     incorrectAnswer() {
         this.streak = 0;
         this.updateStats();
 
+        // Animation de validation
+        this.showValidationAnimation('❌');
+
         Toast.error(`Incorrect. La réponse était ${this.currentSequence.answer}`);
 
         setTimeout(() => this.generateSequence(), 2500);
-    }
-
-    showHint() {
-        if (this.hintUsed) return;
-
-        this.hintUsed = true;
-        this.elements.hintSection.style.display = 'block';
-        this.elements.hintText.textContent = this.currentSequence.hint;
-        Toast.hint(this.currentSequence.hint);
     }
 
     skipSequence() {
