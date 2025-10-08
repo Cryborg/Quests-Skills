@@ -1,12 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const { get, all, run } = require('../turso-db');
+const { get, all, run, query } = require('../turso-db');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
-// GET /api/themes - Récupérer tous les thèmes
+// GET /api/themes - Récupérer tous les thèmes (avec leurs mots mêlés pour l'admin)
 router.get('/', async (req, res) => {
   try {
     const themes = await all('SELECT * FROM card_themes ORDER BY name ASC');
+
+    // Charger les mots de chaque thème pour l'admin
+    for (const theme of themes) {
+      const wordsResult = await query(
+        'SELECT * FROM word_search_words WHERE theme_slug = ? ORDER BY word',
+        [theme.slug]
+      );
+      theme.words = wordsResult.rows || [];
+    }
+
     res.json(themes);
   } catch (error) {
     console.error('Failed to fetch themes:', error);

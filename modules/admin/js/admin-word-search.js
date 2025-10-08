@@ -54,9 +54,9 @@ const WordSearchAdmin = {
 
     async loadThemes() {
         try {
-            const response = await authService.fetchAPI('/word-search/themes');
-            const data = await response.json();
-            this.themes = data.themes || [];
+            const response = await authService.fetchAPI('/themes');
+            const themes = await response.json();
+            this.themes = Array.isArray(themes) ? themes : [];
             console.log('📦 Loaded themes with words:', this.themes);
             this.renderThemes();
         } catch (error) {
