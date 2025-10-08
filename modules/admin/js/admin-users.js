@@ -6,6 +6,9 @@ class AdminUsers {
         this.filteredUsers = [];
         this.currentUser = null;
         this.searchQuery = '';
+        this.allThemes = [];
+        this.selectedThemes = [];
+        this.themeStats = {};
     }
 
     // Initialiser la gestion des utilisateurs
@@ -158,7 +161,7 @@ class AdminUsers {
     }
 
     // Ouvrir la modale pour créer/éditer un utilisateur
-    openUserModal(user = null) {
+    async openUserModal(user = null) {
         this.currentUser = user;
 
         const title = document.getElementById('user-modal-title');
@@ -169,6 +172,7 @@ class AdminUsers {
         const isAdmin = document.getElementById('user-is-admin');
         const passwordGroup = document.getElementById('user-password-group');
         const creditsGroup = document.getElementById('user-credits-group');
+        const themesGroup = document.getElementById('user-themes-group');
         const creditsAdjustmentInput = document.getElementById('user-credits-adjustment');
 
         if (user) {
@@ -182,6 +186,10 @@ class AdminUsers {
             creditsAdjustmentInput.value = 0;
             passwordGroup.querySelector('small').style.display = 'block';
             creditsGroup.style.display = 'block';
+            themesGroup.style.display = 'block';
+
+            // Charger les thèmes de l'utilisateur
+            await this.loadUserThemes(user.id);
         } else {
             title.textContent = 'Créer un utilisateur';
             userId.value = '';
@@ -249,6 +257,17 @@ class AdminUsers {
             }
 
             if (response.ok) {
+                const savedUser = await response.json();
+                const finalUserId = userId || savedUser.id;
+
+                // Sauvegarder les thèmes si on édite un utilisateur
+                if (userId && this.selectedThemes.length > 0) {
+                    const themesSaved = await this.saveUserThemes(finalUserId);
+                    if (!themesSaved) {
+                        return; // Arrêter si la sauvegarde des thèmes a échoué
+                    }
+                }
+
                 adminUI.showToast(userId ? 'Utilisateur modifié' : 'Utilisateur créé', 'success');
                 adminUI.closeModal('user-modal');
                 await this.loadUsers();
@@ -363,6 +382,125 @@ class AdminUsers {
     // Récupérer la liste des utilisateurs (pour la section crédits)
     getUsers() {
         return this.users;
+    }
+
+    // Charger les thèmes disponibles et sélectionnés pour un utilisateur
+    async loadUserThemes(userId) {
+        try {
+            // Charger tous les thèmes disponibles
+            const themesResponse = await authService.fetchAPI('/themes');
+            this.allThemes = await themesResponse.json();
+
+            // Charger les thèmes sélectionnés par l'utilisateur
+            const userThemesResponse = await authService.fetchAPI(`/users/${userId}/themes`);
+            const userThemes = await userThemesResponse.json();
+            this.selectedThemes = userThemes.map(t => t.slug);
+
+            // Charger les stats de cartes par thème
+            const statsResponse = await authService.fetchAPI(`/users/${userId}/themes/stats`);
+            const stats = await statsResponse.json();
+            this.themeStats = {};
+            stats.forEach(stat => {
+                this.themeStats[stat.theme_slug] = stat.card_count;
+            });
+
+            // Afficher les thèmes
+            this.renderThemes();
+        } catch (error) {
+            console.error('Failed to load themes:', error);
+            adminUI.showToast('Erreur lors du chargement des thèmes', 'error');
+        }
+    }
+
+    // Afficher les thèmes dans la modale
+    renderThemes() {
+        const container = document.getElementById('user-themes-selector');
+        container.innerHTML = '';
+
+        this.allThemes.forEach(theme => {
+            const isSelected = this.selectedThemes.includes(theme.slug);
+            const cardCount = this.themeStats[theme.slug] || 0;
+
+            const themeEl = document.createElement('div');
+            themeEl.className = `theme-option-admin ${isSelected ? 'selected' : ''}`;
+            themeEl.dataset.slug = theme.slug;
+
+            themeEl.innerHTML = `
+                <div class="theme-option-admin-icon">${theme.icon}</div>
+                <div class="theme-option-admin-info">
+                    <div class="theme-option-admin-name">${theme.name}</div>
+                    ${cardCount > 0 ? `<div class="theme-option-admin-count">${cardCount} carte(s)</div>` : ''}
+                </div>
+                <div class="theme-option-admin-check">✓</div>
+            `;
+
+            themeEl.addEventListener('click', () => this.toggleTheme(theme.slug, theme.name));
+
+            container.appendChild(themeEl);
+        });
+    }
+
+    // Toggle un thème
+    toggleTheme(slug, themeName) {
+        const index = this.selectedThemes.indexOf(slug);
+
+        if (index > -1) {
+            // Désélectionner (mais minimum 3)
+            if (this.selectedThemes.length <= 3) {
+                adminUI.showToast('Minimum 3 thèmes requis', 'error');
+                return;
+            }
+
+            // Avertir si l'utilisateur a des cartes dans ce thème
+            const cardCount = this.themeStats[slug] || 0;
+            if (cardCount > 0) {
+                if (!confirm(`⚠️ ATTENTION : L'utilisateur possède ${cardCount} carte(s) unique(s) dans le thème "${themeName}".\n\nEn décochant ce thème :\n• Les cartes ne seront PAS supprimées\n• Elles seront simplement masquées\n• L'utilisateur ne piochera plus de cartes de ce thème\n• Les cartes pourront être récupérées en recochant le thème\n\nConfirmer la désélection ?`)) {
+                    return;
+                }
+            }
+
+            this.selectedThemes.splice(index, 1);
+        } else {
+            // Sélectionner (mais maximum 10)
+            if (this.selectedThemes.length >= 10) {
+                adminUI.showToast('Maximum 10 thèmes autorisés', 'error');
+                return;
+            }
+            this.selectedThemes.push(slug);
+        }
+
+        this.renderThemes();
+    }
+
+    // Sauvegarder les thèmes lors de la sauvegarde de l'utilisateur
+    async saveUserThemes(userId) {
+        if (this.selectedThemes.length < 3) {
+            adminUI.showToast('Minimum 3 thèmes requis', 'error');
+            return false;
+        }
+
+        if (this.selectedThemes.length > 10) {
+            adminUI.showToast('Maximum 10 thèmes autorisés', 'error');
+            return false;
+        }
+
+        try {
+            const response = await authService.fetchAPI(`/users/${userId}/themes`, {
+                method: 'PUT',
+                body: JSON.stringify({ theme_slugs: this.selectedThemes })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Erreur lors de la sauvegarde des thèmes');
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Failed to save themes:', error);
+            adminUI.showToast(error.message, 'error');
+            return false;
+        }
     }
 }
 

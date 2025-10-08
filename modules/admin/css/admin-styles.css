@@ -923,3 +923,65 @@ body {
     display: flex;
     gap: 10px;
 }
+
+
+/* Sélecteur de thèmes pour admin */
+.themes-selector-admin {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.theme-option-admin {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.theme-option-admin:hover {
+    background: var(--bg-hover);
+    border-color: #667eea;
+}
+
+.theme-option-admin.selected {
+    background: var(--bg-hover);
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.theme-option-admin-icon {
+    font-size: 1.5rem;
+}
+
+.theme-option-admin-info {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.theme-option-admin-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.theme-option-admin-count {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.theme-option-admin-check {
+    font-size: 1rem;
+    color: #667eea;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.theme-option-admin.selected .theme-option-admin-check {
+    opacity: 1;
+}
