@@ -634,15 +634,19 @@ router.post('/:id/attempts', checkOwnership, async (req, res) => {
         const userId = parseInt(req.params.id);
         const { operation_type, exercise, user_answers, success, cards_earned } = req.body;
 
+        // S'assurer que JSON.stringify ne retourne jamais undefined
+        const exerciseStr = exercise !== undefined ? JSON.stringify(exercise) : null;
+        const answersStr = user_answers !== undefined ? JSON.stringify(user_answers) : null;
+
         await run(
             `INSERT INTO operation_attempts
              (user_id, operation_type, exercise, user_answers, success, cards_earned, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 userId,
-                operation_type,
-                JSON.stringify(exercise),
-                JSON.stringify(user_answers),
+                operation_type || null,
+                exerciseStr,
+                answersStr,
                 success ? 1 : 0,
                 cards_earned || 0,
                 new Date().toISOString()
