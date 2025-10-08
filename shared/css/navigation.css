@@ -211,11 +211,15 @@ body.nav-loaded .container {
     text-align: center;
 }
 
-/* Logout button */
-/* Help and Admin links */
+/* Footer section (Help, Admin, Logout) */
 .nav-help-link {
     border-top: 1px solid var(--nav-border);
-    padding-top: 10px;
+    padding-top: 5px;
+    margin-bottom: 5px;
+}
+
+.nav-admin-link {
+    margin-bottom: 5px;
 }
 
 .nav-logout {
