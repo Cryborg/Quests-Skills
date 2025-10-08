@@ -165,13 +165,15 @@ class NavigationUI {
                             <span>${link.label}</span>
                         </a>
                     `).join('')}
-                    ${this.currentUser.is_admin ? `
-                        <a href="${this.adminLink.href}" class="nav-link" data-nav-id="${this.adminLink.id}">
-                            <span class="nav-link-icon">${this.adminLink.icon}</span>
-                            <span>${this.adminLink.label}</span>
-                        </a>
-                    ` : ''}
                 </div>
+
+                <!-- Admin button (before logout) -->
+                ${this.currentUser.is_admin ? `
+                    <a href="${this.adminLink.href}" class="nav-link nav-admin-link" data-nav-id="${this.adminLink.id}">
+                        <span class="nav-link-icon">${this.adminLink.icon}</span>
+                        <span>${this.adminLink.label}</span>
+                    </a>
+                ` : ''}
 
                 <!-- Logout button -->
                 <button class="nav-logout" id="nav-logout-btn">
