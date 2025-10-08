@@ -521,7 +521,17 @@ class GridNavigationGame {
         // Exécuter chaque mouvement avec animation
         let hitObstacle = false;
         for (let i = 0; i < this.programmedMoves.length; i++) {
+            const previousPosition = { ...this.currentPosition };
             await this.animateMove(this.programmedMoves[i]);
+
+            // Vérifier si on est sorti de la grille (collision mur)
+            if (this.currentPosition.x < 0 || this.currentPosition.x >= this.gridSize ||
+                this.currentPosition.y < 0 || this.currentPosition.y >= this.gridSize) {
+                hitObstacle = true;
+                Toast.error('💥 Collision avec un mur !');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                break;
+            }
 
             const cellKey = key(this.currentPosition);
 
