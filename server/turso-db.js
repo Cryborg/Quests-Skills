@@ -1,8 +1,9 @@
 const { createClient } = require('@libsql/client');
-const dotenv = require('dotenv');
 
-// Load environment variables
-dotenv.config();
+// Load environment variables only in local development
+if (process.env.APP_ENV !== 'production') {
+    require('dotenv').config();
+}
 
 // Debug: afficher toutes les variables d'environnement pertinentes
 console.log('🔍 Environment variables:');
