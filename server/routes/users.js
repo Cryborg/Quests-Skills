@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
+const PasswordService = require('../services/password-service');
 const { all, get, run } = require('../turso-db');
 const { authenticateToken, checkOwnership, requireAdmin } = require('../middleware/auth');
 
@@ -54,7 +54,7 @@ router.post('/', requireAdmin, async (req, res) => {
 
         // Hasher le mot de passe
         console.log('🔐 Hashing password...');
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await PasswordService.hash(password);
         console.log('✅ Password hashed');
 
         // Créer l'utilisateur
@@ -139,7 +139,7 @@ router.put('/:id', checkOwnership, async (req, res) => {
         }
 
         if (password) {
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = await PasswordService.hash(password);
             updates.push('password = ?');
             values.push(hashedPassword);
         }
@@ -718,13 +718,13 @@ router.put('/:id/password', checkOwnership, async (req, res) => {
         }
 
         // Vérifier le mot de passe actuel
-        const isValid = await bcrypt.compare(current_password, user.password);
+        const isValid = await PasswordService.verify(current_password, user.password);
         if (!isValid) {
             return res.status(401).json({ error: 'Current password is incorrect' });
         }
 
         // Hasher le nouveau mot de passe
-        const hashedPassword = await bcrypt.hash(new_password, 10);
+        const hashedPassword = await PasswordService.hash(new_password);
 
         // Mettre à jour le mot de passe
         await run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);

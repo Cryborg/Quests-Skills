@@ -1,5 +1,5 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
+const PasswordService = require('../services/password-service');
 const jwt = require('jsonwebtoken');
 const { get, run, all } = require('../turso-db');
 const { authenticateToken } = require('../middleware/auth');
@@ -33,7 +33,7 @@ router.post('/register', async (req, res) => {
         }
 
         // Hasher le mot de passe
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await PasswordService.hash(password);
 
         // Créer l'utilisateur
         const now = new Date().toISOString();
@@ -98,7 +98,7 @@ router.post('/login', async (req, res) => {
         }
 
         // Vérifier le mot de passe
-        const validPassword = await bcrypt.compare(password, user.password);
+        const validPassword = await PasswordService.verify(password, user.password);
         if (!validPassword) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }

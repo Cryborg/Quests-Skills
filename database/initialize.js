@@ -1,5 +1,5 @@
 const {db, query, get, run} = require('../server/turso-db');
-const bcrypt = require('bcrypt');
+const PasswordService = require('../server/services/password-service');
 const fs = require('fs');
 const path = require('path');
 
@@ -323,7 +323,7 @@ async function seedInitialData() {
 
     if (!adminUser) {
         const now = new Date().toISOString();
-        const hashedPassword = await bcrypt.hash('Célibataire1979$', 10);
+        const hashedPassword = await PasswordService.hash('Célibataire1979$');
         await run(
             'INSERT INTO users (username, email, password, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
             ['Cryborg', 'cryborg.live@gmail.com', hashedPassword, 1, now, now]
