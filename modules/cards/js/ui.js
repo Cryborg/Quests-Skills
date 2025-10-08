@@ -515,7 +515,7 @@ class UIManager {
                 await this.render();
             }
         } else {
-            this.showToast(result.message, 'error');
+            this.showToast(result.error || result.message || 'Erreur lors de la pioche', 'error');
         }
     }
 

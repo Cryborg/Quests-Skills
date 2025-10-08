@@ -52,7 +52,19 @@ class CardSystem {
 
         // UN SEUL appel API pour ajouter toutes les cartes à la collection
         if (cardsToAdd.length > 0) {
-            await DB.addCardsToCollection(cardsToAdd);
+            const addResult = await DB.addCardsToCollection(cardsToAdd);
+            if (!addResult.success) {
+                console.error('Failed to add cards:', addResult.error);
+                return {
+                    success: false,
+                    error: addResult.error || 'Erreur lors de l\'ajout des cartes',
+                    results: [],
+                    groupedCards: {},
+                    totalDrawn: 0,
+                    creditsUsed: 0,
+                    creditsRemaining: creditResult.remaining
+                };
+            }
         }
 
         // Sauvegarde l'heure de pioche

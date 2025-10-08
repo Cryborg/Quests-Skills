@@ -391,7 +391,12 @@ class DatabaseManager {
     async addCardsToCollection(cards) {
         try {
             const user = authService.getCurrentUser();
-            if (!user) return { success: false };
+            if (!user) {
+                console.error('No user logged in');
+                return { success: false, error: 'Non connecté' };
+            }
+
+            console.log('📤 Adding cards to collection:', cards);
 
             // Appel API batch pour ajouter toutes les cartes
             const response = await authService.fetchAPI(`/users/${user.id}/cards`, {
@@ -401,19 +406,21 @@ class DatabaseManager {
             });
 
             if (!response.ok) {
-                console.error('Failed to add cards to collection');
-                return { success: false };
+                const errorData = await response.json().catch(() => ({}));
+                console.error('❌ Failed to add cards to collection:', response.status, errorData);
+                return { success: false, error: errorData.error || errorData.details || `Erreur HTTP ${response.status}` };
             }
 
             const result = await response.json();
+            console.log('✅ Cards added successfully:', result.added);
 
             // Invalide le cache pour forcer un refresh
             this.invalidateCollectionCache();
 
             return { success: true, collection: result.collection };
         } catch (error) {
-            console.error('Failed to add cards to collection:', error);
-            return { success: false };
+            console.error('❌ Exception when adding cards to collection:', error);
+            return { success: false, error: error.message || 'Erreur réseau' };
         }
     }
 
