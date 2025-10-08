@@ -6,12 +6,42 @@ class DatabaseManager {
         this.CACHE_DURATION = 30000; // 30 secondes de cache
         this.cardsCache = null; // Cache des cartes depuis l'API
         this.cardsTimestamp = 0; // Timestamp du cache des cartes
+        this.userThemes = []; // Thèmes sélectionnés par l'utilisateur
     }
 
     // Initialisation async des cartes depuis l'API
     async init() {
         console.log('🎴 Chargement des cartes depuis l\'API...');
         await this.loadCardsFromAPI();
+        await this.loadUserThemes();
+    }
+
+    // Charge les thèmes sélectionnés par l'utilisateur
+    async loadUserThemes() {
+        try {
+            const currentUser = authService.getCurrentUser();
+            if (!currentUser) {
+                console.warn('No user logged in, skipping theme loading');
+                return;
+            }
+
+            const response = await authService.fetchAPI(`/users/${currentUser.id}/themes`);
+            if (!response.ok) {
+                console.error('Failed to load user themes');
+                return;
+            }
+
+            const themes = await response.json();
+            this.userThemes = themes.map(t => t.slug);
+            console.log(`✅ ${this.userThemes.length} thèmes sélectionnés:`, this.userThemes);
+        } catch (error) {
+            console.error('Error loading user themes:', error);
+        }
+    }
+
+    // Récupère tous les thèmes sélectionnés
+    getUserThemes() {
+        return this.userThemes;
     }
 
     // Charge les cartes depuis l'API

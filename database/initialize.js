@@ -57,11 +57,11 @@ async function ensureDatabaseExists() {
   try {
     // Tester si les tables principales existent
     const result = await query(
-      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name IN ('users', 'cards', 'user_credits', 'card_themes')"
+      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name IN ('users', 'cards', 'user_credits', 'card_themes', 'user_themes')"
     );
     const tableCount = result.rows[0]?.count || 0;
 
-    if (tableCount < 4) {
+    if (tableCount < 5) {
       console.log('⚠️  Missing core tables, initializing database...');
       await initializeDatabase();
     } else {
@@ -202,6 +202,20 @@ async function createTables() {
   `);
   console.log('  ✓ operation_attempts');
 
+  // Table user_themes (préférences de thèmes par utilisateur)
+  await query(`
+    CREATE TABLE IF NOT EXISTS user_themes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      theme_slug TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (theme_slug) REFERENCES card_themes(slug) ON DELETE CASCADE,
+      UNIQUE(user_id, theme_slug)
+    )
+  `);
+  console.log('  ✓ user_themes');
+
   // Créer les index
   console.log('📑 Creating indexes...');
 
@@ -213,6 +227,7 @@ async function createTables() {
     await query('CREATE INDEX IF NOT EXISTS idx_bonus_history_created_at ON bonus_history(created_at)');
     await query('CREATE INDEX IF NOT EXISTS idx_operation_attempts_user_id ON operation_attempts(user_id)');
     await query('CREATE INDEX IF NOT EXISTS idx_operation_attempts_created_at ON operation_attempts(created_at)');
+    await query('CREATE INDEX IF NOT EXISTS idx_user_themes_user_id ON user_themes(user_id)');
     console.log('  ✓ Indexes created');
   } catch (error) {
     console.log('  ⚠️  Some indexes may already exist');
@@ -275,7 +290,15 @@ async function seedInitialData() {
       [adminUser.id, 5, now, now]
     );
 
-    console.log('  ✅ Admin user created with 5 credits');
+    // Activer tous les thèmes par défaut pour l'admin
+    for (const theme of themes) {
+      await run(
+        'INSERT OR IGNORE INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
+        [adminUser.id, theme.slug, now]
+      );
+    }
+
+    console.log('  ✅ Admin user created with 5 credits and all themes enabled');
   } else {
     console.log('  ✅ Admin user already exists');
   }
@@ -302,7 +325,15 @@ async function seedInitialData() {
       [user.id, 10, now, now]
     );
 
-    console.log('  ✅ Demo user created with 10 credits');
+    // Activer tous les thèmes par défaut pour le demo user
+    for (const theme of themes) {
+      await run(
+        'INSERT OR IGNORE INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
+        [user.id, theme.slug, now]
+      );
+    }
+
+    console.log('  ✅ Demo user created with 10 credits and all themes enabled');
   } else {
     console.log('  ✅ Demo user already exists');
   }

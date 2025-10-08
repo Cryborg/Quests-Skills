@@ -69,11 +69,82 @@
     font-size: 0.85rem;
 }
 
+/* Description de carte */
+.card-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+}
+
+/* Sélecteur de thèmes */
+.themes-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.theme-option {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.theme-option:hover {
+    background: var(--bg-hover);
+    border-color: #667eea;
+}
+
+.theme-option.selected {
+    background: var(--bg-hover);
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.theme-option-icon {
+    font-size: 2rem;
+}
+
+.theme-option-info {
+    flex: 1;
+}
+
+.theme-option-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.theme-option-check {
+    font-size: 1.2rem;
+    color: #667eea;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.theme-option.selected .theme-option-check {
+    opacity: 1;
+}
+
+.themes-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 /* Messages d'erreur et succès */
 .profile-error,
 .password-error,
+.themes-error,
 .profile-success,
-.password-success {
+.password-success,
+.themes-success {
     padding: 10px 12px;
     border-radius: 6px;
     font-size: 14px;
@@ -82,14 +153,16 @@
 }
 
 .profile-error,
-.password-error {
+.password-error,
+.themes-error {
     color: #ff6b6b;
     background: rgba(255, 107, 107, 0.1);
     border: 1px solid rgba(255, 107, 107, 0.3);
 }
 
 .profile-success,
-.password-success {
+.password-success,
+.themes-success {
     color: #10b981;
     background: rgba(16, 185, 129, 0.1);
     border: 1px solid rgba(16, 185, 129, 0.3);
@@ -97,8 +170,10 @@
 
 .profile-error.show,
 .password-error.show,
+.themes-error.show,
 .profile-success.show,
-.password-success.show {
+.password-success.show,
+.themes-success.show {
     display: block;
 }
 

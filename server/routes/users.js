@@ -55,9 +55,19 @@ router.post('/', requireAdmin, async (req, res) => {
 
         // Initialiser les crédits à 0
         await run(
-            'INSERT INTO user_credits (user_id, credits) VALUES (?, ?)',
-            [result.lastID, 0]
+            'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
+            [result.lastID, 0, new Date().toISOString(), new Date().toISOString()]
         );
+
+        // Activer tous les thèmes par défaut pour le nouvel utilisateur
+        const allThemes = await all('SELECT slug FROM card_themes');
+        const now = new Date().toISOString();
+        for (const theme of allThemes) {
+            await run(
+                'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
+                [result.lastID, theme.slug, now]
+            );
+        }
 
         const newUser = await get('SELECT * FROM users WHERE id = ?', [result.lastID]);
         const { password: _, ...userWithoutPassword } = newUser;
@@ -176,15 +186,39 @@ router.get('/:id', checkOwnership, async (req, res) => {
     }
 });
 
-// GET /api/users/:id/cards - Récupérer les cartes d'un user
+// GET /api/users/:id/cards - Récupérer les cartes d'un user (filtrées par thèmes sélectionnés)
 router.get('/:id/cards', checkOwnership, async (req, res) => {
     try {
+        const userId = parseInt(req.params.id);
+
+        // Récupérer les thèmes sélectionnés de l'utilisateur
+        const userThemes = await all(
+            'SELECT theme_slug FROM user_themes WHERE user_id = ?',
+            [userId]
+        );
+
+        // Si l'utilisateur n'a pas de thèmes sélectionnés, retourner toutes ses cartes
+        if (userThemes.length === 0) {
+            const userCards = await all(
+                `SELECT uc.*, c.*
+                 FROM user_cards uc
+                 JOIN cards c ON uc.card_id = c.id
+                 WHERE uc.user_id = ?`,
+                [userId]
+            );
+            return res.json(userCards);
+        }
+
+        // Filtrer les cartes par thèmes sélectionnés
+        const themeSlugs = userThemes.map(t => t.theme_slug);
+        const placeholders = themeSlugs.map(() => '?').join(',');
+
         const userCards = await all(
             `SELECT uc.*, c.*
              FROM user_cards uc
              JOIN cards c ON uc.card_id = c.id
-             WHERE uc.user_id = ?`,
-            [parseInt(req.params.id)]
+             WHERE uc.user_id = ? AND c.category IN (${placeholders})`,
+            [userId, ...themeSlugs]
         );
 
         res.json(userCards);
@@ -628,6 +662,105 @@ router.put('/:id/password', checkOwnership, async (req, res) => {
     } catch (error) {
         console.error('Error updating password:', error);
         res.status(500).json({ error: 'Failed to update password' });
+    }
+});
+
+// GET /api/users/:id/themes - Récupérer les thèmes sélectionnés par l'utilisateur
+router.get('/:id/themes', checkOwnership, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+
+        const themes = await all(
+            `SELECT ct.*
+             FROM user_themes ut
+             JOIN card_themes ct ON ut.theme_slug = ct.slug
+             WHERE ut.user_id = ?
+             ORDER BY ct.name`,
+            [userId]
+        );
+
+        res.json(themes);
+    } catch (error) {
+        console.error('Error fetching user themes:', error);
+        res.status(500).json({ error: 'Failed to fetch user themes' });
+    }
+});
+
+// GET /api/users/:id/themes/stats - Récupérer les stats de cartes par thème
+router.get('/:id/themes/stats', checkOwnership, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+
+        const stats = await all(
+            `SELECT c.category as theme_slug, COUNT(DISTINCT uc.card_id) as card_count
+             FROM user_cards uc
+             JOIN cards c ON uc.card_id = c.id
+             WHERE uc.user_id = ?
+             GROUP BY c.category`,
+            [userId]
+        );
+
+        res.json(stats);
+    } catch (error) {
+        console.error('Error fetching theme stats:', error);
+        res.status(500).json({ error: 'Failed to fetch theme stats' });
+    }
+});
+
+// PUT /api/users/:id/themes - Mettre à jour les thèmes sélectionnés (remplace tout)
+router.put('/:id/themes', checkOwnership, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const { theme_slugs } = req.body;
+
+        if (!Array.isArray(theme_slugs)) {
+            return res.status(400).json({ error: 'theme_slugs must be an array' });
+        }
+
+        if (theme_slugs.length < 3) {
+            return res.status(400).json({ error: 'Minimum 3 themes required' });
+        }
+
+        if (theme_slugs.length > 10) {
+            return res.status(400).json({ error: 'Maximum 10 themes allowed' });
+        }
+
+        // Vérifier que tous les slugs existent
+        const allThemes = await all('SELECT slug FROM card_themes');
+        const validSlugs = allThemes.map(t => t.slug);
+
+        for (const slug of theme_slugs) {
+            if (!validSlugs.includes(slug)) {
+                return res.status(400).json({ error: `Theme "${slug}" does not exist` });
+            }
+        }
+
+        // Supprimer tous les thèmes existants
+        await run('DELETE FROM user_themes WHERE user_id = ?', [userId]);
+
+        // Ajouter les nouveaux thèmes
+        const now = new Date().toISOString();
+        for (const slug of theme_slugs) {
+            await run(
+                'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
+                [userId, slug, now]
+            );
+        }
+
+        // Retourner les thèmes actualisés
+        const updatedThemes = await all(
+            `SELECT ct.*
+             FROM user_themes ut
+             JOIN card_themes ct ON ut.theme_slug = ct.slug
+             WHERE ut.user_id = ?
+             ORDER BY ct.name`,
+            [userId]
+        );
+
+        res.json(updatedThemes);
+    } catch (error) {
+        console.error('Error updating user themes:', error);
+        res.status(500).json({ error: 'Failed to update user themes' });
     }
 });
 

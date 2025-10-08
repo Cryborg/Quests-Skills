@@ -83,9 +83,17 @@ class CardSystem {
         // Récupère toutes les cartes de cette rareté de base
         const allCards = DB.getAllCards();
 
-        // Filtre les cartes : même baseRarity ET pas encore légendaires
+        // Récupère les thèmes sélectionnés par l'utilisateur
+        const userThemes = DB.getUserThemes();
+
+        // Filtre les cartes : même baseRarity ET pas encore légendaires ET thème sélectionné
         const availableCards = allCards.filter(card => {
             if (card.baseRarity !== baseRarity) {
+                return false;
+            }
+
+            // Filtrer par thèmes sélectionnés (si des thèmes sont configurés)
+            if (userThemes.length > 0 && !userThemes.includes(card.theme)) {
                 return false;
             }
 
