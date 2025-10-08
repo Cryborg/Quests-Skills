@@ -75,17 +75,19 @@ router.post('/', requireAdmin, async (req, res) => {
         );
         console.log('✅ Credits initialized to 10');
 
-        // Activer tous les thèmes par défaut pour le nouvel utilisateur
-        console.log('🎨 Adding all themes...');
+        // Assigner 3 thèmes aléatoires par défaut
+        console.log('🎨 Adding 3 random themes...');
         const allThemes = await all('SELECT slug FROM card_themes');
         console.log(`📊 Found ${allThemes.length} themes`);
-        for (const theme of allThemes) {
+        const shuffled = allThemes.sort(() => 0.5 - Math.random());
+        const selectedThemes = shuffled.slice(0, 3);
+        for (const theme of selectedThemes) {
             await run(
                 'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
                 [userId, theme.slug, now]
             );
         }
-        console.log('✅ All themes added');
+        console.log('✅ 3 random themes added:', selectedThemes.map(t => t.slug).join(', '));
 
         const newUser = await get('SELECT * FROM users WHERE id = ?', [userId]);
         const { password: _, ...userWithoutPassword } = newUser;

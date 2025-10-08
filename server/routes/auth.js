@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { get, run } = require('../turso-db');
+const { get, run, all } = require('../turso-db');
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
@@ -49,6 +49,18 @@ router.post('/register', async (req, res) => {
             'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
             [user.id, 10, now, now]
         );
+
+        // Assigner 3 thèmes aléatoires par défaut
+        const allThemes = await all('SELECT slug FROM card_themes');
+        const shuffled = allThemes.sort(() => 0.5 - Math.random());
+        const selectedThemes = shuffled.slice(0, 3);
+
+        for (const theme of selectedThemes) {
+            await run(
+                'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
+                [user.id, theme.slug, now]
+            );
+        }
 
         // Créer le token JWT
         const token = jwt.sign(
