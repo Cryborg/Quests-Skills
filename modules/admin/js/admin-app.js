@@ -4,6 +4,12 @@
 async function initAdminPanel() {
     console.log('🔧 Initializing admin panel modules...');
 
+    // Créer le header de page
+    PageHeader.render({
+        icon: '👑',
+        title: 'Panneau d\'Administration'
+    });
+
     // Initialiser l'interface commune
     adminUI.init();
 

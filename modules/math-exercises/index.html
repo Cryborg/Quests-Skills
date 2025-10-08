@@ -6,17 +6,12 @@
     <title>🎓 Bonus Mathématiques</title>
     <link rel="stylesheet" href="../../shared/css/theme.css">
     <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
     <link rel="stylesheet" href="css/bonus.css">
 </head>
 <body>
     <div class="container">
-        <header class="game-header">
-            <h1>🎓 Bonus Mathématiques</h1>
-            <div class="header-buttons">
-                <button id="history-btn" class="history-btn" title="Historique">📊 Historique</button>
-                <button id="back-btn" class="back-btn" title="Retour">🔙 Retour</button>
-            </div>
-        </header>
+        <!-- Header injecté par PageHeader.render() -->
 
         <main class="bonus-content">
             <!-- Écran de sélection -->
@@ -71,6 +66,7 @@
         <div id="toast" class="toast"></div>
     </div>
 
+    <script src="../../shared/js/page-header.js"></script>
     <script src="../../shared/js/config.js"></script>
     <!-- Auth system -->
     <script src="../../shared/js/auth.js"></script>

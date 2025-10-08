@@ -102,7 +102,8 @@ class AdminCards {
                             '<p style="text-align: center; color: #999; grid-column: 1 / -1; padding: 20px;">Aucune carte dans ce thème</p>' :
                             themeCards.map(card => {
                                 const rarityIcon = adminUI.getRarityIcon(card.base_rarity);
-                                const imageUrl = card.image.startsWith('http') ? card.image : `/shared/${card.image}`;
+                                // L'API ajoute déjà /shared/ devant les chemins relatifs
+                                const imageUrl = card.image;
 
                                 return `
                                     <div class="admin-card" data-card-id="${card.id}">

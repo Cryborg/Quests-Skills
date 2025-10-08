@@ -31,6 +31,17 @@ async function initializeBonus() {
         return;
     }
 
+    // Créer le header de page
+    PageHeader.render({
+        icon: '🎓',
+        title: 'Bonus Mathématiques',
+        subtitle: 'Résous des opérations pour gagner des cartes bonus !',
+        actions: [
+            { icon: '📊', text: 'Historique', id: 'history-btn' },
+            { icon: '🔙', text: 'Retour', id: 'back-btn' }
+        ]
+    });
+
     // Configurer les événements
     setupEventListeners();
 

@@ -10,7 +10,7 @@ body {
 
 /* Container principal */
 .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -515,6 +515,11 @@ body {
 .admin-card-actions .edit-card-btn:hover {
     background: rgba(74, 158, 255, 0.2);
     border-color: #4a9eff;
+}
+
+.admin-card-actions .delete-card-btn {
+    color: #eb3349;
+    border-color: #eb3349;
 }
 
 .admin-card-actions .delete-card-btn:hover {

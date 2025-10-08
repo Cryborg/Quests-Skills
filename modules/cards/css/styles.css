@@ -24,21 +24,12 @@
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
 
-/* Header */
-.game-header {
-    text-align: center;
-    margin-bottom: 30px;
-    padding: 30px;
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    position: relative;
-}
+/* Header - maintenant géré par page-header.css */
 
 .settings-btn {
     position: absolute;
@@ -112,16 +103,6 @@
 .countdown-stat {
     background: linear-gradient(135deg, var(--bg-card) 0%, #2a2a4a 100%);
     border-color: #4a9eff;
-}
-
-.countdown-stat .label {
-    color: #4a9eff;
-}
-
-.countdown-stat #next-credit-countdown {
-    font-weight: bold;
-    font-size: 1.1rem;
-    font-family: 'Courier New', monospace;
 }
 
 /* Navigation par thèmes */
@@ -1861,14 +1842,6 @@
 @media (max-width: 768px) {
     .container {
         padding: 15px;
-    }
-
-    .game-header h1 {
-        font-size: 2rem;
-    }
-
-    .player-stats {
-        gap: 20px;
     }
 
     .action-panel {

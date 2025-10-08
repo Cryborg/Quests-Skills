@@ -123,6 +123,16 @@ body.nav-loaded .container {
     border: 1px solid var(--nav-border);
 }
 
+.nav-username-link {
+    text-decoration: none;
+    display: block;
+    transition: opacity 0.3s;
+}
+
+.nav-username-link:hover {
+    opacity: 0.8;
+}
+
 .nav-username {
     color: var(--nav-text);
     font-weight: 600;

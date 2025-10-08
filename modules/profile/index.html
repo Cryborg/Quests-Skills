@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👤 Mon Profil</title>
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté par PageHeader.render() -->
+
+        <main class="main-content">
+            <div class="profile-card">
+                <h2>Informations personnelles</h2>
+
+                <div class="profile-error" id="profile-error"></div>
+                <div class="profile-success" id="profile-success"></div>
+
+                <form id="profile-form" class="profile-form">
+                    <div class="form-group">
+                        <label for="username">Pseudo</label>
+                        <input type="text" id="username" name="username" required minlength="3">
+                        <small>Minimum 3 caractères</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        💾 Enregistrer les modifications
+                    </button>
+                </form>
+            </div>
+
+            <div class="profile-card">
+                <h2>Changer le mot de passe</h2>
+
+                <div class="password-error" id="password-error"></div>
+                <div class="password-success" id="password-success"></div>
+
+                <form id="password-form" class="profile-form">
+                    <div class="form-group">
+                        <label for="current-password">Mot de passe actuel</label>
+                        <input type="password" id="current-password" name="current_password" required autocomplete="current-password">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="new-password">Nouveau mot de passe</label>
+                        <input type="password" id="new-password" name="new_password" required minlength="8" autocomplete="new-password">
+                        <small>Minimum 8 caractères</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm-password">Confirmer le nouveau mot de passe</label>
+                        <input type="password" id="confirm-password" name="confirm_password" required autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        🔐 Changer le mot de passe
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../shared/js/page-header.js"></script>
+    <script src="../../shared/js/config.js"></script>
+    <script src="../../shared/js/auth.js"></script>
+    <script src="../../shared/js/navigation.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- Auth initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuth = await authService.init();
+
+            if (!isAuth) {
+                window.location.href = '/';
+            } else {
+                await navigationUI.init();
+            }
+        });
+    </script>
+</body>
+</html>

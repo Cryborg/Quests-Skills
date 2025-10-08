@@ -6,14 +6,13 @@
     <title>👑 Administration</title>
     <link rel="stylesheet" href="../../shared/css/theme.css">
     <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
     <link rel="stylesheet" href="../../shared/css/modals.css">
     <link rel="stylesheet" href="css/admin-styles.css">
 </head>
 <body>
     <div class="container">
-        <header class="admin-header">
-            <h1>👑 Panneau d'Administration</h1>
-        </header>
+        <!-- Header injecté par PageHeader.render() -->
 
         <!-- Onglets de navigation admin -->
         <nav class="admin-tabs">
@@ -212,6 +211,7 @@
         <div id="toast" class="toast"></div>
     </div>
 
+    <script src="../../shared/js/page-header.js"></script>
     <script src="../../shared/js/config.js"></script>
     <!-- Modal system -->
     <script src="../../shared/js/modals.js"></script>

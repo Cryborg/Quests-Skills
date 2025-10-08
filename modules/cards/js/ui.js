@@ -69,10 +69,6 @@ class UIManager {
     // Met en cache les éléments DOM fréquemment utilisés
     cacheElements() {
         this.elements = {
-            uniqueCards: document.getElementById('unique-cards'),
-            totalCards: document.getElementById('total-cards'),
-            completionPercentage: document.getElementById('completion-percentage'),
-            nextCreditCountdown: document.getElementById('next-credit-countdown'),
             drawButton: document.getElementById('draw-card-btn'),
             drawCooldown: document.getElementById('draw-cooldown'),
             collectionGrid: document.getElementById('collection-grid'),
@@ -149,37 +145,9 @@ class UIManager {
     // Met à jour les statistiques en haut
     updateStats() {
         const stats = DB.getCollectionStats();
-        this.elements.uniqueCards.textContent = stats.ownedCards;
-        this.elements.totalCards.textContent = stats.totalCards;
-        this.elements.completionPercentage.textContent = `${stats.completionPercentage}%`;
-
-        // Compte à rebours pour le prochain crédit gratuit
-        this.updateCreditCountdown();
-    }
-
-    // Met à jour le compte à rebours du crédit gratuit
-    updateCreditCountdown() {
-        const canClaimDaily = DB.canClaimDailyCredit();
-        const dailyTimeLeft = DB.getDailyCreditTimeLeft();
-
-        if (canClaimDaily) {
-            this.elements.nextCreditCountdown.textContent = "Disponible !";
-            this.elements.nextCreditCountdown.style.color = "#10b981";
-        } else {
-            const formattedTime = this.formatCountdown(dailyTimeLeft);
-            this.elements.nextCreditCountdown.textContent = formattedTime;
-            this.elements.nextCreditCountdown.style.color = "#b0b0b0";
-        }
-    }
-
-    // Formate le temps en format HH:MM:SS
-    formatCountdown(milliseconds) {
-        const totalSeconds = Math.ceil(milliseconds / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        // Mise à jour via PageHeader
+        PageHeader.updateStat('unique-cards', `${stats.ownedCards}/${stats.totalCards}`);
+        PageHeader.updateStat('completion-percentage', `${stats.completionPercentage}%`);
     }
 
     // Met à jour les onglets de thèmes avec indicateurs de progression
@@ -714,7 +682,6 @@ class UIManager {
 
         // On fait juste une première mise à jour au chargement
         await this.updateDrawButton();
-        this.updateCreditCountdown();
     }
 
     // Affiche un toast de notification

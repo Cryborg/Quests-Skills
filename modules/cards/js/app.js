@@ -33,18 +33,20 @@ class App {
                 }, 1000);
             }
 
+            // Créer le header de page
+            const currentUser = authService.getCurrentUser();
+            PageHeader.render({
+                icon: '🃏',
+                title: currentUser ? `Album de ${currentUser.username}` : 'Album de cartes',
+                stats: [
+                    { label: 'Cartes uniques', id: 'unique-cards', value: '0/0' },
+                    { label: 'Progression', id: 'completion-percentage', value: '0%' }
+                ]
+            });
+
             // Initialise l'interface utilisateur
             console.log('🎨 Initialisation de l\'interface...');
             await UI.init();
-
-            // Mettre à jour le titre avec le nom de l'utilisateur
-            const currentUser = authService.getCurrentUser();
-            if (currentUser) {
-                const titleEl = document.getElementById('album-title');
-                if (titleEl) {
-                    titleEl.textContent = `🃏 Album de ${currentUser.username}`;
-                }
-            }
 
             // Affiche les informations de debug si en mode développement
             if (this.isDevelopmentMode()) {

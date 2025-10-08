@@ -141,10 +141,12 @@ class NavigationUI {
             <nav class="app-sidebar" id="app-sidebar">
                 <!-- User info -->
                 <div class="nav-user-info">
-                    <div class="nav-username">
-                        ${this.currentUser.username}
-                        ${this.currentUser.is_admin ? '<span class="nav-admin-badge">ADMIN</span>' : ''}
-                    </div>
+                    <a href="/modules/profile/index.html" class="nav-username-link">
+                        <div class="nav-username">
+                            ${this.currentUser.username}
+                            ${this.currentUser.is_admin ? '<span class="nav-admin-badge">ADMIN</span>' : ''}
+                        </div>
+                    </a>
                     <div class="nav-user-stats">
                         <div class="nav-stat">
                             <span>Cartes à piocher:</span>

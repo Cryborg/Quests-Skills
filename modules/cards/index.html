@@ -6,27 +6,12 @@
     <title>🃏 Collection de Cartes</title>
     <link rel="stylesheet" href="../../shared/css/theme.css">
     <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="container">
-        <header class="game-header">
-            <h1 id="album-title">🃏 Album de cartes</h1>
-            <div class="player-stats">
-                <div class="stat">
-                    <span class="label">Cartes uniques:</span>
-                    <span id="unique-cards">0</span>/<span id="total-cards">0</span>
-                </div>
-                <div class="stat">
-                    <span class="label">Progression:</span>
-                    <span id="completion-percentage">0%</span>
-                </div>
-                <div class="stat countdown-stat">
-                    <span class="label">Prochain crédit gratuit:</span>
-                    <span id="next-credit-countdown">--:--:--</span>
-                </div>
-            </div>
-        </header>
+        <!-- Header injecté par PageHeader.render() -->
 
         <nav class="theme-tabs">
             <button class="tab-btn active" data-theme="minecraft">🟫 Minecraft</button>
@@ -85,6 +70,8 @@
     <script src="../../shared/js/auth-ui.js"></script>
     <!-- Navigation system -->
     <script src="../../shared/js/navigation.js"></script>
+    <!-- Page header system -->
+    <script src="../../shared/js/page-header.js"></script>
     <!-- App scripts -->
     <script src="js/database.js"></script>
     <script src="js/card-system.js"></script>

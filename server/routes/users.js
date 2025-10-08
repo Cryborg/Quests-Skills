@@ -81,6 +81,14 @@ router.put('/:id', checkOwnership, async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        // Vérifier si l'email est déjà utilisé par un autre utilisateur
+        if (email !== undefined && email !== user.email) {
+            const existingEmail = await get('SELECT * FROM users WHERE email = ? AND id != ?', [email, userId]);
+            if (existingEmail) {
+                return res.status(409).json({ error: 'Email already in use' });
+            }
+        }
+
         // Préparer les champs à mettre à jour
         const updates = [];
         const values = [];
@@ -581,6 +589,45 @@ router.post('/:id/attempts', checkOwnership, async (req, res) => {
     } catch (error) {
         console.error('Error creating attempt:', error);
         res.status(500).json({ error: 'Failed to create attempt' });
+    }
+});
+
+// PUT /api/users/:id/password - Changer le mot de passe
+router.put('/:id/password', checkOwnership, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const { current_password, new_password } = req.body;
+
+        if (!current_password || !new_password) {
+            return res.status(400).json({ error: 'Current and new password are required' });
+        }
+
+        if (new_password.length < 8) {
+            return res.status(400).json({ error: 'New password must be at least 8 characters' });
+        }
+
+        // Récupérer l'utilisateur
+        const user = await get('SELECT * FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Vérifier le mot de passe actuel
+        const isValid = await bcrypt.compare(current_password, user.password);
+        if (!isValid) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+
+        // Hasher le nouveau mot de passe
+        const hashedPassword = await bcrypt.hash(new_password, 10);
+
+        // Mettre à jour le mot de passe
+        await run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Error updating password:', error);
+        res.status(500).json({ error: 'Failed to update password' });
     }
 });
 
