@@ -64,13 +64,14 @@ router.post('/', requireAdmin, async (req, res) => {
             'INSERT INTO users (username, email, password, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
             [username, email, hashedPassword, is_admin ? 1 : 0, now, now]
         );
-        console.log('✅ User created with ID:', result.lastID);
+        const userId = Number(result.lastInsertRowid);
+        console.log('✅ User created with ID:', userId);
 
         // Initialiser les crédits à 10 (comme dans register)
         console.log('💰 Creating user_credits...');
         await run(
             'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
-            [result.lastID, 10, now, now]
+            [userId, 10, now, now]
         );
         console.log('✅ Credits initialized to 10');
 
@@ -81,12 +82,12 @@ router.post('/', requireAdmin, async (req, res) => {
         for (const theme of allThemes) {
             await run(
                 'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
-                [result.lastID, theme.slug, now]
+                [userId, theme.slug, now]
             );
         }
         console.log('✅ All themes added');
 
-        const newUser = await get('SELECT * FROM users WHERE id = ?', [result.lastID]);
+        const newUser = await get('SELECT * FROM users WHERE id = ?', [userId]);
         const { password: _, ...userWithoutPassword } = newUser;
 
         console.log('✅ User created successfully:', userWithoutPassword.id);
@@ -330,7 +331,7 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
                     'INSERT INTO user_cards (user_id, card_id, quantity, current_rarity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
                     [userId, cardId, count, 'common', now, now]
                 );
-                console.log(`✅ Inserted with ID ${result.lastID}`);
+                console.log(`✅ Inserted with ID ${result.lastInsertRowid}`);
             }
         }
 

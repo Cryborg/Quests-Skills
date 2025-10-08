@@ -77,7 +77,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
             [name, description, category, base_rarity, image, now, now]
         );
 
-        const newCard = await get('SELECT * FROM cards WHERE id = ?', [result.lastID]);
+        const newCard = await get('SELECT * FROM cards WHERE id = ?', [Number(result.lastInsertRowid)]);
         res.status(201).json(newCard);
     } catch (error) {
         console.error('Error creating card:', error);
