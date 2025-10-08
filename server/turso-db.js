@@ -4,6 +4,12 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
+// Debug: afficher toutes les variables d'environnement pertinentes
+console.log('🔍 Environment variables:');
+console.log('  APP_ENV:', process.env.APP_ENV);
+console.log('  TURSO_DATABASE_URL:', process.env.TURSO_DATABASE_URL ? 'present' : 'missing');
+console.log('  TURSO_AUTH_TOKEN:', process.env.TURSO_AUTH_TOKEN ? 'present' : 'missing');
+
 // Détecter l'environnement via APP_ENV (local ou production)
 const isProduction = process.env.APP_ENV === 'production';
 const isLocal = !isProduction;
