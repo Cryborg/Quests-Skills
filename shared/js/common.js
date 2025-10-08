@@ -35,6 +35,7 @@ window.initializeApp = async function(moduleInitFunction, options = {}) {
 // Charger les scripts dans l'ordre avec chemins absolus
 (function() {
     const scriptsToLoad = [
+        '/shared/js/constants.js',
         '/shared/js/config.js',
         '/shared/js/page-header.js',
         '/shared/js/credits-manager.js',

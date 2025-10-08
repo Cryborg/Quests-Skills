@@ -5,7 +5,7 @@ class NumberSequenceGame {
         this.streak = 0;
         this.level = 1;
         this.currentSequence = null;
-        this.maxLevel = 8;
+        this.maxLevel = APP_CONSTANTS.GAME_LIMITS.MAX_SEQUENCE_LEVEL;
     }
 
     async init() {
@@ -16,7 +16,7 @@ class NumberSequenceGame {
             subtitle: 'Trouve le nombre qui complète la suite !',
             actions: [],
             stats: [
-                { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '3' },
+                { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: APP_CONSTANTS.GAME_LIMITS.MAX_ATTEMPTS_PER_DAY.toString() },
                 { label: 'Score', id: 'score', value: '0' },
                 { label: 'Série', id: 'streak', value: '0 🔥' },
                 { label: 'Niveau', id: 'level', value: '1' }
@@ -24,7 +24,7 @@ class NumberSequenceGame {
         });
 
         // Initialiser le compteur d'essais
-        const remaining = await GameAttempts.initHeaderDisplay('number-sequence', 3);
+        const remaining = await GameAttempts.initHeaderDisplay('number-sequence', APP_CONSTANTS.GAME_LIMITS.MAX_ATTEMPTS_PER_DAY);
 
         if (remaining === 0) {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
@@ -156,10 +156,10 @@ class NumberSequenceGame {
     }
 
     async correctAnswer() {
-        this.score += 10;
+        this.score += APP_CONSTANTS.SCORES.CORRECT_ANSWER;
         this.streak++;
 
-        if (this.streak % 2 === 0 && this.level < this.maxLevel) {
+        if (this.streak % APP_CONSTANTS.GAME_LIMITS.STREAK_FOR_LEVEL_UP === 0 && this.level < this.maxLevel) {
             this.level++;
         }
 
@@ -169,20 +169,20 @@ class NumberSequenceGame {
         this.showValidationAnimation('✅');
 
         // Vérifier si tous les niveaux sont terminés
-        if (this.level === this.maxLevel && this.streak % 2 === 0) {
+        if (this.level === this.maxLevel && this.streak % APP_CONSTANTS.GAME_LIMITS.STREAK_FOR_LEVEL_UP === 0) {
             await this.completeAllLevels();
             return;
         }
 
         // Récompense
-        if (this.streak % 3 === 0) {
-            await this.addCredits(2);
-            Toast.success(`Bravo ! La réponse était ${this.currentSequence.answer} - Bonus : +2 🪙`);
+        if (this.streak % APP_CONSTANTS.GAME_LIMITS.STREAK_FOR_BONUS === 0) {
+            await this.addCredits(APP_CONSTANTS.CREDITS.BONUS_STREAK_3);
+            Toast.success(`Bravo ! La réponse était ${this.currentSequence.answer} - Bonus : +${APP_CONSTANTS.CREDITS.BONUS_STREAK_3} 🪙`);
         } else {
             Toast.success(`Bravo ! La réponse était ${this.currentSequence.answer}`);
         }
 
-        setTimeout(() => this.generateSequence(), 2000);
+        setTimeout(() => this.generateSequence(), APP_CONSTANTS.DELAYS.NEXT_QUESTION);
     }
 
     showValidationAnimation(emoji) {
@@ -211,10 +211,10 @@ class NumberSequenceGame {
             allLevelsCompleted: true
         });
 
-        // Donner 10 crédits bonus
-        await this.addCredits(10);
+        // Donner crédits bonus
+        await this.addCredits(APP_CONSTANTS.CREDITS.BONUS_LEVEL_COMPLETE);
 
-        Toast.success('🎉 Félicitations ! Tu as terminé tous les niveaux ! +10 🪙 bonus !');
+        Toast.success(`🎉 Félicitations ! Tu as terminé tous les niveaux ! +${APP_CONSTANTS.CREDITS.BONUS_LEVEL_COMPLETE} 🪙 bonus !`);
 
         // Désactiver les contrôles
         this.elements.answerInput.disabled = true;
@@ -235,7 +235,7 @@ class NumberSequenceGame {
 
         Toast.error(`Incorrect. La réponse était ${this.currentSequence.answer}`);
 
-        setTimeout(() => this.generateSequence(), 2500);
+        setTimeout(() => this.generateSequence(), APP_CONSTANTS.DELAYS.AFTER_ERROR);
     }
 
     skipSequence() {
