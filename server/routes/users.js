@@ -33,49 +33,71 @@ router.post('/', requireAdmin, async (req, res) => {
     try {
         const { username, email, password, is_admin } = req.body;
 
+        console.log('========================================');
+        console.log('👤 POST /api/users - Create user');
+        console.log('📝 Request body:', { username, email, is_admin, password: '***' });
+
         // Valider les champs requis
         if (!username || !email || !password) {
+            console.error('❌ Missing required fields');
             return res.status(400).json({ error: 'Username, email and password are required' });
         }
 
         // Vérifier si l'email existe déjà
+        console.log('🔍 Checking if email exists:', email);
         const existingUser = await get('SELECT * FROM users WHERE email = ?', [email]);
         if (existingUser) {
+            console.error('❌ Email already exists');
             return res.status(409).json({ error: 'Email already exists' });
         }
+        console.log('✅ Email is available');
 
         // Hasher le mot de passe
+        console.log('🔐 Hashing password...');
         const hashedPassword = await bcrypt.hash(password, 10);
+        console.log('✅ Password hashed');
 
         // Créer l'utilisateur
+        console.log('📝 Creating user in database...');
+        const now = new Date().toISOString();
         const result = await run(
-            'INSERT INTO users (username, email, password, is_admin, created_at) VALUES (?, ?, ?, ?, ?)',
-            [username, email, hashedPassword, is_admin ? 1 : 0, new Date().toISOString()]
+            'INSERT INTO users (username, email, password, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+            [username, email, hashedPassword, is_admin ? 1 : 0, now, now]
         );
+        console.log('✅ User created with ID:', result.lastID);
 
-        // Initialiser les crédits à 0
+        // Initialiser les crédits à 10 (comme dans register)
+        console.log('💰 Creating user_credits...');
         await run(
             'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
-            [result.lastID, 0, new Date().toISOString(), new Date().toISOString()]
+            [result.lastID, 10, now, now]
         );
+        console.log('✅ Credits initialized to 10');
 
         // Activer tous les thèmes par défaut pour le nouvel utilisateur
+        console.log('🎨 Adding all themes...');
         const allThemes = await all('SELECT slug FROM card_themes');
-        const now = new Date().toISOString();
+        console.log(`📊 Found ${allThemes.length} themes`);
         for (const theme of allThemes) {
             await run(
                 'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
                 [result.lastID, theme.slug, now]
             );
         }
+        console.log('✅ All themes added');
 
         const newUser = await get('SELECT * FROM users WHERE id = ?', [result.lastID]);
         const { password: _, ...userWithoutPassword } = newUser;
 
+        console.log('✅ User created successfully:', userWithoutPassword.id);
+        console.log('========================================');
         res.status(201).json(userWithoutPassword);
     } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ error: 'Failed to create user' });
+        console.error('❌❌❌ ERROR creating user:', error);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        console.error('========================================');
+        res.status(500).json({ error: 'Failed to create user', details: error.message });
     }
 });
 
