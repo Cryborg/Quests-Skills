@@ -538,26 +538,28 @@ router.post('/:id/credits', checkOwnership, async (req, res) => {
         );
 
         let newCredits;
+        const now = new Date().toISOString();
+
         if (existing) {
             // Si action = 'set', définir la valeur exacte, sinon ajouter
             if (action === 'set') {
                 newCredits = Math.min(amount, MAX_CREDITS);
                 await run(
-                    'UPDATE user_credits SET credits = ? WHERE user_id = ?',
-                    [newCredits, userId]
+                    'UPDATE user_credits SET credits = ?, updated_at = ? WHERE user_id = ?',
+                    [newCredits, now, userId]
                 );
             } else {
                 newCredits = Math.min(existing.credits + amount, MAX_CREDITS);
                 await run(
-                    'UPDATE user_credits SET credits = ? WHERE user_id = ?',
-                    [newCredits, userId]
+                    'UPDATE user_credits SET credits = ?, updated_at = ? WHERE user_id = ?',
+                    [newCredits, now, userId]
                 );
             }
         } else {
             newCredits = Math.min(amount, MAX_CREDITS);
             await run(
-                'INSERT INTO user_credits (user_id, credits) VALUES (?, ?)',
-                [userId, newCredits]
+                'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
+                [userId, newCredits, now, now]
             );
         }
 
