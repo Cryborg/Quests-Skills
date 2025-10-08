@@ -9,7 +9,19 @@ const HISTORY_CONFIG = {
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadHistory();
+    setupAdminButton();
 });
+
+// Configure le bouton admin
+function setupAdminButton() {
+    const user = authService.getCurrentUser();
+    const debugBtn = document.getElementById('debug-btn');
+
+    if (!user || !user.is_admin) {
+        // Cacher le bouton si pas admin
+        debugBtn.style.display = 'none';
+    }
+}
 
 // Configuration des écouteurs
 function setupEventListeners() {

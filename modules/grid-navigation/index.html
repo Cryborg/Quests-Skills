@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧭 Déplacement sur Quadrillage</title>
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté par PageHeader.render() -->
+
+        <main class="main-content">
+            <!-- Zone de jeu -->
+            <div class="game-area">
+                <h3 class="question" id="instructions">Suis les instructions pour arriver à la case cible !</h3>
+
+                <!-- Grille -->
+                <div class="grid-container">
+                    <canvas id="grid-canvas" width="400" height="400"></canvas>
+                </div>
+
+                <!-- Instructions de déplacement -->
+                <div class="movement-instructions" id="movement-instructions">
+                    <!-- Instructions générées dynamiquement -->
+                </div>
+
+                <!-- Boutons de contrôle -->
+                <div class="control-buttons" id="control-buttons">
+                    <button class="control-btn" data-direction="up">⬆️ Haut</button>
+                    <button class="control-btn" data-direction="down">⬇️ Bas</button>
+                    <button class="control-btn" data-direction="left">⬅️ Gauche</button>
+                    <button class="control-btn" data-direction="right">➡️ Droite</button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="game-actions">
+                <button id="clear-btn" class="btn-secondary">🗑️ Effacer</button>
+                <button id="hint-btn" class="btn-secondary">💡 Indice</button>
+                <button id="validate-btn" class="btn-primary">✓ Exécuter</button>
+                <button id="next-btn" class="btn-primary" style="display: none;">➡️ Suivant</button>
+            </div>
+        </main>
+
+        <!-- Toast pour les notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="../../shared/js/common.js"></script>
+    <script src="js/grid-navigation.js"></script>
+
+    <script>
+        window.onCommonScriptsLoaded = () => initializeApp(() => gridGame.init());
+    </script>
+</body>
+</html>

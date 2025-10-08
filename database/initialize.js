@@ -216,6 +216,34 @@ async function createTables() {
   `);
   console.log('  ✓ user_themes');
 
+  // Table game_sessions (pour tracker les sessions de jeu et limiter les gains)
+  await query(`
+    CREATE TABLE IF NOT EXISTS game_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      game_type TEXT NOT NULL,
+      errors INTEGER DEFAULT 0,
+      success INTEGER DEFAULT 0,
+      cards_earned INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+  console.log('  ✓ game_sessions');
+
+  // Table word_search_words (mots pour les mots mêlés)
+  // theme_slug peut être NULL = mot générique disponible pour tous
+  await query(`
+    CREATE TABLE IF NOT EXISTS word_search_words (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      theme_slug TEXT,
+      word TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (theme_slug) REFERENCES card_themes(slug) ON DELETE CASCADE
+    )
+  `);
+  console.log('  ✓ word_search_words');
+
   // Créer les index
   console.log('📑 Creating indexes...');
 
@@ -228,6 +256,10 @@ async function createTables() {
     await query('CREATE INDEX IF NOT EXISTS idx_operation_attempts_user_id ON operation_attempts(user_id)');
     await query('CREATE INDEX IF NOT EXISTS idx_operation_attempts_created_at ON operation_attempts(created_at)');
     await query('CREATE INDEX IF NOT EXISTS idx_user_themes_user_id ON user_themes(user_id)');
+    await query('CREATE INDEX IF NOT EXISTS idx_game_sessions_user_id ON game_sessions(user_id)');
+    await query('CREATE INDEX IF NOT EXISTS idx_game_sessions_created_at ON game_sessions(created_at)');
+    await query('CREATE INDEX IF NOT EXISTS idx_game_sessions_type ON game_sessions(game_type)');
+    await query('CREATE INDEX IF NOT EXISTS idx_word_search_words_theme ON word_search_words(theme_slug)');
     console.log('  ✓ Indexes created');
   } catch (error) {
     console.log('  ⚠️  Some indexes may already exist');
@@ -436,6 +468,59 @@ async function seedInitialData() {
     }
   }
   console.log(`  ✅ ${opCount} new bonus operations seeded (${operations.length} total)`);
+
+  // ========================================
+  // Seed Word Search Words
+  // ========================================
+  console.log('🔤 Seeding word search words...');
+
+  // Mots génériques (disponibles pour tous)
+  const genericWords = ['SOLEIL', 'ARBRE', 'MAISON', 'CHAT', 'CHIEN', 'EAU', 'FEU', 'TERRE'];
+
+  // Mots par thème de cartes
+  const wordLists = {
+    minecraft: ['CREEPER', 'DIAMANT', 'PIOCHE', 'COFFRE', 'TNT', 'PORTAL', 'VILLAGEOIS', 'FERME'],
+    space: ['PLANETE', 'ETOILE', 'FUSEE', 'GALAXIE', 'COMETE', 'SATELLITE', 'ASTRONAUTE', 'TELESCOPE'],
+    dinosaurs: ['TREX', 'FOSSILE', 'JURASSIC', 'HERBIVORE', 'CARNIVORE', 'EXTINCTION', 'PREDATEUR', 'PREHISTOIRE']
+  };
+
+  let wordCount = 0;
+  const now = new Date().toISOString();
+
+  // Insérer les mots génériques (theme_slug = NULL)
+  for (const word of genericWords) {
+    const existing = await get(
+      'SELECT * FROM word_search_words WHERE word = ? AND theme_slug IS NULL',
+      [word]
+    );
+
+    if (!existing) {
+      await run(
+        'INSERT INTO word_search_words (theme_slug, word, created_at) VALUES (NULL, ?, ?)',
+        [word, now]
+      );
+      wordCount++;
+    }
+  }
+
+  // Insérer les mots par thème
+  for (const [themeSlug, words] of Object.entries(wordLists)) {
+    for (const word of words) {
+      const existing = await get(
+        'SELECT * FROM word_search_words WHERE theme_slug = ? AND word = ?',
+        [themeSlug, word]
+      );
+
+      if (!existing) {
+        await run(
+          'INSERT INTO word_search_words (theme_slug, word, created_at) VALUES (?, ?, ?)',
+          [themeSlug, word, now]
+        );
+        wordCount++;
+      }
+    }
+  }
+  console.log(`  ✅ ${wordCount} new words seeded (${genericWords.length} generic + ${Object.keys(wordLists).length} themes)`);
 
   console.log('✅ Initial data seeded');
 }

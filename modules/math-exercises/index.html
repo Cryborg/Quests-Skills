@@ -66,33 +66,17 @@
         <div id="toast" class="toast"></div>
     </div>
 
-    <script src="../../shared/js/page-header.js"></script>
-    <script src="../../shared/js/config.js"></script>
     <!-- Auth system -->
-    <script src="../../shared/js/auth.js"></script>
     <script src="../../shared/js/auth-ui.js"></script>
     <!-- Navigation system -->
-    <script src="../../shared/js/navigation.js"></script>
     <!-- App script -->
+    <script src="../../shared/js/common.js"></script>
     <script src="js/bonus.js"></script>
 
     <!-- Auth initialization -->
     <script>
         // Initialiser l'authentification au chargement
-        document.addEventListener('DOMContentLoaded', async () => {
-            const isAuth = await authService.init();
-
-            if (!isAuth) {
-                // Pas authentifié, rediriger vers la page de connexion
-                window.location.href = '/';
-            } else {
-                // Initialiser la navigation après l'auth
-                await navigationUI.init();
-
-                // Initialiser le module bonus après l'auth
-                await initializeBonus();
-            }
-        });
+        window.onCommonScriptsLoaded = () => initializeApp(() => initializeBonus());
     </script>
 </body>
 </html>

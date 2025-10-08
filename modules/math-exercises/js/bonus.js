@@ -37,8 +37,7 @@ async function initializeBonus() {
         title: 'Bonus Mathématiques',
         subtitle: 'Résous des opérations pour gagner des cartes bonus !',
         actions: [
-            { icon: '📊', text: 'Historique', id: 'history-btn' },
-            { icon: '🔙', text: 'Retour', id: 'back-btn' }
+            { icon: '📊', text: 'Historique', id: 'history-btn' }
         ]
     });
 
@@ -51,20 +50,7 @@ async function initializeBonus() {
 
 // Configuration des écouteurs d'événements
 function setupEventListeners() {
-    // Bouton retour - ramène sur la sélection si en exercice, sinon page d'accueil
-    document.getElementById('back-btn').addEventListener('click', () => {
-        const exerciseScreen = document.getElementById('exercise-screen');
-        if (exerciseScreen.classList.contains('active')) {
-            // Si on est dans un exercice, retour à la sélection
-            showScreen('selection');
-            currentOperation = null;
-            currentExercise = null;
-        } else {
-            // Sinon retour à l'accueil (page des cartes)
-            window.location.href = '../cards/index.html';
-        }
-    });
-
+    // Bouton historique
     document.getElementById('history-btn').addEventListener('click', () => {
         window.location.href = 'historique.html';
     });

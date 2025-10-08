@@ -18,6 +18,7 @@
         <nav class="admin-tabs">
             <button class="admin-tab-btn active" data-tab="users">👥 Utilisateurs</button>
             <button class="admin-tab-btn" data-tab="cards">🃏 Cartes & Thèmes</button>
+            <button class="admin-tab-btn" data-tab="word-search">🔍 Mots Mêlés</button>
         </nav>
 
         <main class="admin-content">
@@ -60,6 +61,17 @@
 
                 <div id="cards-by-theme-container">
                     <!-- Cartes groupées par thème chargées dynamiquement -->
+                </div>
+            </section>
+
+            <!-- Section Mots Mêlés -->
+            <section id="word-search-section" class="admin-section">
+                <div class="section-header">
+                    <h2>🔍 Gestion des Mots Mêlés</h2>
+                </div>
+
+                <div id="word-themes-container">
+                    <!-- Thèmes et leurs mots chargés dynamiquement -->
                 </div>
             </section>
         </main>
@@ -215,64 +227,56 @@
             </div>
         </div>
 
+        <!-- Modal pour créer/éditer un mot -->
+        <div id="word-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="word-modal-close">&times;</span>
+                <h2 id="word-modal-title">Ajouter un mot</h2>
+                <form id="word-form" class="admin-form">
+                    <input type="hidden" id="word-id">
+                    <input type="hidden" id="word-theme-ref">
+
+                    <div class="form-group">
+                        <label for="word-text">Mot :</label>
+                        <input type="text" id="word-text" required placeholder="ex: CREEPER" style="text-transform: uppercase;" pattern="[A-ZÀ-ÿ\s]+" maxlength="15">
+                        <small>Uniquement des lettres majuscules (3-15 caractères)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="word-theme">Thème (optionnel) :</label>
+                        <select id="word-theme">
+                            <option value="">-- Mot générique (pour tous) --</option>
+                            <!-- Les thèmes seront chargés dynamiquement -->
+                        </select>
+                        <small>Les mots génériques sont disponibles pour tous les joueurs. Les mots liés à un thème ne sont disponibles que pour les joueurs ayant ce thème.</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="admin-btn-primary">💾 Enregistrer</button>
+                        <button type="button" id="word-form-cancel" class="admin-btn-secondary">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Toast pour les notifications -->
         <div id="toast" class="toast"></div>
     </div>
 
-    <script src="../../shared/js/page-header.js"></script>
-    <script src="../../shared/js/config.js"></script>
+    <!-- Scripts communs -->
+    <script src="../../shared/js/common.js"></script>
     <!-- Modal system -->
     <script src="../../shared/js/modals.js"></script>
-    <!-- Auth system -->
-    <script src="../../shared/js/auth.js"></script>
-    <!-- Navigation system -->
-    <script src="../../shared/js/navigation.js"></script>
     <!-- Admin scripts -->
     <script src="js/admin-ui.js"></script>
     <script src="js/admin-users.js"></script>
     <script src="js/admin-cards.js"></script>
+    <script src="js/admin-word-search.js"></script>
     <script src="js/admin-app.js"></script>
 
     <!-- Auth initialization -->
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                console.log('🔧 Admin page: Starting authentication check');
-
-                // Initialiser l'authentification
-                const isAuth = await authService.init();
-                console.log('🔧 Admin page: isAuth =', isAuth);
-                console.log('🔧 Admin page: currentUser =', authService.getCurrentUser());
-                console.log('🔧 Admin page: isAdmin =', authService.isAdmin());
-
-                if (!isAuth) {
-                    // Pas authentifié, rediriger vers la page de connexion
-                    console.log('❌ User not authenticated, redirecting to login');
-                    window.location.href = '/';
-                    return;
-                }
-
-                // Vérifier si l'utilisateur est admin
-                if (!authService.isAdmin()) {
-                    // Pas admin, rediriger vers l'accueil
-                    console.log('❌ User is not admin, redirecting to home');
-                    await alert('Accès réservé aux administrateurs');
-                    window.location.href = '/modules/cards/index.html';
-                    return;
-                }
-
-                console.log('✅ User is admin, initializing admin panel');
-
-                // Utilisateur admin authentifié, initialiser la navigation d'abord
-                await navigationUI.init();
-
-                // PUIS initialiser les modules admin (qui ont besoin du token)
-                await initAdminPanel();
-            } catch (error) {
-                console.error('❌ Error during authentication:', error);
-                window.location.href = '/';
-            }
-        });
+        window.onCommonScriptsLoaded = () => initializeApp(() => initAdminPanel(), {requireAdmin: true});
     </script>
 </body>
 </html>

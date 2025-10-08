@@ -1,0 +1,326 @@
+/* Styles Codage et Décodage */
+
+/* Mode selector */
+.mode-selector {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.mode-btn {
+    padding: 14px 28px;
+    background: var(--bg-hover);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.mode-btn:hover {
+    background: var(--bg-primary);
+    border-color: #667eea;
+}
+
+.mode-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+}
+
+/* Cipher selector */
+.cipher-selector {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.cipher-btn {
+    padding: 12px 24px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.cipher-btn:hover {
+    background: var(--bg-hover);
+    border-color: #667eea;
+}
+
+.cipher-btn.active {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-color: transparent;
+    color: white;
+}
+
+/* Stats */
+.game-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 20px;
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* Zone de jeu */
+.game-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+/* Explication du cipher */
+.cipher-explanation {
+    background: rgba(102, 126, 234, 0.1);
+    border: 2px solid #667eea;
+    border-radius: 10px;
+    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.cipher-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #667eea;
+    margin: 0 0 10px 0;
+}
+
+.cipher-description {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Message */
+.message-display {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.message-label {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.message-text {
+    background: var(--bg-primary);
+    border: 3px solid var(--border-color);
+    border-radius: 12px;
+    padding: 25px 40px;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Zone de saisie */
+.answer-section {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    max-width: 500px;
+}
+
+#answer-input {
+    flex: 1;
+    padding: 18px 24px;
+    background: var(--bg-primary);
+    border: 3px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+}
+
+#answer-input:focus {
+    outline: none;
+    border-color: #667eea;
+    background: var(--bg-hover);
+}
+
+/* Aide visuelle */
+.cipher-hint {
+    background: rgba(245, 158, 11, 0.1);
+    border: 2px solid #f59e0b;
+    border-radius: 10px;
+    padding: 20px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.hint-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f59e0b;
+    margin: 0 0 15px 0;
+    text-align: center;
+}
+
+.alphabet-display {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'Courier New', monospace;
+}
+
+.alphabet-row {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+}
+
+.alphabet-label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+.alphabet-letters {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+/* Feedback */
+.feedback {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feedback.correct {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-color: #10b981;
+    color: white;
+}
+
+.feedback.incorrect {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-color: #ef4444;
+    color: white;
+}
+
+.feedback.hint {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-color: #f59e0b;
+    color: white;
+}
+
+/* Actions */
+.game-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+    background: var(--bg-hover);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-primary);
+    border-color: #667eea;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .message-text {
+        font-size: 1.5rem;
+        padding: 20px 25px;
+        letter-spacing: 2px;
+    }
+
+    #answer-input {
+        font-size: 1.2rem;
+        padding: 14px 18px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .cipher-selector {
+        gap: 8px;
+    }
+
+    .cipher-btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+    }
+
+    .alphabet-row {
+        font-size: 0.7rem;
+        gap: 2px;
+    }
+}

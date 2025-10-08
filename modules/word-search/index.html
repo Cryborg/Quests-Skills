@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Mots Mêlés</title>
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté par PageHeader.render() -->
+
+        <main class="main-content">
+            <!-- Liste des mots à trouver -->
+            <div class="words-list" id="words-list">
+                <!-- Chargé dynamiquement -->
+            </div>
+
+            <!-- Grille de jeu -->
+            <div class="grid-container">
+                <div class="word-grid" id="word-grid">
+                    <!-- Grille générée dynamiquement -->
+                </div>
+            </div>
+
+            <!-- Bouton rejouer -->
+            <div class="game-actions">
+                <button id="new-game-btn" class="btn-primary">🔄 Nouvelle grille</button>
+                <button id="hint-btn" class="btn-secondary">💡 Indice</button>
+            </div>
+
+            <div id="toast" class="toast"></div>
+        </main>
+    </div>
+
+    <script src="../../shared/js/common.js"></script>
+    <script src="js/word-search.js"></script>
+
+    <!-- Initialisation du module -->
+    <script>
+        window.onCommonScriptsLoaded = () => initializeApp(() => wordSearchGame.init());
+    </script>
+</body>
+</html>

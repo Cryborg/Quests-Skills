@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🕐 Apprendre l'Heure</title>
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté par PageHeader.render() -->
+
+        <main class="main-content">
+            <!-- Mode sélectionneur -->
+            <div class="mode-selector">
+                <button id="mode-read-btn" class="mode-btn active">📖 Lire l'heure</button>
+                <button id="mode-place-btn" class="mode-btn">✏️ Placer les aiguilles</button>
+            </div>
+
+            <!-- Zone READ MODE -->
+            <div id="read-mode" class="game-area">
+                <h3 class="question">Quelle heure est-il ?</h3>
+
+                <div class="clock-container">
+                    <svg id="clock-svg" width="300" height="300" viewBox="0 0 300 300">
+                        <!-- Cercle extérieur -->
+                        <circle cx="150" cy="150" r="140" fill="var(--bg-primary)" stroke="var(--border-color)" stroke-width="4"/>
+
+                        <!-- Marques des heures -->
+                        <g id="hour-marks"></g>
+
+                        <!-- Chiffres -->
+                        <g id="hour-numbers"></g>
+
+                        <!-- Aiguille des heures -->
+                        <line id="hour-hand" x1="150" y1="150" x2="150" y2="90"
+                              stroke="#667eea" stroke-width="8" stroke-linecap="round"/>
+
+                        <!-- Aiguille des minutes -->
+                        <line id="minute-hand" x1="150" y1="150" x2="150" y2="60"
+                              stroke="#764ba2" stroke-width="6" stroke-linecap="round"/>
+
+                        <!-- Centre -->
+                        <circle cx="150" cy="150" r="8" fill="#667eea"/>
+                    </svg>
+                </div>
+
+                <div class="answer-buttons">
+                    <button class="time-btn">8h00</button>
+                    <button class="time-btn">8h15</button>
+                    <button class="time-btn">8h30</button>
+                    <button class="time-btn">8h45</button>
+                </div>
+            </div>
+
+            <!-- Zone PLACE MODE -->
+            <div id="place-mode" class="game-area" style="display: none;">
+                <h3 class="question">Place les aiguilles pour afficher : <span id="target-time">8h30</span></h3>
+
+                <div class="clock-container">
+                    <svg id="clock-svg-place" width="300" height="300" viewBox="0 0 300 300">
+                        <circle cx="150" cy="150" r="140" fill="var(--bg-primary)" stroke="var(--border-color)" stroke-width="4"/>
+                        <g id="hour-marks-place"></g>
+                        <g id="hour-numbers-place"></g>
+                        <!-- Aiguille des minutes d'abord (en dessous) -->
+                        <line id="minute-hand-place" x1="150" y1="150" x2="150" y2="60"
+                              stroke="#764ba2" stroke-width="6" stroke-linecap="round" style="cursor: grab;"/>
+                        <!-- Aiguille des heures ensuite (au-dessus, plus facile à saisir) -->
+                        <line id="hour-hand-place" x1="150" y1="150" x2="150" y2="90"
+                              stroke="#667eea" stroke-width="8" stroke-linecap="round" style="cursor: grab;"/>
+                        <circle cx="150" cy="150" r="8" fill="#667eea"/>
+                    </svg>
+                </div>
+
+                <button id="validate-placement-btn" class="btn-primary">✓ Valider</button>
+            </div>
+
+            <!-- Actions -->
+            <div class="game-actions">
+                <button id="next-btn" class="btn-primary">➡️ Suivant</button>
+            </div>
+        </main>
+
+        <!-- Toast pour les notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="../../shared/js/common.js"></script>
+    <script src="js/clock-reading.js"></script>
+
+    <script>
+        window.onCommonScriptsLoaded = () => initializeApp(() => clockGame.init());
+    </script>
+</body>
+</html>

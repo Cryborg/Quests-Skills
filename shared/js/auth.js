@@ -23,6 +23,12 @@ class AuthService {
                 const user = await this.fetchCurrentUser();
                 this.currentUser = user;
                 this.notifyAuthChange();
+
+                // Initialiser le gestionnaire de crédits
+                if (typeof CreditsManager !== 'undefined') {
+                    await CreditsManager.init();
+                }
+
                 return true;
             } catch (error) {
                 console.error('Token expired or invalid, logging out');

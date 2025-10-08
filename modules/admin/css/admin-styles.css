@@ -985,3 +985,116 @@ body {
 .theme-option-admin.selected .theme-option-admin-check {
     opacity: 1;
 }
+
+/* ============================================
+   WORD SEARCH ADMIN STYLES
+   ============================================ */
+
+.word-theme-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.word-theme-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.word-theme-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.3rem;
+}
+
+.word-theme-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.words-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.word-chip {
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.word-chip:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+}
+
+.word-text {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+}
+
+.word-badge {
+    font-size: 1rem;
+    padding: 2px 6px;
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 4px;
+}
+
+.word-edit-btn {
+    background: none;
+    border: none;
+    color: var(--accent-primary);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.word-edit-btn:hover {
+    color: var(--accent-secondary);
+    transform: scale(1.2);
+}
+
+.word-delete-btn {
+    background: none;
+    border: none;
+    color: var(--color-danger);
+    font-size: 1.3rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.word-delete-btn:hover {
+    color: var(--color-danger-dark);
+    transform: scale(1.2);
+}
+
+.empty-state-small {
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 10px;
+    margin: 0;
+}
+
+.admin-btn-small {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+}

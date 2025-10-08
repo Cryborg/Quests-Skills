@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧩 Sudoku Simple</title>
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté par PageHeader.render() -->
+
+        <main class="main-content">
+            <!-- Sélecteur de difficulté -->
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" data-difficulty="easy">Facile (4x4)</button>
+                <button class="difficulty-btn" data-difficulty="medium">Moyen (6x6)</button>
+            </div>
+
+            <!-- Zone de jeu -->
+            <div class="game-area">
+                <!-- Grille Sudoku -->
+                <div id="sudoku-grid" class="sudoku-grid">
+                    <!-- Générée dynamiquement -->
+                </div>
+
+                <!-- Pavé numérique -->
+                <div class="number-pad" id="number-pad">
+                    <!-- Généré dynamiquement -->
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="game-actions">
+                <button id="hint-btn" class="btn-secondary">💡 Indice</button>
+                <button id="check-btn" class="btn-secondary">✓ Vérifier</button>
+                <button id="new-game-btn" class="btn-primary">🎮 Nouveau jeu</button>
+            </div>
+        </main>
+
+        <!-- Toast pour les notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="../../shared/js/game-session.js"></script>
+    <script src="../../shared/js/common.js"></script>
+    <script src="js/sudoku.js"></script>
+
+    <script>
+        window.onCommonScriptsLoaded = () => initializeApp(() => sudokuGame.init());
+    </script>
+</body>
+</html>

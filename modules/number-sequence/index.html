@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔢 Suites Logiques</title>
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté par PageHeader.render() -->
+
+        <main class="main-content">
+            <!-- Zone de jeu -->
+            <div class="game-area">
+                <div class="sequence-display" id="sequence-display">
+                    <!-- Suite affichée ici -->
+                </div>
+
+                <div class="question-mark">?</div>
+
+                <div class="answer-section">
+                    <input type="number" id="answer-input" placeholder="Ta réponse" autocomplete="off">
+                    <button id="validate-btn" class="btn-primary">✓ Valider</button>
+                </div>
+
+                <div class="hint-section" id="hint-section" style="display: none;">
+                    <p class="hint-text" id="hint-text"></p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="game-actions">
+                <button id="hint-btn" class="btn-secondary">💡 Indice</button>
+                <button id="skip-btn" class="btn-secondary">⏭️ Passer</button>
+            </div>
+        </main>
+
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="../../shared/js/common.js"></script>
+    <script src="js/number-sequence.js"></script>
+
+    <!-- Auth initialization -->
+    <script>
+        window.onCommonScriptsLoaded = () => initializeApp(() => sequenceGame.init());
+    </script>
+</body>
+</html>

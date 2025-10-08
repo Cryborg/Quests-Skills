@@ -64,14 +64,10 @@
         <div id="toast" class="toast"></div>
     </div>
 
-    <script src="../../shared/js/config.js"></script>
-    <!-- Auth system (chargé en premier) -->
-    <script src="../../shared/js/auth.js"></script>
+    <!-- Scripts communs -->
+    <script src="../../shared/js/common.js"></script>
+    <!-- Auth system -->
     <script src="../../shared/js/auth-ui.js"></script>
-    <!-- Navigation system -->
-    <script src="../../shared/js/navigation.js"></script>
-    <!-- Page header system -->
-    <script src="../../shared/js/page-header.js"></script>
     <!-- App scripts -->
     <script src="js/database.js"></script>
     <script src="js/card-system.js"></script>
@@ -81,23 +77,9 @@
     <!-- Widget optionnel pour le module math-exercises -->
     <script src="../../shared/js/math-exercises-widget.js"></script>
 
-    <!-- Auth initialization -->
+    <!-- Initialisation du module -->
     <script>
-        // Initialiser l'authentification au chargement
-        document.addEventListener('DOMContentLoaded', async () => {
-            const isAuth = await authService.init();
-
-            if (!isAuth) {
-                // Pas authentifié, rediriger vers la page de connexion
-                window.location.href = '/';
-            } else {
-                // Initialiser la navigation après l'auth
-                await navigationUI.init();
-
-                // PUIS initialiser l'app (qui va créer le header)
-                await app.init();
-            }
-        });
+        window.onCommonScriptsLoaded = () => initializeApp(() => app.init());
     </script>
 </body>
 </html>

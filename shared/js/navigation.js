@@ -5,8 +5,8 @@ class NavigationUI {
         this.currentUser = null;
         this.userCredits = 0;
 
-        // Configuration des liens de navigation
-        this.navLinks = [
+        // Configuration des liens de navigation avec catégories
+        this.navCategories = [
             {
                 icon: '🏠',
                 label: 'Accueil',
@@ -21,9 +21,59 @@ class NavigationUI {
             },
             {
                 icon: '🎓',
-                label: 'Exercices de maths',
-                href: '/modules/math-exercises/index.html',
-                id: 'math'
+                label: 'Mathématiques',
+                id: 'math',
+                children: [
+                    {
+                        label: 'Exercices de maths',
+                        href: '/modules/math-exercises/index.html',
+                        id: 'math-exercises'
+                    }
+                ]
+            },
+            {
+                icon: '🧠',
+                label: 'Logique',
+                id: 'logic',
+                children: [
+                    {
+                        label: 'Suites logiques',
+                        href: '/modules/number-sequence/index.html',
+                        id: 'number-sequence'
+                    },
+                    {
+                        label: 'Sudoku',
+                        href: '/modules/sudoku/index.html',
+                        id: 'sudoku'
+                    },
+                    {
+                        label: 'Mots mêlés',
+                        href: '/modules/word-search/index.html',
+                        id: 'word-search'
+                    }
+                ]
+            },
+            {
+                icon: '🎯',
+                label: 'Compétences',
+                id: 'skills',
+                children: [
+                    {
+                        label: 'Lecture de l\'heure',
+                        href: '/modules/clock-reading/index.html',
+                        id: 'clock-reading'
+                    },
+                    {
+                        label: 'Déplacement sur grille',
+                        href: '/modules/grid-navigation/index.html',
+                        id: 'grid-navigation'
+                    },
+                    {
+                        label: 'Codage/Décodage',
+                        href: '/modules/cipher/index.html',
+                        id: 'cipher'
+                    }
+                ]
             }
         ];
 
@@ -161,12 +211,35 @@ class NavigationUI {
 
                 <!-- Navigation links -->
                 <div class="nav-menu">
-                    ${this.navLinks.map(link => `
-                        <a href="${link.href}" class="nav-link" data-nav-id="${link.id}">
-                            <span class="nav-link-icon">${link.icon}</span>
-                            <span>${link.label}</span>
-                        </a>
-                    `).join('')}
+                    ${this.navCategories.map(category => {
+                        if (category.href) {
+                            // Lien simple sans enfants
+                            return `
+                                <a href="${category.href}" class="nav-link" data-nav-id="${category.id}">
+                                    <span class="nav-link-icon">${category.icon}</span>
+                                    <span>${category.label}</span>
+                                </a>
+                            `;
+                        } else {
+                            // Catégorie avec sous-menu
+                            return `
+                                <div class="nav-category" data-category-id="${category.id}">
+                                    <button class="nav-category-header">
+                                        <span class="nav-link-icon">${category.icon}</span>
+                                        <span>${category.label}</span>
+                                        <span class="nav-category-arrow">▼</span>
+                                    </button>
+                                    <div class="nav-submenu">
+                                        ${category.children.map(child => `
+                                            <a href="${child.href}" class="nav-link nav-sublink" data-nav-id="${child.id}">
+                                                <span>${child.label}</span>
+                                            </a>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }).join('')}
                 </div>
 
                 <!-- Admin button (before logout) -->
@@ -225,6 +298,24 @@ class NavigationUI {
             logoutBtn.addEventListener('click', () => this.handleLogout());
         }
 
+        // Toggle des catégories
+        document.querySelectorAll('.nav-category-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const category = header.parentElement;
+                const isOpen = category.classList.contains('open');
+
+                // Fermer toutes les catégories
+                document.querySelectorAll('.nav-category').forEach(cat => {
+                    cat.classList.remove('open');
+                });
+
+                // Ouvrir celle-ci si elle était fermée
+                if (!isOpen) {
+                    category.classList.add('open');
+                }
+            });
+        });
+
         // Fermer le menu mobile lors du clic sur un lien
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', () => {
@@ -277,6 +368,14 @@ class NavigationUI {
             const linkPath = new URL(link.href).pathname;
             if (currentPath === linkPath) {
                 link.classList.add('active');
+
+                // Si c'est un sous-lien, ouvrir la catégorie parente
+                if (link.classList.contains('nav-sublink')) {
+                    const category = link.closest('.nav-category');
+                    if (category) {
+                        category.classList.add('open');
+                    }
+                }
             }
         });
     }

@@ -17,6 +17,7 @@ async function initAdminPanel() {
     // Note: adminCards gère maintenant aussi les thèmes
     await adminUsers.init();
     await adminCards.init();
+    await WordSearchAdmin.init();
 
     console.log('✅ Admin panel loaded successfully');
 }
