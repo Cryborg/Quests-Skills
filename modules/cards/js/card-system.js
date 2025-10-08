@@ -30,6 +30,8 @@ class CardSystem {
         const drawnCards = {};
         const cardsToAdd = []; // Collecte les cards_id pour le batch
 
+        console.log(`🎰 Drawing ${creditResult.used} cards...`);
+
         // Maintenant on pioche les cartes (sans appels API supplémentaires)
         for (let i = 0; i < creditResult.used; i++) {
             const result = this.drawSingleCardLocal();
@@ -47,8 +49,12 @@ class CardSystem {
                     };
                 }
                 drawnCards[cardId].count++;
+            } else {
+                console.error('❌ Failed to draw card:', result.message);
             }
         }
+
+        console.log(`📦 Successfully drew ${results.length} cards, preparing to add:`, cardsToAdd);
 
         // UN SEUL appel API pour ajouter toutes les cartes à la collection
         if (cardsToAdd.length > 0) {
@@ -91,12 +97,15 @@ class CardSystem {
     drawSingleCardLocal() {
         // Génère une rareté aléatoire selon la baseRarity de la carte
         const baseRarity = UTILS.getRandomRarity();
+        console.log('🎲 Random rarity:', baseRarity);
 
         // Récupère toutes les cartes de cette rareté de base
         const allCards = DB.getAllCards();
+        console.log('📊 Total cards in DB:', allCards.length);
 
         // Récupère les thèmes sélectionnés par l'utilisateur
         const userThemes = DB.getUserThemes();
+        console.log('🎨 User themes:', userThemes);
 
         // Filtre les cartes : même baseRarity ET pas encore légendaires ET thème sélectionné
         const availableCards = allCards.filter(card => {
@@ -114,10 +123,13 @@ class CardSystem {
             return currentRarity !== 'legendary';
         });
 
+        console.log('✅ Available cards after filtering:', availableCards.length);
+
         if (availableCards.length === 0) {
+            console.error('❌ No available cards to draw!');
             return {
                 success: false,
-                message: 'Toutes les cartes ont atteint le niveau légendaire !'
+                message: 'Aucune carte disponible avec tes thèmes sélectionnés'
             };
         }
 
