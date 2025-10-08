@@ -18,6 +18,9 @@ class GridNavigationGame {
         this.maxPathLength = 0; // Chemin le plus long possible
         this.hasRepeatedCell = false; // Flag pour détecter si le joueur repasse sur une case
         this.repeatedPositions = []; // Positions où il y a eu répétition (pour affichage en rouge)
+        this.currentDirection = 'down'; // Direction actuelle du sprite (par défaut face)
+        this.playerSprites = {}; // Sprites du joueur
+        this.spritesLoaded = false;
     }
 
     async init() {
@@ -46,7 +49,35 @@ class GridNavigationGame {
         this.cacheElements();
         this.attachEvents();
         this.setupCanvas();
+        await this.loadSprites();
         this.generateChallenge();
+    }
+
+    async loadSprites() {
+        const spriteNames = {
+            up: 'player-back.png',
+            down: 'player-front.png',
+            left: 'player-left.png',
+            right: 'player-right.png'
+        };
+
+        const loadPromises = Object.entries(spriteNames).map(([direction, filename]) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    this.playerSprites[direction] = img;
+                    resolve();
+                };
+                img.onerror = () => {
+                    console.warn(`Failed to load sprite: ${filename}`);
+                    resolve(); // Continue même si une image ne charge pas
+                };
+                img.src = `images/${filename}`;
+            });
+        });
+
+        await Promise.all(loadPromises);
+        this.spritesLoaded = Object.keys(this.playerSprites).length > 0;
     }
 
     cacheElements() {
@@ -478,6 +509,7 @@ class GridNavigationGame {
                     hitWall = true;
                 } else {
                     this.currentPosition.y--;
+                    this.currentDirection = 'up';
                 }
                 break;
             case 'down':
@@ -485,6 +517,7 @@ class GridNavigationGame {
                     hitWall = true;
                 } else {
                     this.currentPosition.y++;
+                    this.currentDirection = 'down';
                 }
                 break;
             case 'left':
@@ -492,6 +525,7 @@ class GridNavigationGame {
                     hitWall = true;
                 } else {
                     this.currentPosition.x--;
+                    this.currentDirection = 'left';
                 }
                 break;
             case 'right':
@@ -499,6 +533,7 @@ class GridNavigationGame {
                     hitWall = true;
                 } else {
                     this.currentPosition.x++;
+                    this.currentDirection = 'right';
                 }
                 break;
         }
@@ -828,16 +863,32 @@ class GridNavigationGame {
         });
 
         // Dessiner le joueur (par-dessus le trail)
-        ctx.fillStyle = '#667eea';
-        ctx.beginPath();
-        ctx.arc(
-            this.currentPosition.x * size + size / 2,
-            this.currentPosition.y * size + size / 2,
-            size / 3,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
+        if (this.spritesLoaded && this.playerSprites[this.currentDirection]) {
+            const sprite = this.playerSprites[this.currentDirection];
+            const spriteSize = size * 0.8; // 80% de la taille de la case
+            const offsetX = (size - spriteSize) / 2;
+            const offsetY = (size - spriteSize) / 2;
+
+            ctx.drawImage(
+                sprite,
+                this.currentPosition.x * size + offsetX,
+                this.currentPosition.y * size + offsetY,
+                spriteSize,
+                spriteSize
+            );
+        } else {
+            // Fallback: cercle bleu si les sprites ne sont pas chargés
+            ctx.fillStyle = '#667eea';
+            ctx.beginPath();
+            ctx.arc(
+                this.currentPosition.x * size + size / 2,
+                this.currentPosition.y * size + size / 2,
+                size / 3,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
 
         // Dessiner un symbole sur la cible
         ctx.fillStyle = '#10b981';
