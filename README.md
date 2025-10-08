@@ -153,3 +153,24 @@ DEBUG.modules.cards         // Accéder au module cards
 2. **Migration** : Script pour importer les données localStorage existantes
 3. **Auth** : Implémenter le système d'authentification complet
 4. **Production** : Préparer pour MySQL et déploiement
+
+## 💡 Nouvelles Idées de Modules Bonus
+
+### Jeux de Lettres
+- **Mots fléchés** : Grille de mots croisés simplifiée avec indices
+- **Mots mêlés** : Grille de lettres où trouver des mots cachés
+- **Codage/Décodage** : Utiliser un code secret simple (alphabet morse simplifié, code lettre/symbole) pour déchiffrer un mot ou une phrase
+
+### Logique et Nombres
+- **Suite logique de nombres** : Compléter une suite numérique (ex: 2, 4, 6, ?, 10)
+- **Sudokus simples** : Grilles 4x4 ou 6x6 adaptées aux enfants
+- **Problèmes de Logique Junior** : Courtes énigmes qui nécessitent de lire et de déduire
+  - Exemple: "Qui a le chien, sachant que Marie n'a pas le chat et que Paul n'a pas le poisson ?"
+
+### Compétences Pratiques
+- **Lecture de l'heure** :
+  - Lire l'heure sur une horloge analogique
+  - Reproduire une heure digitale sur une horloge analogique (placer les aiguilles)
+- **Déplacement sur Quadrillage** : Programmer le déplacement d'un personnage avec des flèches directionnelles pour atteindre un objectif
+  - Introduction à la pensée algorithmique
+  - Séquences de commandes (avancer, tourner à gauche/droite)
