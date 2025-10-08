@@ -17,7 +17,10 @@ const bonusRouter = require('./routes/bonus');
 const authRouter = require('./routes/auth');
 const themesRouter = require('./routes/themes');
 const gamesRouter = require('./routes/games');
+
+console.log('📦 Loading word-search router...');
 const wordSearchRouter = require('./routes/word-search');
+console.log('✅ Word-search router loaded successfully');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
