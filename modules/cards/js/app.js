@@ -22,6 +22,17 @@ class App {
             console.log('🔄 Chargement de la collection...');
             await DB.getCollection();
 
+            // Vérifie et réclame les crédits quotidiens
+            console.log('🎁 Vérification des crédits quotidiens...');
+            const dailyResult = await DB.claimDailyCredit();
+            if (dailyResult.success && dailyResult.creditsAdded > 0) {
+                console.log(`✅ ${dailyResult.message}`);
+                // Affiche une notification à l'utilisateur
+                setTimeout(() => {
+                    UI.showToast(dailyResult.message, 'success');
+                }, 1000);
+            }
+
             // Initialise l'interface utilisateur
             console.log('🎨 Initialisation de l\'interface...');
             await UI.init();

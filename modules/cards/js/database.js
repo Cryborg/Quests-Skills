@@ -713,44 +713,38 @@ class DatabaseManager {
         return midnight.getTime() - now.getTime();
     }
 
-    claimDailyCredit() {
-        if (!this.canClaimDailyCredit()) {
-            return { success: false, message: 'Crédit quotidien déjà réclamé' };
-        }
+    async claimDailyCredit() {
+        try {
+            const user = authService.getCurrentUser();
+            if (!user) {
+                return {
+                    success: false,
+                    message: 'Utilisateur non connecté'
+                };
+            }
 
-        const lastClaimDate = this.getLastDailyCreditDate();
-        const today = new Date().toISOString().split('T')[0];
+            const response = await authService.fetchAPI(`/users/${user.id}/credits/claim-daily`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
 
-        // Si c'est la première connexion, marque aujourd'hui sans donner de crédits
-        if (!lastClaimDate) {
-            this.saveLastDailyCreditDate();
+            if (!response.ok) {
+                const error = await response.json();
+                return {
+                    success: false,
+                    message: error.error || 'Erreur lors de la réclamation des crédits quotidiens'
+                };
+            }
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Failed to claim daily credits:', error);
             return {
                 success: false,
-                message: 'Première connexion - crédits quotidiens disponibles demain'
+                message: 'Erreur lors de la réclamation des crédits quotidiens'
             };
         }
-
-        // Calcule le nombre de jours d'absence
-        const lastDate = new Date(lastClaimDate);
-        const currentDate = new Date(today);
-        const daysDifference = Math.floor((currentDate - lastDate) / (1000 * 60 * 60 * 24));
-
-        const creditsToAdd = daysDifference * CONFIG.CREDITS.DAILY_BONUS;
-        const newCredits = this.addCredits(creditsToAdd);
-        this.saveLastDailyCreditDate();
-
-        const dayText = daysDifference === 1 ? 'jour' : 'jours';
-        const creditText = creditsToAdd === 1 ? 'crédit' : 'crédits';
-
-        return {
-            success: true,
-            creditsAdded: creditsToAdd,
-            daysAwarded: daysDifference,
-            totalCredits: newCredits,
-            message: daysDifference === 1
-                ? `+${creditsToAdd} ${creditText} quotidien !`
-                : `+${creditsToAdd} ${creditText} pour ${daysDifference} ${dayText} d'absence !`
-        };
     }
 
     // Reset complet de la base de données (pour debug)

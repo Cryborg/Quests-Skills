@@ -350,6 +350,83 @@ router.get('/:id/credits', checkOwnership, async (req, res) => {
     }
 });
 
+// POST /api/users/:id/credits/claim-daily - Réclamer les crédits quotidiens
+router.post('/:id/credits/claim-daily', checkOwnership, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const DAILY_BONUS = 5;
+        const MAX_CREDITS = 99;
+
+        const userCredits = await get(
+            'SELECT * FROM user_credits WHERE user_id = ?',
+            [userId]
+        );
+
+        if (!userCredits) {
+            return res.status(404).json({ error: 'User credits not found' });
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        const lastClaim = userCredits.last_daily_claim;
+
+        // Si c'est la première connexion, marque aujourd'hui sans donner de crédits
+        if (!lastClaim) {
+            await run(
+                'UPDATE user_credits SET last_daily_claim = ?, updated_at = ? WHERE user_id = ?',
+                [today, new Date().toISOString(), userId]
+            );
+            return res.json({
+                success: false,
+                message: 'Première connexion - crédits quotidiens disponibles demain',
+                creditsAdded: 0,
+                daysAwarded: 0,
+                totalCredits: userCredits.credits
+            });
+        }
+
+        // Calcule le nombre de jours d'absence
+        const lastDate = new Date(lastClaim);
+        const currentDate = new Date(today);
+        const daysDifference = Math.floor((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+
+        if (daysDifference === 0) {
+            return res.json({
+                success: false,
+                message: 'Crédits quotidiens déjà réclamés aujourd\'hui',
+                creditsAdded: 0,
+                daysAwarded: 0,
+                totalCredits: userCredits.credits
+            });
+        }
+
+        // Calcule les crédits à ajouter
+        const creditsToAdd = daysDifference * DAILY_BONUS;
+        const newCredits = Math.min(userCredits.credits + creditsToAdd, MAX_CREDITS);
+
+        // Met à jour les crédits et la date de claim
+        await run(
+            'UPDATE user_credits SET credits = ?, last_daily_claim = ?, updated_at = ? WHERE user_id = ?',
+            [newCredits, today, new Date().toISOString(), userId]
+        );
+
+        const dayText = daysDifference === 1 ? 'jour' : 'jours';
+        const creditText = creditsToAdd === 1 ? 'crédit' : 'crédits';
+
+        res.json({
+            success: true,
+            creditsAdded: creditsToAdd,
+            daysAwarded: daysDifference,
+            totalCredits: newCredits,
+            message: daysDifference === 1
+                ? `+${creditsToAdd} ${creditText} quotidien !`
+                : `+${creditsToAdd} ${creditText} pour ${daysDifference} ${dayText} d'absence !`
+        });
+    } catch (error) {
+        console.error('Error claiming daily credits:', error);
+        res.status(500).json({ error: 'Failed to claim daily credits' });
+    }
+});
+
 // POST /api/users/:id/credits - Ajouter ou définir des crédits
 router.post('/:id/credits', checkOwnership, async (req, res) => {
     try {
