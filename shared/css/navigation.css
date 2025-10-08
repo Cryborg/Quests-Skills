@@ -229,7 +229,7 @@ body.nav-loaded .container {
     gap: 12px;
     padding: 14px 16px;
     background: none;
-    border: 2px solid var(--color-danger);
+    border: none;
     border-radius: 8px;
     color: var(--color-danger);
     font-size: 1rem;
@@ -237,11 +237,13 @@ body.nav-loaded .container {
     cursor: pointer;
     transition: all 0.3s;
     width: 100%;
+    text-align: left;
 }
 
 .nav-logout:hover {
-    background: var(--color-danger);
-    color: white;
+    background: var(--nav-hover);
+    color: var(--color-danger);
+    transform: translateX(5px);
 }
 
 /* Main content area (décalé pour la sidebar) */
