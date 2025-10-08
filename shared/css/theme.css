@@ -1,0 +1,85 @@
+/* ============================================
+   THÈME GLOBAL - Quests & Skills
+   Palette de couleurs unifiée pour tout le site
+   ============================================ */
+
+:root {
+    /* === BACKGROUNDS === */
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #1a1a1a;
+    --bg-card: #2a2a2a;
+    --bg-hover: #3a3a3a;
+
+    /* === TEXTES === */
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --text-muted: #808080;
+
+    /* === BORDERS === */
+    --border-color: #404040;
+
+    /* === ACCENTS PRINCIPAUX === */
+    --accent-primary: #4a9eff;          /* Bleu - actions principales */
+    --accent-secondary: #6b46c1;        /* Violet - complément */
+
+    /* === COULEURS SÉMANTIQUES === */
+    --color-success: #10b981;           /* Vert - succès, validation */
+    --color-success-dark: #059669;      /* Vert foncé pour gradients */
+
+    --color-warning: #f59e0b;           /* Orange - attention, actions modérées */
+    --color-warning-dark: #d97706;      /* Orange foncé pour gradients */
+
+    --color-danger: #ef4444;            /* Rouge - erreur, danger */
+    --color-danger-dark: #dc2626;       /* Rouge foncé pour gradients */
+
+    --color-info: #3b82f6;              /* Bleu info */
+
+    /* === RARETÉS DES CARTES === */
+    --rarity-common: #9ca3af;           /* Gris */
+    --rarity-rare: #3b82f6;             /* Bleu */
+    --rarity-very-rare: #8b5cf6;        /* Violet (CORRIGÉ!) */
+    --rarity-epic: #f59e0b;             /* Orange/Or */
+    --rarity-legendary: #ef4444;        /* Rouge */
+
+    /* === SPÉCIFIQUES === */
+    --admin-badge: #f59e0b;             /* Orange unifié pour badges admin */
+}
+
+/* ============================================
+   CLASSES UTILITAIRES POUR BOUTONS
+   ============================================ */
+
+/* Boutons primaires - Actions principales */
+.btn-primary,
+.gradient-primary {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+}
+
+/* Boutons success - Validation, confirmation */
+.btn-success,
+.gradient-success {
+    background: linear-gradient(135deg, var(--color-success), var(--color-success-dark));
+    color: white;
+}
+
+/* Boutons warning - Attention, actions modérées */
+.btn-warning,
+.gradient-warning {
+    background: linear-gradient(135deg, var(--color-warning), var(--color-warning-dark));
+    color: white;
+}
+
+/* Boutons danger - Suppression, actions irréversibles */
+.btn-danger,
+.gradient-danger {
+    background: linear-gradient(135deg, var(--color-danger), var(--color-danger-dark));
+    color: white;
+}
+
+/* Boutons secondaires - Annulation, actions neutres */
+.btn-secondary {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+}

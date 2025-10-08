@@ -1,6 +1,7 @@
 /* Navigation partagée - Sidebar + Hamburger responsive */
+/* Variables globales définies dans shared/css/theme.css */
 
-/* Variables */
+/* Variables locales spécifiques à la navigation */
 :root {
     --nav-bg: #1a1a1a;
     --nav-border: #404040;
@@ -133,7 +134,7 @@ body.nav-loaded .container {
 }
 
 .nav-admin-badge {
-    background: #f39c12;
+    background: var(--admin-badge);
     color: white;
     padding: 2px 8px;
     border-radius: 4px;
@@ -207,9 +208,9 @@ body.nav-loaded .container {
     gap: 12px;
     padding: 14px 16px;
     background: none;
-    border: 2px solid #e74c3c;
+    border: 2px solid var(--color-danger);
     border-radius: 8px;
-    color: #e74c3c;
+    color: var(--color-danger);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -218,7 +219,7 @@ body.nav-loaded .container {
 }
 
 .nav-logout:hover {
-    background: #e74c3c;
+    background: var(--color-danger);
     color: white;
 }
 

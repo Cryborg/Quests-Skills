@@ -698,6 +698,11 @@ class UIManager {
             this.elements.drawButton.innerHTML = `🎁 Piocher une carte`;
             this.elements.drawCooldown.style.display = 'none';
         }
+
+        // Mettre à jour la sidebar si elle existe
+        if (window.navigationUI) {
+            navigationUI.updateCredits(creditsCount);
+        }
     }
 
     // Démarre la mise à jour du cooldown

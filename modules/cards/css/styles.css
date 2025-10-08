@@ -1,23 +1,6 @@
-/* Variables globales pour le thème sombre */
+/* Note: Les variables globales sont maintenant dans shared/css/theme.css */
+/* Variables locales spécifiques au module cards */
 :root {
-    --bg-primary: #0a0a0a;
-    --bg-secondary: #1a1a1a;
-    --bg-card: #2a2a2a;
-    --bg-hover: #3a3a3a;
-    --text-primary: #ffffff;
-    --text-secondary: #b0b0b0;
-    --text-muted: #808080;
-    --border-color: #404040;
-    --accent-primary: #4a9eff;
-    --accent-secondary: #6b46c1;
-
-    /* Couleurs des raretés */
-    --rarity-common: #ffffff;
-    --rarity-rare: #3b82f6;
-    --rarity-very-rare: #10b981;
-    --rarity-epic: #f59e0b;
-    --rarity-legendary: #ef4444;
-
     /* Animations */
     --transition-fast: 0.2s ease;
     --transition-normal: 0.3s ease;
@@ -639,9 +622,9 @@
 
 .card-rarity-banner.very_rare {
     background: linear-gradient(90deg,
-        rgba(155, 89, 182, 0.9) 0%,
-        rgba(155, 89, 182, 1) 50%,
-        rgba(155, 89, 182, 0.9) 100%);
+        rgba(139, 92, 246, 0.9) 0%,
+        rgba(139, 92, 246, 1) 50%,
+        rgba(139, 92, 246, 0.9) 100%);
 }
 
 .card-rarity-banner.epic {
@@ -828,8 +811,7 @@
     position: relative;
     animation: modalSlideIn 0.3s ease;
     max-height: 95vh;
-    overflow-y: auto;
-    scrollbar-gutter: stable;
+    overflow: hidden;
 }
 
 @keyframes modalSlideIn {

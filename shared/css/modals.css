@@ -1,4 +1,5 @@
 /* Système de modales mutualisées */
+/* Variables globales définies dans shared/css/theme.css */
 
 .shared-modal {
     display: none;
@@ -92,34 +93,34 @@
 }
 
 .shared-btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     color: white;
 }
 
 .shared-btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
 }
 
 .shared-btn-secondary {
-    background: #2a2a2a;
-    color: #ffffff;
-    border: 2px solid #404040;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
 }
 
 .shared-btn-secondary:hover {
-    background: #3a3a3a;
-    border-color: #4a9eff;
+    background: var(--bg-hover);
+    border-color: var(--accent-primary);
 }
 
 .shared-btn-danger {
-    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    background: linear-gradient(135deg, var(--color-danger), var(--color-danger-dark));
     color: white;
 }
 
 .shared-btn-danger:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(235, 51, 73, 0.4);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 /* Animations */
