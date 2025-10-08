@@ -2,15 +2,14 @@ const { createClient } = require('@libsql/client');
 const dotenv = require('dotenv');
 
 // Load environment variables
-if (!process.env.TURSO_DATABASE_URL) {
-    dotenv.config();
-}
+dotenv.config();
 
-// Détecter l'environnement - si TURSO_DATABASE_URL existe, on utilise Turso
-const useTurso = !!process.env.TURSO_DATABASE_URL;
+// Détecter l'environnement via APP_ENV (local ou production)
+const isProduction = process.env.APP_ENV === 'production';
+const isLocal = !isProduction;
 
-// Utiliser Turso si configuré, sinon SQLite local en dev
-const dbUrl = useTurso
+// Utiliser Turso en production, SQLite local en dev
+const dbUrl = isProduction
     ? process.env.TURSO_DATABASE_URL
     : 'file:./database/dev.db';
 
@@ -18,13 +17,15 @@ const dbConfig = {
     url: dbUrl
 };
 
-// Ajouter le token seulement si on utilise Turso
-if (useTurso && process.env.TURSO_AUTH_TOKEN) {
+// Ajouter le token seulement en production
+if (isProduction && process.env.TURSO_AUTH_TOKEN) {
     dbConfig.authToken = process.env.TURSO_AUTH_TOKEN;
 }
 
-console.log(`💾 Using database: ${useTurso ? `Turso (${dbUrl})` : 'SQLite (local dev)'}`);
-console.log(`🔑 Auth token present: ${!!process.env.TURSO_AUTH_TOKEN}`);
+console.log(`💾 Using database: ${isProduction ? `Turso (${dbUrl})` : 'SQLite (local dev)'}`);
+if (isProduction) {
+    console.log(`🔑 Auth token present: ${!!process.env.TURSO_AUTH_TOKEN}`);
+}
 
 // Create database client
 const db = createClient(dbConfig);
