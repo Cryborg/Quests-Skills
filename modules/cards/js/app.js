@@ -185,7 +185,7 @@ class App {
 
         if (stats.ownedCards === 0) {
             setTimeout(() => {
-                UI.showToast('Bienvenue ! Commence ta collection en piochant ta première carte 🎁', 'info', 5000);
+                UI.showToast('Bienvenue ! Commence ta collection en piochant tes premières cartes 🎁', 'info', 5000);
             }, 1000);
         } else {
             const upgradeableCards = CARD_SYSTEM.getUpgradeableCards().length;

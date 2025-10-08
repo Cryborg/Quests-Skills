@@ -212,6 +212,14 @@ body.nav-loaded .container {
 }
 
 /* Logout button */
+/* Help and Admin links */
+.nav-help-link,
+.nav-admin-link {
+    margin-top: 10px;
+    border-top: 1px solid var(--nav-border);
+    padding-top: 10px;
+}
+
 .nav-logout {
     display: flex;
     align-items: center;
@@ -226,6 +234,7 @@ body.nav-loaded .container {
     cursor: pointer;
     transition: all 0.3s;
     width: 100%;
+    margin-top: 10px;
 }
 
 .nav-logout:hover {

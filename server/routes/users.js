@@ -234,56 +234,85 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
         const userId = parseInt(req.params.id);
         const { cards } = req.body; // [{card_id: '...', count: 1}, ...] ou {card_id: '...'} pour une seule
 
-        console.log('📝 POST /users/:id/cards - Body:', JSON.stringify(req.body, null, 2));
+        console.log('========================================');
+        console.log('📝 POST /users/:id/cards - User ID:', userId);
+        console.log('📝 Request Body:', JSON.stringify(req.body, null, 2));
+        console.log('📝 Cards field:', cards);
+        console.log('📝 Cards type:', typeof cards);
+        console.log('📝 Is Array?', Array.isArray(cards));
 
         // Supporte aussi le format single card {card_id: '...'}
         let cardsArray;
         if (Array.isArray(cards)) {
             cardsArray = cards;
+            console.log('✅ Using cards array');
         } else if (req.body.card_id) {
             // Format legacy : {card_id: '...'}
             cardsArray = [{ card_id: req.body.card_id, count: 1 }];
+            console.log('✅ Using legacy format with card_id:', req.body.card_id);
         } else {
+            console.error('❌ No cards array or card_id provided');
             return res.status(400).json({ error: 'Cards array or card_id is required' });
         }
 
         if (cardsArray.length === 0) {
+            console.error('❌ Cards array is empty');
             return res.status(400).json({ error: 'Cards array cannot be empty' });
         }
 
-        console.log('📊 Cards array:', JSON.stringify(cardsArray.slice(0, 3), null, 2));
+        console.log('📊 Cards array length:', cardsArray.length);
+        console.log('📊 First 3 cards:', JSON.stringify(cardsArray.slice(0, 3), null, 2));
 
         // Compte les occurrences de chaque card_id
         const cardCounts = {};
         for (const card of cardsArray) {
+            if (!card || !card.card_id) {
+                console.error('❌ Invalid card object:', card);
+                continue;
+            }
             cardCounts[card.card_id] = (cardCounts[card.card_id] || 0) + (card.count || 1);
         }
 
         console.log('🔢 Card counts:', cardCounts);
+        console.log('🔢 Unique cards to process:', Object.keys(cardCounts).length);
 
         // Pour chaque carte unique, update ou insert
         for (const [cardId, count] of Object.entries(cardCounts)) {
-            console.log(`🔍 Processing card ${cardId} (type: ${typeof cardId})`);
+            console.log(`🔍 Processing card ${cardId} (type: ${typeof cardId}, count: ${count})`);
+
+            // Vérifier si la carte existe dans la table cards
+            const cardExists = await get('SELECT id FROM cards WHERE id = ?', [cardId]);
+            if (!cardExists) {
+                console.error(`❌ Card ${cardId} not found in cards table`);
+                continue;
+            }
+            console.log(`✅ Card ${cardId} exists in cards table`);
+
             const existing = await get(
                 'SELECT * FROM user_cards WHERE user_id = ? AND card_id = ?',
                 [userId, cardId]
             );
 
             if (existing) {
+                console.log(`📝 Updating existing user_card ${existing.id}: ${existing.quantity} + ${count}`);
                 await run(
                     'UPDATE user_cards SET quantity = ? WHERE id = ?',
                     [existing.quantity + count, existing.id]
                 );
+                console.log(`✅ Updated to ${existing.quantity + count}`);
             } else {
                 // Insère avec current_rarity = 'common' par défaut
                 const now = new Date().toISOString();
-                await run(
+                console.log(`📝 Inserting new user_card: user=${userId}, card=${cardId}, qty=${count}`);
+                const result = await run(
                     'INSERT INTO user_cards (user_id, card_id, quantity, current_rarity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
                     [userId, cardId, count, 'common', now, now]
                 );
+                console.log(`✅ Inserted with ID ${result.lastID}`);
             }
         }
 
+        console.log('📦 Fetching updated collection...');
         // Retourne la collection complète
         const userCards = await all(
             `SELECT uc.*, c.*
@@ -293,10 +322,14 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
             [userId]
         );
 
+        console.log(`✅ Collection has ${userCards.length} cards`);
+        console.log('========================================');
         res.json({ added: Object.keys(cardCounts).length, collection: userCards });
     } catch (error) {
-        console.error('Error adding cards:', error);
-        res.status(500).json({ error: 'Failed to add cards' });
+        console.error('❌❌❌ ERROR IN /users/:id/cards:', error);
+        console.error('❌ Error stack:', error.stack);
+        console.error('========================================');
+        res.status(500).json({ error: 'Failed to add cards', details: error.message });
     }
 });
 
@@ -523,17 +556,23 @@ router.post('/:id/credits/use', checkOwnership, async (req, res) => {
         const userId = parseInt(req.params.id);
         const { amount } = req.body;
 
+        console.log('💰 POST /users/:id/credits/use - User:', userId, 'Amount:', amount);
+
         const currentCredits = await get(
             'SELECT * FROM user_credits WHERE user_id = ?',
             [userId]
         );
 
+        console.log('💰 Current credits:', currentCredits ? currentCredits.credits : 'NOT FOUND');
+
         if (!currentCredits || currentCredits.credits < amount) {
+            console.error('❌ Insufficient credits:', currentCredits?.credits, '<', amount);
             return res.status(400).json({ error: 'Insufficient credits' });
         }
 
         // Calculer les nouveaux crédits et s'assurer qu'ils ne descendent jamais en dessous de 0
         const newCredits = Math.max(0, currentCredits.credits - amount);
+        console.log('💰 New credits will be:', newCredits);
 
         await run(
             'UPDATE user_credits SET credits = ? WHERE user_id = ?',
@@ -545,9 +584,10 @@ router.post('/:id/credits/use', checkOwnership, async (req, res) => {
             [userId]
         );
 
+        console.log('✅ Credits updated successfully:', updated.credits);
         res.json(updated);
     } catch (error) {
-        console.error('Error using credits:', error);
+        console.error('❌ Error using credits:', error);
         res.status(500).json({ error: 'Failed to use credits' });
     }
 });

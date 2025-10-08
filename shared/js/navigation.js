@@ -77,6 +77,14 @@ class NavigationUI {
             }
         ];
 
+        // Lien aide (sera ajouté juste avant admin ou déconnexion)
+        this.helpLink = {
+            icon: '📖',
+            label: 'Aide',
+            href: '/modules/help/index.html',
+            id: 'help'
+        };
+
         // Lien admin (sera ajouté juste avant la déconnexion)
         this.adminLink = {
             icon: '👑',
@@ -241,6 +249,12 @@ class NavigationUI {
                         }
                     }).join('')}
                 </div>
+
+                <!-- Help button (before admin or logout) -->
+                <a href="${this.helpLink.href}" class="nav-link nav-help-link" data-nav-id="${this.helpLink.id}">
+                    <span class="nav-link-icon">${this.helpLink.icon}</span>
+                    <span>${this.helpLink.label}</span>
+                </a>
 
                 <!-- Admin button (before logout) -->
                 ${this.currentUser.is_admin ? `
