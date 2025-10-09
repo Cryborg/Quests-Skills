@@ -50,6 +50,39 @@ const WordSearchAdmin = {
                 e.target.value = e.target.value.toUpperCase();
             });
         }
+
+        // Filtrage des mots
+        const searchInput = document.getElementById('words-search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.filterWords(e.target.value);
+            });
+        }
+    },
+
+    filterWords(searchTerm) {
+        const term = searchTerm.toLowerCase().trim();
+        const wordChips = document.querySelectorAll('.word-chip');
+        const themeCards = document.querySelectorAll('.word-theme-card');
+
+        wordChips.forEach(chip => {
+            const wordText = chip.querySelector('.word-text').textContent.toLowerCase();
+            if (wordText.includes(term)) {
+                chip.style.display = 'flex';
+            } else {
+                chip.style.display = 'none';
+            }
+        });
+
+        // Cacher les thèmes qui n'ont plus de mots visibles
+        themeCards.forEach(card => {
+            const visibleWords = card.querySelectorAll('.word-chip[style="display: flex;"]');
+            if (term === '' || visibleWords.length > 0) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
     },
 
     async loadThemes() {
@@ -79,9 +112,9 @@ const WordSearchAdmin = {
                 <div class="word-theme-header">
                     <h3>${theme.icon} ${theme.name}</h3>
                     <div class="word-theme-actions">
-                        ${theme.slug ? `<button class="admin-btn-small admin-btn-secondary" onclick="WordSearchAdmin.openAddWordModal('${theme.slug}')">
+                        <button class="admin-btn-small admin-btn-secondary" onclick="WordSearchAdmin.openAddWordModal('${theme.slug || ''}')">
                             ➕ Ajouter un mot
-                        </button>` : ''}
+                        </button>
                     </div>
                 </div>
                 <div class="words-grid">

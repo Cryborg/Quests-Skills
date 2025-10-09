@@ -192,6 +192,31 @@ body {
     color: #808080;
 }
 
+/* Recherche de mots mêlés */
+.words-search {
+    margin-bottom: 20px;
+}
+
+.words-search input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #404040;
+    border-radius: 8px;
+    background: #1a1a1a;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.words-search input:focus {
+    outline: none;
+    border-color: #4a9eff;
+}
+
+.words-search input::placeholder {
+    color: #808080;
+}
+
 .users-list {
     display: grid;
     gap: 15px;
@@ -1028,23 +1053,24 @@ body {
     background: var(--bg-primary);
     border: 2px solid var(--border-color);
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: all 0.3s;
+    transition: all 0.2s;
+    position: relative;
 }
 
 .word-chip:hover {
     border-color: #667eea;
-    transform: translateY(-2px);
+    background: rgba(102, 126, 234, 0.05);
 }
 
 .word-text {
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-primary);
     font-family: 'Courier New', monospace;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 .word-badge {
@@ -1054,15 +1080,29 @@ body {
     border-radius: 4px;
 }
 
-.word-edit-btn {
+/* Cacher les boutons par défaut */
+.word-edit-btn,
+.word-delete-btn {
+    opacity: 0;
     background: none;
     border: none;
-    color: var(--accent-primary);
-    font-size: 1rem;
+    font-size: 0.9rem;
     cursor: pointer;
-    padding: 0 4px;
+    padding: 0 3px;
     line-height: 1;
     transition: all 0.2s;
+    pointer-events: none;
+}
+
+/* Afficher les boutons au hover du chip */
+.word-chip:hover .word-edit-btn,
+.word-chip:hover .word-delete-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.word-edit-btn {
+    color: var(--accent-primary);
 }
 
 .word-edit-btn:hover {
@@ -1071,19 +1111,13 @@ body {
 }
 
 .word-delete-btn {
-    background: none;
-    border: none;
-    color: var(--color-danger);
-    font-size: 1.3rem;
+    color: #ff6b6b;
+    font-size: 1.1rem;
     font-weight: bold;
-    cursor: pointer;
-    padding: 0 4px;
-    line-height: 1;
-    transition: all 0.2s;
 }
 
 .word-delete-btn:hover {
-    color: var(--color-danger-dark);
+    color: #ff5252;
     transform: scale(1.2);
 }
 

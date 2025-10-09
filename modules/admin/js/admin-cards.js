@@ -572,8 +572,3 @@ class AdminCards {
 
 // Instance globale
 const adminCards = new AdminCards();
-
-// Alias pour compatibilité avec admin-ui.js qui appelle adminThemes.getThemes()
-const adminThemes = {
-    getThemes: () => adminCards.getThemes()
-};

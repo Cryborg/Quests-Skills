@@ -28,6 +28,19 @@ router.get('/with-words', authenticateToken, requireAdmin, async (req, res) => {
       theme.words = wordsResult.rows || [];
     }
 
+    // Ajouter une "section" pour les mots génériques (sans thème)
+    const genericWordsResult = await query(
+      'SELECT * FROM word_search_words WHERE theme_slug IS NULL ORDER BY word'
+    );
+
+    // Insérer les mots génériques en premier
+    themes.unshift({
+      slug: null,
+      name: 'Mots génériques',
+      icon: '📝',
+      words: genericWordsResult.rows || []
+    });
+
     res.json(themes);
   } catch (error) {
     console.error('Failed to fetch themes with words:', error);

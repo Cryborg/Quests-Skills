@@ -14,8 +14,8 @@ async function initAdminPanel() {
     adminUI.init();
 
     // Initialiser les modules
-    // Note: adminCards gère maintenant aussi les thèmes
     await adminUsers.init();
+    await adminThemes.init();
     await adminCards.init();
     await WordSearchAdmin.init();
 

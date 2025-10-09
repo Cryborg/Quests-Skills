@@ -89,8 +89,18 @@ router.get('/themes/:userId/available', authenticateToken, async (req, res) => {
           [theme.slug]
         );
 
-        // Combiner les mots du thème + les mots génériques
-        theme.words = [...themeWordsResult.rows, ...genericWords];
+        // Combiner les mots du thème + les mots génériques en évitant les doublons
+        const allWords = [...themeWordsResult.rows, ...genericWords];
+        const uniqueWordsMap = new Map();
+
+        // Garder seulement le premier mot de chaque texte (dédupliquer par le mot lui-même)
+        allWords.forEach(wordObj => {
+          if (!uniqueWordsMap.has(wordObj.word)) {
+            uniqueWordsMap.set(wordObj.word, wordObj);
+          }
+        });
+
+        theme.words = Array.from(uniqueWordsMap.values());
         theme.wordCount = theme.words.length;
 
         if (theme.wordCount >= 5) {
