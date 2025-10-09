@@ -304,7 +304,7 @@ class UIManager {
 
         const rarityInfo = this.renderRarityInfo(card);
         const countDisplay = card.owned && card.count > 1 ? `<span class="card-count">×${card.count}</span>` : '';
-        const upgradeIndicator = card.canUpgrade ? `<div class="card-upgrade-indicator" title="Peut être améliorée : ${card.upgradeInfo.cost} cartes → ${CONFIG.RARITIES[card.upgradeInfo.nextRarity].name}">🔺</div>` : '';
+        const upgradeIndicator = card.canUpgrade ? `<div class="card-upgrade-indicator" title="Peut être améliorée : ${card.upgradeInfo.cost} cartes → ${CONFIG.RARITIES[card.upgradeInfo.nextRarity].name}"><img src="/shared/icons/card_update_icon.svg" alt="Upgrade"></div>` : '';
 
         cardDiv.innerHTML = `
             ${countDisplay}

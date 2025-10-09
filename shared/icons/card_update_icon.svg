@@ -1,0 +1,16 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fond circulaire doux -->
+  <circle cx="100" cy="100" r="90" fill="#E74C3C" opacity="0.15"/>
+  
+  <!-- Flèche stylisée vers le haut -->
+  <g transform="translate(100, 100)">
+    <!-- Corps de la flèche -->
+    <rect x="-15" y="-20" width="30" height="70" rx="8" fill="#E74C3C"/>
+    
+    <!-- Pointe de la flèche (triangle) -->
+    <path d="M 0,-60 L 45,-20 L -45,-20 Z" fill="#E74C3C"/>
+    
+    <!-- Petit accent lumineux pour le style -->
+    <rect x="-8" y="-15" width="16" height="60" rx="5" fill="#ffffff" opacity="0.25"/>
+  </g>
+</svg>
