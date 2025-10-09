@@ -395,8 +395,14 @@ class AuthUI {
         }
     }
 
-    show() {
+    async show() {
         this.modal.style.display = 'flex';
+
+        // Charger les thèmes si on est sur l'onglet inscription et qu'ils ne sont pas déjà chargés
+        const registerForm = document.getElementById('register-form');
+        if (registerForm.style.display !== 'none' && this.allThemes.length === 0) {
+            await this.loadThemes();
+        }
     }
 
     hide() {
