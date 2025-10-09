@@ -519,8 +519,9 @@ class DatabaseManager {
 
             const result = await response.json();
 
-            // Invalide le cache pour forcer un refresh
+            // Invalide le cache et recharge immédiatement pour mettre à jour l'affichage
             this.invalidateCollectionCache();
+            await this.getCollection();
 
             return {
                 success: true,
