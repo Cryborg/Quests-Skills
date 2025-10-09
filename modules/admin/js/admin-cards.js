@@ -409,6 +409,9 @@ class AdminCards {
             return;
         }
 
+        const saveBtn = document.querySelector('#card-form button[type="submit"]');
+        const spinner = ButtonSpinner.start(saveBtn);
+
         const cardData = {
             name,
             description,
@@ -444,6 +447,8 @@ class AdminCards {
         } catch (error) {
             console.error('Failed to save card:', error);
             adminUI.showToast('Erreur lors de la sauvegarde', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 
@@ -464,6 +469,9 @@ class AdminCards {
             return;
         }
 
+        const deleteBtn = event.target;
+        const spinner = ButtonSpinner.start(deleteBtn);
+
         try {
             const response = await authService.fetchAPI(`/cards/${cardId}`, {
                 method: 'DELETE'
@@ -479,6 +487,8 @@ class AdminCards {
         } catch (error) {
             console.error('Failed to delete card:', error);
             adminUI.showToast('Erreur lors de la suppression', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 
@@ -590,6 +600,9 @@ class AdminCards {
             return;
         }
 
+        const saveBtn = document.querySelector('#theme-form button[type="submit"]');
+        const spinner = ButtonSpinner.start(saveBtn);
+
         const themeData = {
             slug,
             name,
@@ -624,6 +637,8 @@ class AdminCards {
         } catch (error) {
             console.error('Failed to save theme:', error);
             adminUI.showToast('Erreur lors de la sauvegarde', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 
@@ -651,6 +666,9 @@ class AdminCards {
             return;
         }
 
+        const deleteBtn = event.target;
+        const spinner = ButtonSpinner.start(deleteBtn);
+
         try {
             const response = await authService.fetchAPI(`/themes/${themeId}`, {
                 method: 'DELETE'
@@ -667,6 +685,8 @@ class AdminCards {
         } catch (error) {
             console.error('Failed to delete theme:', error);
             adminUI.showToast('Erreur lors de la suppression', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 }

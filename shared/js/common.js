@@ -42,7 +42,8 @@ window.initializeApp = async function(moduleInitFunction, options = {}) {
         '/shared/js/auth.js',
         '/shared/js/navigation.js',
         '/shared/js/toast.js',
-        '/shared/js/game-attempts.js'
+        '/shared/js/game-attempts.js',
+        '/shared/js/button-spinner.js'
     ];
 
     function loadScript(src) {

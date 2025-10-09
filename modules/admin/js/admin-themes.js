@@ -147,6 +147,9 @@ class AdminThemes {
             icon
         };
 
+        const saveBtn = document.querySelector('#theme-form button[type="submit"]');
+        const spinner = ButtonSpinner.start(saveBtn);
+
         try {
             let response;
             if (themeId) {
@@ -180,6 +183,8 @@ class AdminThemes {
         } catch (error) {
             console.error('Failed to save theme:', error);
             adminUI.showToast('Erreur lors de la sauvegarde', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 
@@ -199,6 +204,9 @@ class AdminThemes {
         if (!await adminUI.confirm(`Voulez-vous vraiment supprimer le thème "${theme.name}" ? Les cartes utilisant ce thème ne pourront plus être filtrées.`)) {
             return;
         }
+
+        const deleteBtn = event.target;
+        const spinner = ButtonSpinner.start(deleteBtn);
 
         try {
             const response = await authService.fetchAPI(`/themes/${themeId}`, {
@@ -221,6 +229,8 @@ class AdminThemes {
         } catch (error) {
             console.error('Failed to delete theme:', error);
             adminUI.showToast('Erreur lors de la suppression', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 

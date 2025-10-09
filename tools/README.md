@@ -9,6 +9,7 @@ Ce dossier contient des scripts de maintenance et d'administration pour le proje
 **Usage :** Reseeder uniquement les mots de la base de données en production.
 
 ```bash
+# Depuis la racine du projet
 APP_ENV=production node tools/reseed-words-production.js
 ```
 

@@ -420,102 +420,117 @@ class UIManager {
             return;
         }
 
-        const result = await CARD_SYSTEM.drawCard();
+        const spinner = ButtonSpinner.start(this.elements.drawButton);
 
-        if (result.success) {
-            // Met à jour le bouton IMMÉDIATEMENT après la pioche pour éviter les double-clics
-            await this.updateDrawButton();
+        try {
+            const result = await CARD_SYSTEM.drawCard();
 
-            try {
-                // Utilise toujours l'animation multiple (qui gère aussi les cartes uniques)
-                if (result.totalDrawn >= 1) {
-                    const animationResult = await DRAW_ANIMATION.showMultipleCardsAnimation(result.groupedCards);
+            if (result.success) {
+                // Met à jour le bouton IMMÉDIATEMENT après la pioche pour éviter les double-clics
+                await this.updateDrawButton();
 
-                    // Si une seule carte, bascule sur le thème de la carte
-                    if (result.totalDrawn === 1) {
-                        const firstCard = Object.values(result.groupedCards)[0].card;
-                        this.switchTheme(firstCard.theme);
-                    }
+                try {
+                    // Utilise toujours l'animation multiple (qui gère aussi les cartes uniques)
+                    if (result.totalDrawn >= 1) {
+                        const animationResult = await DRAW_ANIMATION.showMultipleCardsAnimation(result.groupedCards);
 
-                    // Après l'animation, met à jour l'affichage complet
-                    await this.render();
-
-                    // Mettre à jour les compteurs de la sidebar
-                    if (window.navigationUI) {
-                        const credits = await DB.getCredits();
-                        navigationUI.updateCredits(credits);
-                    }
-
-                    // Animation des nouvelles cartes dans la collection
-                    setTimeout(() => {
-                        Object.keys(result.groupedCards).forEach(cardId => {
-                            const cardElement = document.querySelector(`[data-card-id="${cardId}"]`);
-                            if (cardElement) {
-                                cardElement.classList.add('new-draw');
-                                setTimeout(() => cardElement.classList.remove('new-draw'), 800);
-                            }
-                        });
-
-                        // Si une seule carte, scroll vers elle
+                        // Si une seule carte, bascule sur le thème de la carte
                         if (result.totalDrawn === 1) {
-                            const firstCardId = Object.keys(result.groupedCards)[0];
-                            const cardElement = document.querySelector(`[data-card-id="${firstCardId}"]`);
-                            if (cardElement) {
-                                cardElement.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center',
-                                    inline: 'nearest'
-                                });
-                            }
+                            const firstCard = Object.values(result.groupedCards)[0].card;
+                            this.switchTheme(firstCard.theme);
                         }
-                    }, 300);
 
-                    // Message adapté selon le nombre de cartes
-                    const message = result.totalDrawn === 1
-                        ? `1 carte piochée !`
-                        : `${result.totalDrawn} cartes piochées !`;
-                    this.showToast(message, 'success');
+                        // Après l'animation, met à jour l'affichage complet
+                        await this.render();
+
+                        // Mettre à jour les compteurs de la sidebar
+                        if (window.navigationUI) {
+                            const credits = await DB.getCredits();
+                            navigationUI.updateCredits(credits);
+                        }
+
+                        // Animation des nouvelles cartes dans la collection
+                        setTimeout(() => {
+                            Object.keys(result.groupedCards).forEach(cardId => {
+                                const cardElement = document.querySelector(`[data-card-id="${cardId}"]`);
+                                if (cardElement) {
+                                    cardElement.classList.add('new-draw');
+                                    setTimeout(() => cardElement.classList.remove('new-draw'), 800);
+                                }
+                            });
+
+                            // Si une seule carte, scroll vers elle
+                            if (result.totalDrawn === 1) {
+                                const firstCardId = Object.keys(result.groupedCards)[0];
+                                const cardElement = document.querySelector(`[data-card-id="${firstCardId}"]`);
+                                if (cardElement) {
+                                    cardElement.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'center',
+                                        inline: 'nearest'
+                                    });
+                                }
+                            }
+                        }, 300);
+
+                        // Message adapté selon le nombre de cartes
+                        const message = result.totalDrawn === 1
+                            ? `1 carte piochée !`
+                            : `${result.totalDrawn} cartes piochées !`;
+                        this.showToast(message, 'success');
+                    }
+
+                } catch (error) {
+                    console.error('Erreur lors de l\'animation:', error);
+                    // Fallback sans animation
+                    this.showToast(`${result.totalDrawn} carte${result.totalDrawn > 1 ? 's' : ''} piochée${result.totalDrawn > 1 ? 's' : ''} !`, 'success');
+                    await this.render();
                 }
-
-            } catch (error) {
-                console.error('Erreur lors de l\'animation:', error);
-                // Fallback sans animation
-                this.showToast(`${result.totalDrawn} carte${result.totalDrawn > 1 ? 's' : ''} piochée${result.totalDrawn > 1 ? 's' : ''} !`, 'success');
-                await this.render();
+            } else {
+                this.showToast(result.error || result.message || 'Erreur lors de la pioche', 'error');
             }
-        } else {
-            this.showToast(result.error || result.message || 'Erreur lors de la pioche', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 
     // Gère l'amélioration d'une carte avec animation
     async handleCardUpgrade(card) {
-        const result = await CARD_SYSTEM.upgradeCard(card.id);
+        const upgradeBtn = document.querySelector('.upgrade-btn-inline');
+        const spinner = upgradeBtn ? ButtonSpinner.start(upgradeBtn) : null;
 
-        if (result.success) {
-            // Met à jour l'affichage général IMMÉDIATEMENT (en arrière-plan)
-            await this.render();
+        try {
+            const result = await CARD_SYSTEM.upgradeCard(card.id);
 
-            // Lance l'animation d'amélioration
-            await this.animateCardUpgrade(result.newRarity);
+            if (result.success) {
+                // Met à jour l'affichage général IMMÉDIATEMENT (en arrière-plan)
+                await this.render();
 
-            // Récupère les nouvelles informations de la carte après amélioration
-            const updatedCards = CARD_SYSTEM.getCardsWithCollectionInfo();
-            const updatedCard = updatedCards.find(c => c.id === card.id);
+                // Lance l'animation d'amélioration
+                await this.animateCardUpgrade(result.newRarity);
 
-            // Réaffiche la modal seulement si elle est encore ouverte
-            if (updatedCard && this.currentModal) {
-                this.showCardModal(updatedCard);
+                // Récupère les nouvelles informations de la carte après amélioration
+                const updatedCards = CARD_SYSTEM.getCardsWithCollectionInfo();
+                const updatedCard = updatedCards.find(c => c.id === card.id);
+
+                // Réaffiche la modal seulement si elle est encore ouverte
+                if (updatedCard && this.currentModal) {
+                    this.showCardModal(updatedCard);
+                }
+
+                // Message avec crédits gagnés s'il y en a
+                let message = result.message;
+                if (result.creditsEarned > 0) {
+                    message += ` (+${result.creditsEarned} crédit${result.creditsEarned > 1 ? 's' : ''} bonus)`;
+                }
+                this.showToast(message, 'success');
+            } else {
+                this.showToast(result.message, 'error');
             }
-
-            // Message avec crédits gagnés s'il y en a
-            let message = result.message;
-            if (result.creditsEarned > 0) {
-                message += ` (+${result.creditsEarned} crédit${result.creditsEarned > 1 ? 's' : ''} bonus)`;
+        } finally {
+            if (spinner) {
+                spinner.stop();
             }
-            this.showToast(message, 'success');
-        } else {
-            this.showToast(result.message, 'error');
         }
     }
 

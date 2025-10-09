@@ -1,10 +1,11 @@
 /**
  * Script pour reseeder UNIQUEMENT les mots en production
- * Usage: APP_ENV=production node database/reseed-words-production.js
+ * Usage: APP_ENV=production node tools/reseed-words-production.js
  */
 
-require('dotenv').config();
-const { seedWords } = require('./initialize/seed-words');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const { seedWords } = require('../database/initialize/seed-words');
 
 async function main() {
     console.log('🔄 Reseeding words in production...');

@@ -9,7 +9,8 @@ async function seedThemes() {
     const themes = [
         { slug: 'minecraft', name: 'Minecraft', icon: '🟫' },
         { slug: 'space', name: 'Astronomie', icon: '🌌' },
-        { slug: 'dinosaurs', name: 'Dinosaures', icon: '🦕' }
+        { slug: 'dinosaurs', name: 'Dinosaures', icon: '🦕' },
+        { slug: 'monuments', name: 'Monuments', icon: '🏛️' }
     ];
 
     let themeCount = 0;

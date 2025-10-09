@@ -212,6 +212,9 @@ const WordSearchAdmin = {
             return;
         }
 
+        const submitBtn = e.submitter || document.querySelector('#word-form button[type="submit"]');
+        const spinner = ButtonSpinner.start(submitBtn);
+
         try {
             if (wordId) {
                 // Mise à jour
@@ -235,6 +238,7 @@ const WordSearchAdmin = {
                 document.getElementById('word-text').value = '';
                 document.getElementById('word-text').focus();
                 await this.loadThemes();
+                spinner.stop();
                 return; // On ne ferme pas la modale
             }
 
@@ -244,13 +248,18 @@ const WordSearchAdmin = {
         } catch (error) {
             console.error('Error saving word:', error);
             showToast('❌ Erreur lors de l\'enregistrement');
+        } finally {
+            spinner.stop();
         }
     },
 
     async deleteWord(wordId, word) {
-        if (!confirm(`Êtes-vous sûr de vouloir supprimer le mot "${word}" ?`)) {
+        if (!await confirm(`Êtes-vous sûr de vouloir supprimer le mot "${word}" ?`)) {
             return;
         }
+
+        const deleteBtn = event.target;
+        const spinner = ButtonSpinner.start(deleteBtn);
 
         try {
             await authService.fetchAPI(`/word-search/words/${wordId}`, {
@@ -261,6 +270,8 @@ const WordSearchAdmin = {
         } catch (error) {
             console.error('Error deleting word:', error);
             showToast('❌ Erreur lors de la suppression');
+        } finally {
+            spinner.stop();
         }
     }
 };

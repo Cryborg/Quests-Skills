@@ -236,6 +236,9 @@ class AdminUsers {
             userData.password = password;
         }
 
+        const saveBtn = document.querySelector('#user-form button[type="submit"]');
+        const spinner = ButtonSpinner.start(saveBtn);
+
         try {
             let response;
             if (userId) {
@@ -278,6 +281,8 @@ class AdminUsers {
         } catch (error) {
             console.error('Failed to save user:', error);
             adminUI.showToast('Erreur lors de la sauvegarde', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 
@@ -308,6 +313,9 @@ class AdminUsers {
             return;
         }
 
+        const toggleBtn = event.target;
+        const spinner = ButtonSpinner.start(toggleBtn);
+
         try {
             const response = await authService.fetchAPI(`/users/${userId}`, {
                 method: 'PUT',
@@ -324,6 +332,8 @@ class AdminUsers {
         } catch (error) {
             console.error('Failed to toggle admin:', error);
             adminUI.showToast('Erreur', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 
@@ -331,6 +341,9 @@ class AdminUsers {
     async modifyUserCredits(userId, amount) {
         const user = this.users.find(u => u.id === userId);
         if (!user) return;
+
+        const creditsBtn = event.target;
+        const spinner = ButtonSpinner.start(creditsBtn);
 
         try {
             const response = await authService.fetchAPI(`/users/${userId}/credits`, {
@@ -349,6 +362,8 @@ class AdminUsers {
         } catch (error) {
             console.error('Failed to modify credits:', error);
             adminUI.showToast('Erreur lors de la modification des crédits', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 
@@ -360,6 +375,9 @@ class AdminUsers {
         if (!await adminUI.confirm(`Voulez-vous vraiment supprimer ${user.username} ? Cette action est irréversible.`)) {
             return;
         }
+
+        const deleteBtn = event.target;
+        const spinner = ButtonSpinner.start(deleteBtn);
 
         try {
             const response = await authService.fetchAPI(`/users/${userId}`, {
@@ -376,6 +394,8 @@ class AdminUsers {
         } catch (error) {
             console.error('Failed to delete user:', error);
             adminUI.showToast('Erreur lors de la suppression', 'error');
+        } finally {
+            spinner.stop();
         }
     }
 

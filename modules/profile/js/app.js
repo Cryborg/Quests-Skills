@@ -100,6 +100,9 @@ class ProfileManager {
             return;
         }
 
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const spinner = ButtonSpinner.start(submitBtn);
+
         try {
             const response = await authService.fetchAPI(`/users/${this.currentUser.id}`, {
                 method: 'PUT',
@@ -127,6 +130,8 @@ class ProfileManager {
 
         } catch (error) {
             this.showProfileError(error.message);
+        } finally {
+            spinner.stop();
         }
     }
 
@@ -151,6 +156,9 @@ class ProfileManager {
             return;
         }
 
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const spinner = ButtonSpinner.start(submitBtn);
+
         try {
             const response = await authService.fetchAPI(`/users/${this.currentUser.id}/password`, {
                 method: 'PUT',
@@ -172,6 +180,8 @@ class ProfileManager {
 
         } catch (error) {
             this.showPasswordError(error.message);
+        } finally {
+            spinner.stop();
         }
     }
 
@@ -305,6 +315,8 @@ class ProfileManager {
             return;
         }
 
+        const spinner = ButtonSpinner.start(this.elements.saveThemesBtn);
+
         try {
             const response = await authService.fetchAPI(`/users/${this.currentUser.id}/themes`, {
                 method: 'PUT',
@@ -319,6 +331,8 @@ class ProfileManager {
             this.showThemesSuccess('Thèmes enregistrés avec succès !');
         } catch (error) {
             this.showThemesError(error.message);
+        } finally {
+            spinner.stop();
         }
     }
 
