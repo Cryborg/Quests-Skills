@@ -173,9 +173,14 @@ class UIManager {
             // Calcule les statistiques par rareté pour ce thème
             const rarityStats = this.calculateThemeRarityStats(theme);
 
-            // Crée le nouvel indicateur de progression
-            const indicator = document.createElement('div');
-            indicator.className = 'theme-completion';
+            // Utilise le composant partagé ThemeCompletion
+            const completionHTML = ThemeCompletion.render(rarityStats);
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = completionHTML;
+            const indicator = tempDiv.firstElementChild;
+
+            tab.appendChild(indicator);
 
             // Détermine la couleur selon le pourcentage
             let indicatorClass = 'low';
@@ -183,18 +188,6 @@ class UIManager {
             else if (completion >= 75) indicatorClass = 'high';
             else if (completion >= 50) indicatorClass = 'medium';
             else if (completion >= 25) indicatorClass = 'low-medium';
-
-            // Génère les segments de rareté
-            const raritySegments = this.generateRaritySegments(rarityStats, completion);
-
-            indicator.innerHTML = `
-                <div class="completion-bar">
-                    ${raritySegments}
-                </div>
-                <span class="completion-text">${completion}%</span>
-            `;
-
-            tab.appendChild(indicator);
 
             // Ajoute l'indicateur d'amélioration si nécessaire
             if (upgradeableInTheme > 0) {
@@ -222,9 +215,7 @@ class UIManager {
         Object.keys(CONFIG.RARITIES).forEach(rarity => {
             rarityStats[rarity] = {
                 owned: 0,
-                total: 0,
-                percentage: 0,
-                color: CONFIG.RARITIES[rarity].color
+                total: 0
             };
         });
 
@@ -241,43 +232,7 @@ class UIManager {
             }
         });
 
-        // Calcule les pourcentages
-        Object.keys(rarityStats).forEach(rarity => {
-            const stats = rarityStats[rarity];
-            if (totalCards > 0) {
-                stats.percentage = (stats.owned / totalCards) * 100;
-            }
-        });
-
         return rarityStats;
-    }
-
-    // Génère les segments HTML pour la barre de progression
-    generateRaritySegments(rarityStats, totalCompletion) {
-        let segments = '';
-        let position = 0;
-
-        // Ordre des raretés à afficher
-        const rarityOrder = ['common', 'rare', 'very_rare', 'epic', 'legendary'];
-
-        rarityOrder.forEach(rarity => {
-            const stats = rarityStats[rarity];
-            if (stats.percentage > 0) {
-                segments += `
-                    <div class="completion-segment rarity-${rarity}"
-                         style="
-                            left: ${position}%;
-                            width: ${stats.percentage}%;
-                            background-color: ${stats.color};
-                         "
-                         title="${CONFIG.RARITIES[rarity].name}: ${stats.owned} cartes (${stats.percentage.toFixed(1)}%)">
-                    </div>
-                `;
-                position += stats.percentage;
-            }
-        });
-
-        return segments;
     }
 
     // Affiche les cartes de la collection
