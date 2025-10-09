@@ -15,7 +15,6 @@ const WordSearchAdmin = {
             const response = await authService.fetchAPI('/themes');
             const data = await response.json();
             this.cardThemes = Array.isArray(data) ? data : data.themes || [];
-            console.log('📦 Loaded card themes:', this.cardThemes);
         } catch (error) {
             console.error('Failed to load card themes:', error);
             this.cardThemes = [];
@@ -90,7 +89,6 @@ const WordSearchAdmin = {
             const response = await authService.fetchAPI('/themes/with-words');
             const themes = await response.json();
             this.themes = Array.isArray(themes) ? themes : [];
-            console.log('📦 Loaded themes with words:', this.themes);
             this.renderThemes();
         } catch (error) {
             console.error('Failed to load themes:', error);

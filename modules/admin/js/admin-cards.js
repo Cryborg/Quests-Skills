@@ -30,7 +30,6 @@ class AdminCards {
             const data = await response.json();
             // L'API retourne directement un tableau
             this.themes = Array.isArray(data) ? data : data.themes || [];
-            console.log('📦 Loaded card themes:', this.themes);
         } catch (error) {
             console.error('Failed to load themes:', error);
             adminUI.showToast('Erreur lors du chargement des thèmes', 'error');
