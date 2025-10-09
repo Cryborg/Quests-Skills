@@ -144,7 +144,7 @@ class UserProfile {
             <div class="theme-card">
                 <div class="theme-icon">${theme.icon}</div>
                 <div class="theme-name">${theme.name}</div>
-                ${RarityProgress.render(theme.rarityStats)}
+                ${ThemeCompletion.render(theme.rarityStats)}
             </div>
         `).join('');
     }

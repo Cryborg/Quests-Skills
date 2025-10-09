@@ -1,0 +1,67 @@
+/* Composant de progression de thème - Utilisé dans Collection et Admin */
+
+.theme-completion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
+
+.completion-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Segments de rareté dans la barre de progression */
+.completion-segment {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all var(--transition-normal, 0.3s ease);
+    border-radius: 2px;
+}
+
+/* Styles spécifiques pour chaque rareté */
+.completion-segment.rarity-common {
+    opacity: 0.9;
+}
+
+.completion-segment.rarity-rare {
+    opacity: 0.95;
+}
+
+.completion-segment.rarity-very-rare {
+    opacity: 1;
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.3);
+}
+
+.completion-segment.rarity-epic {
+    opacity: 1;
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+}
+
+.completion-segment.rarity-legendary {
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+    animation: legendary-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes legendary-glow {
+    from {
+        box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+    }
+    to {
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+    }
+}
+
+.completion-text {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.9;
+}
