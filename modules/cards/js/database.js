@@ -362,10 +362,10 @@ class DatabaseManager {
             // Transforme le tableau en objet indexé par card_id
             const collection = {};
             for (const userCard of cards) {
-                // userCard contient : { id, user_id, card_id, quantity, rarity, ... }
+                // userCard contient : { id, user_id, card_id, quantity, current_rarity, ... }
                 collection[userCard.card_id] = {
                     count: userCard.quantity,
-                    currentRarity: userCard.rarity || 'common',
+                    currentRarity: userCard.current_rarity || 'common',
                     level: 1, // Pas dans la DB pour l'instant
                     firstObtained: new Date(userCard.created_at).getTime()
                 };
