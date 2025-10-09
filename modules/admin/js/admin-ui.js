@@ -58,7 +58,12 @@ class AdminUI {
         });
 
         // Rafraîchir les données selon l'onglet affiché
-        if (tab === 'cards-themes' && typeof adminCards !== 'undefined') {
+        if (tab === 'themes' && typeof adminThemes !== 'undefined') {
+            // Force le render après que l'onglet soit visible
+            setTimeout(() => {
+                adminThemes.renderThemes();
+            }, 0);
+        } else if (tab === 'cards' && typeof adminCards !== 'undefined') {
             // Force le render après que l'onglet soit visible
             setTimeout(() => {
                 adminCards.renderCards();

@@ -17,7 +17,8 @@
         <!-- Onglets de navigation admin -->
         <nav class="admin-tabs">
             <button class="admin-tab-btn active" data-tab="users">👥 Utilisateurs</button>
-            <button class="admin-tab-btn" data-tab="cards">🃏 Cartes & Thèmes</button>
+            <button class="admin-tab-btn" data-tab="themes">🎨 Thèmes</button>
+            <button class="admin-tab-btn" data-tab="cards">🃏 Cartes</button>
             <button class="admin-tab-btn" data-tab="word-search">🔍 Mots Mêlés</button>
         </nav>
 
@@ -36,15 +37,26 @@
                 </div>
             </section>
 
-            <!-- Section Cartes & Thèmes -->
+            <!-- Section Thèmes -->
+            <section id="themes-section" class="admin-section">
+                <div class="section-header">
+                    <h2>🎨 Gestion des Thèmes</h2>
+                    <button id="create-theme-btn" class="admin-btn-primary">➕ Nouveau thème</button>
+                </div>
+
+                <div id="themes-container">
+                    <!-- Liste des thèmes chargée dynamiquement -->
+                </div>
+            </section>
+
+            <!-- Section Cartes -->
             <section id="cards-section" class="admin-section">
                 <div class="section-header">
-                    <h2>🃏 Gestion des Cartes & Thèmes</h2>
+                    <h2>🃏 Gestion des Cartes</h2>
                     <div class="section-actions">
                         <button id="toggle-all-themes-btn" class="admin-btn-secondary" title="Tout replier/déplier">
                             📦 Tout replier
                         </button>
-                        <button id="create-theme-btn" class="admin-btn-secondary">🎨 Nouveau thème</button>
                     </div>
                 </div>
 

@@ -26,10 +26,14 @@ class AdminThemes {
 
     // Afficher les thèmes
     renderThemes() {
-        const container = document.getElementById('themes-list');
+        const container = document.getElementById('themes-container');
+        if (!container) {
+            console.error('themes-container not found');
+            return;
+        }
 
         if (this.themes.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #999;">Aucun thème</p>';
+            container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Aucun thème. Créez-en un pour commencer !</p>';
             return;
         }
 
