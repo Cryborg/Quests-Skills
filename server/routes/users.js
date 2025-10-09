@@ -28,6 +28,78 @@ router.get('/', requireAdmin, async (req, res) => {
     }
 });
 
+// GET /api/users/:id/profile - Récupérer le profil complet avec historique (admin only)
+// IMPORTANT: Cette route doit être AVANT /:id pour éviter que /:id ne la matche
+router.get('/:id/profile', requireAdmin, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+
+        // Infos de base de l'utilisateur (avec crédits depuis user_credits)
+        const user = await get(`
+            SELECT u.id, u.username, u.email, u.is_admin, u.created_at, u.updated_at,
+                   COALESCE(uc.credits, 0) as credits
+            FROM users u
+            LEFT JOIN user_credits uc ON u.id = uc.user_id
+            WHERE u.id = ?
+        `, [userId]);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Statistiques générales
+        const stats = {
+            totalCards: await get('SELECT COUNT(*) as count FROM user_cards WHERE user_id = ?', [userId]),
+            totalGames: await get('SELECT COUNT(*) as count FROM game_sessions WHERE user_id = ?', [userId]),
+            totalLogins: await get('SELECT COUNT(*) as count FROM user_activity_logs WHERE user_id = ? AND action_type = ?', [userId, 'login'])
+        };
+
+        // Historique d'activité récente (50 dernières)
+        const activityLogs = await all(
+            `SELECT action_type, details, created_at
+             FROM user_activity_logs
+             WHERE user_id = ?
+             ORDER BY created_at DESC
+             LIMIT 50`,
+            [userId]
+        );
+
+        // Historique des sessions de jeu (20 dernières)
+        const gameSessions = await all(
+            `SELECT game_type, errors, success, cards_earned, created_at
+             FROM game_sessions
+             WHERE user_id = ?
+             ORDER BY created_at DESC
+             LIMIT 20`,
+            [userId]
+        );
+
+        // Thèmes sélectionnés
+        const themes = await all(
+            `SELECT ct.slug, ct.name, ct.icon
+             FROM user_themes ut
+             JOIN card_themes ct ON ut.theme_slug = ct.slug
+             WHERE ut.user_id = ?`,
+            [userId]
+        );
+
+        res.json({
+            user,
+            stats: {
+                totalCards: stats.totalCards.count,
+                totalGames: stats.totalGames.count,
+                totalLogins: stats.totalLogins.count
+            },
+            themes,
+            activityLogs,
+            gameSessions
+        });
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ error: 'Failed to fetch user profile' });
+    }
+});
+
 // POST /api/users - Créer un utilisateur (admin seulement)
 router.post('/', requireAdmin, async (req, res) => {
     try {

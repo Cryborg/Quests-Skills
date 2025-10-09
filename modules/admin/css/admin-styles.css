@@ -253,6 +253,17 @@ body {
     gap: 10px;
 }
 
+.user-profile-link {
+    color: #4a9eff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.user-profile-link:hover {
+    color: #6bb6ff;
+    text-decoration: underline;
+}
+
 .user-badge {
     display: inline-block;
     padding: 2px 8px;

@@ -62,7 +62,7 @@ class AdminUsers {
             <div class="user-card" data-user-id="${user.id}">
                 <div class="user-info">
                     <h3>
-                        ${user.username}
+                        <a href="user-profile.html?userId=${user.id}" class="user-profile-link">${user.username}</a>
                         ${user.is_admin ? '<span class="user-badge admin">ADMIN</span>' : ''}
                     </h3>
                     <p>📧 ${user.email}</p>

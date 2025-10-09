@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👤 Profil Utilisateur - Admin</title>
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="css/admin-styles.css">
+    <link rel="stylesheet" href="css/user-profile.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté automatiquement par PageHeader.render() -->
+
+        <!-- Informations de base -->
+        <div class="profile-section">
+            <h2>📊 Informations générales</h2>
+            <div id="profile-basic-info" class="profile-info-grid">
+                <!-- Rempli par JS -->
+            </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="profile-section">
+            <h2>📈 Statistiques</h2>
+            <div id="profile-stats" class="stats-grid">
+                <!-- Rempli par JS -->
+            </div>
+        </div>
+
+        <!-- Thèmes de collection -->
+        <div class="profile-section">
+            <h2>🎨 Thèmes de collection</h2>
+            <div id="profile-themes" class="themes-grid">
+                <!-- Rempli par JS -->
+            </div>
+        </div>
+
+        <!-- Historique des sessions de jeu -->
+        <div class="profile-section">
+            <h2>🎮 Dernières sessions de jeu</h2>
+            <div id="profile-game-sessions" class="sessions-list">
+                <!-- Rempli par JS -->
+            </div>
+        </div>
+
+        <!-- Historique d'activité -->
+        <div class="profile-section">
+            <h2>📋 Historique d'activité</h2>
+            <div id="profile-activity-logs" class="activity-list">
+                <!-- Rempli par JS -->
+            </div>
+        </div>
+
+        <!-- Toast pour les notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <!-- Scripts partagés -->
+    <script src="../../shared/js/page-header.js"></script>
+    <script src="../../shared/js/config.js"></script>
+    <script src="../../shared/js/auth.js"></script>
+    <script src="../../shared/js/auth-ui.js"></script>
+    <script src="../../shared/js/navigation.js"></script>
+    <script src="../../shared/js/toast.js"></script>
+
+    <!-- Script du profil -->
+    <script src="js/user-profile.js"></script>
+
+    <!-- Initialisation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuth = await authService.init();
+
+            if (!isAuth) {
+                window.location.href = '/';
+                return;
+            }
+
+            const currentUser = authService.getCurrentUser();
+            if (!currentUser.is_admin) {
+                Toast.error('Accès refusé - Admin uniquement');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+                return;
+            }
+
+            // Initialiser la navigation
+            await navigationUI.init();
+
+            // Récupérer l'ID de l'utilisateur depuis l'URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('userId');
+
+            if (!userId) {
+                Toast.error('ID utilisateur manquant');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                return;
+            }
+
+            await userProfile.init(parseInt(userId));
+        });
+    </script>
+</body>
+</html>

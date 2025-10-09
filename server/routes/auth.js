@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { get, run, all } = require('../turso-db');
 const { authenticateToken } = require('../middleware/auth');
+const { logActivity } = require('../utils/activity-logger');
 
 const router = express.Router();
 
@@ -102,6 +103,9 @@ router.post('/login', async (req, res) => {
         if (!validPassword) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
+
+        // Logger la connexion
+        await logActivity(user.id, 'login');
 
         // Créer le token JWT
         const token = jwt.sign(
