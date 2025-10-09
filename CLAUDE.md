@@ -169,10 +169,47 @@ Toast.hint('Indice : ...', 4000);  // Ajoute 💡, durée 4s
 showToast('✅ Bravo !');
 ```
 
-### 4. Authentification
+### 4. Modales (Alert & Confirm)
+**IMPORTANT : Ne JAMAIS utiliser `alert()` ou `confirm()` natifs du navigateur. Le système de modales les remplace automatiquement.**
+
+Le système de modales est disponible via `shared/js/modals.js` qui est chargé automatiquement via `common.js`.
+
+```javascript
+// Alert - Utilisation normale, le système override automatiquement window.alert
+alert('Message d\'information');
+await alert('Message d\'information'); // Peut être await si besoin
+
+// Confirm - Retourne une Promise<boolean>
+const confirmed = await confirm('Êtes-vous sûr de vouloir continuer ?');
+if (confirmed) {
+    // L'utilisateur a cliqué sur "Confirmer"
+    console.log('Confirmé !');
+} else {
+    // L'utilisateur a cliqué sur "Annuler"
+    console.log('Annulé');
+}
+
+// Exemple pratique
+async function deleteUser() {
+    const confirmed = await confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');
+    if (!confirmed) return;
+
+    // Procéder à la suppression...
+    Toast.success('Utilisateur supprimé');
+}
+```
+
+Le système :
+- Override automatiquement `window.alert()` et `window.confirm()`
+- Retourne des Promises (peut être utilisé avec `await`)
+- Utilise un style cohérent avec le thème de l'application
+- Ferme avec Échap ou en cliquant sur l'overlay
+- CSS chargé automatiquement via `@import` dans `theme.css`
+
+### 5. Authentification
 L'authentification est gérée automatiquement. Utiliser `authService.getCurrentUser()` pour obtenir l'utilisateur connecté.
 
-### 5. Gestion des essais journaliers
+### 6. Gestion des essais journaliers
 Le système `GameAttempts` (dans `shared/js/game-attempts.js`) gère automatiquement les essais par jour.
 
 ```javascript

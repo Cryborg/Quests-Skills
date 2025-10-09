@@ -3,6 +3,9 @@
    Palette de couleurs unifiée pour tout le site
    ============================================ */
 
+/* Import des modales partagées */
+@import url('modals.css');
+
 /* Base globale pour tous les modules */
 * {
     margin: 0;

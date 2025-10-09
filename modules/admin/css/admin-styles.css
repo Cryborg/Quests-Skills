@@ -657,7 +657,7 @@ body {
     border: 2px solid #404040;
     border-radius: 15px;
     padding: 30px;
-    max-width: 600px;
+    max-width: 900px;
     width: 90%;
     max-height: 90vh;
     overflow-y: auto;
@@ -1142,4 +1142,60 @@ body {
 .admin-btn-small {
     padding: 8px 16px;
     font-size: 0.9rem;
+}
+
+/* ===== MODAL UTILISATEUR - LAYOUT OPTIMISÉ ===== */
+#user-modal .admin-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    grid-template-areas:
+        "username email"
+        "password credits"
+        "admin admin"
+        "themes themes"
+        "actions actions";
+}
+
+#user-modal .form-group:nth-child(2) { /* username */
+    grid-area: username;
+}
+
+#user-modal .form-group:nth-child(3) { /* email */
+    grid-area: email;
+}
+
+#user-modal .form-group:nth-child(4) { /* password */
+    grid-area: password;
+}
+
+#user-modal .form-group:nth-child(5) { /* credits */
+    grid-area: credits;
+}
+
+#user-modal .checkbox-group { /* admin checkbox */
+    grid-area: admin;
+}
+
+#user-modal #user-themes-group { /* themes */
+    grid-area: themes;
+}
+
+#user-modal .form-actions {
+    grid-area: actions;
+}
+
+/* Responsive pour les petits écrans */
+@media (max-width: 768px) {
+    #user-modal .admin-form {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "username"
+            "email"
+            "password"
+            "credits"
+            "admin"
+            "themes"
+            "actions";
+    }
 }

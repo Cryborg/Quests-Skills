@@ -36,6 +36,7 @@ window.initializeApp = async function(moduleInitFunction, options = {}) {
 (function() {
     const scriptsToLoad = [
         '/shared/js/config.js',
+        '/shared/js/modals.js',
         '/shared/js/page-header.js',
         '/shared/js/credits-manager.js',
         '/shared/js/auth.js',
