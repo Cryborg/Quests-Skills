@@ -131,7 +131,7 @@ class UIManager {
     // Met à jour l'affichage complet
     async render() {
         this.updateStats();
-        this.updateThemeTabs();
+        await this.updateThemeTabs();
         this.renderCards();
         await this.updateDrawButton();
 
@@ -151,7 +151,10 @@ class UIManager {
     }
 
     // Met à jour les onglets de thèmes avec indicateurs de progression
-    updateThemeTabs() {
+    async updateThemeTabs() {
+        // Force le refresh du cache pour avoir des données à jour
+        await DB.getCollection();
+
         this.elements.themeTabs.forEach(tab => {
             const theme = tab.dataset.theme;
             const themeCards = DB.getCardsByTheme(theme);
