@@ -94,11 +94,11 @@ class AuthService {
     }
 
     // Inscription
-    async register(username, email, password) {
+    async register(username, email, password, theme_slugs = []) {
         const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
+            body: JSON.stringify({ username, email, password, theme_slugs })
         });
 
         if (!response.ok) {

@@ -2,6 +2,8 @@
 class AuthUI {
     constructor() {
         this.modal = null;
+        this.allThemes = [];
+        this.selectedThemes = [];
         this.createModal();
     }
 
@@ -49,6 +51,13 @@ class AuthUI {
                         <div class="form-group">
                             <label for="register-password-confirm">Confirmer le mot de passe</label>
                             <input type="password" id="register-password-confirm" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Thèmes d'intérêt (entre 3 et 10)</label>
+                            <small>Choisissez les thèmes de cartes que vous souhaitez collectionner</small>
+                            <div id="register-themes-selector" class="register-themes-selector">
+                                <!-- Les thèmes seront chargés dynamiquement -->
+                            </div>
                         </div>
                         <div class="auth-error" id="register-error"></div>
                         <button type="submit" class="auth-submit-btn">S'inscrire</button>
@@ -232,6 +241,57 @@ class AuthUI {
                 .user-info-bar .logout-btn:hover {
                     background: #c0392b;
                 }
+
+                /* Sélecteur de thèmes dans l'inscription */
+                .register-themes-selector {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                    gap: 10px;
+                    max-height: 300px;
+                    overflow-y: auto;
+                    padding: 10px;
+                    background: #2a2a4e;
+                    border-radius: 8px;
+                    margin-top: 10px;
+                }
+
+                .register-theme-option {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 5px;
+                    padding: 15px 10px;
+                    background: #1a1a2e;
+                    border: 2px solid #3a3a6e;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                }
+
+                .register-theme-option:hover {
+                    border-color: #667eea;
+                    background: #252545;
+                }
+
+                .register-theme-option.selected {
+                    border-color: #667eea;
+                    background: #333366;
+                }
+
+                .register-theme-option-icon {
+                    font-size: 32px;
+                }
+
+                .register-theme-option-name {
+                    font-size: 13px;
+                    color: #b8b8d8;
+                    text-align: center;
+                }
+
+                .register-theme-option.selected .register-theme-option-name {
+                    color: #e0e0ff;
+                    font-weight: 600;
+                }
             </style>
         `;
         document.head.insertAdjacentHTML('beforeend', styles);
@@ -270,7 +330,7 @@ class AuthUI {
         });
     }
 
-    switchTab(tab) {
+    async switchTab(tab) {
         // Changer l'onglet actif
         document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
         document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
@@ -282,6 +342,11 @@ class AuthUI {
         // Réinitialiser les erreurs
         document.getElementById('login-error').textContent = '';
         document.getElementById('register-error').textContent = '';
+
+        // Charger les thèmes si on affiche le formulaire d'inscription
+        if (tab === 'register' && this.allThemes.length === 0) {
+            await this.loadThemes();
+        }
     }
 
     async handleLogin() {
@@ -314,7 +379,15 @@ class AuthUI {
                 throw new Error('Les mots de passe ne correspondent pas');
             }
 
-            await authService.register(username, email, password);
+            // Validation des thèmes
+            if (this.selectedThemes.length < 3) {
+                throw new Error('Veuillez sélectionner au moins 3 thèmes');
+            }
+            if (this.selectedThemes.length > 10) {
+                throw new Error('Veuillez sélectionner au maximum 10 thèmes');
+            }
+
+            await authService.register(username, email, password, this.selectedThemes);
             this.hide();
             window.location.reload(); // Recharger la page pour afficher le contenu authentifié
         } catch (error) {
@@ -328,6 +401,69 @@ class AuthUI {
 
     hide() {
         this.modal.style.display = 'none';
+    }
+
+    // Charger les thèmes disponibles
+    async loadThemes() {
+        try {
+            const response = await fetch(`${API_URL}/themes/all`);
+            this.allThemes = await response.json();
+            this.renderThemes();
+        } catch (error) {
+            console.error('Failed to load themes:', error);
+        }
+    }
+
+    // Afficher les thèmes dans le sélecteur
+    renderThemes() {
+        const container = document.getElementById('register-themes-selector');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        this.allThemes.forEach(theme => {
+            const isSelected = this.selectedThemes.includes(theme.slug);
+
+            const themeEl = document.createElement('div');
+            themeEl.className = `register-theme-option ${isSelected ? 'selected' : ''}`;
+            themeEl.dataset.slug = theme.slug;
+
+            themeEl.innerHTML = `
+                <div class="register-theme-option-icon">${theme.icon}</div>
+                <div class="register-theme-option-name">${theme.name}</div>
+            `;
+
+            themeEl.addEventListener('click', () => this.toggleTheme(theme.slug));
+
+            container.appendChild(themeEl);
+        });
+    }
+
+    // Toggle un thème
+    toggleTheme(slug) {
+        const index = this.selectedThemes.indexOf(slug);
+
+        if (index > -1) {
+            // Désélectionner (mais minimum 3)
+            if (this.selectedThemes.length <= 3) {
+                const errorEl = document.getElementById('register-error');
+                errorEl.textContent = 'Minimum 3 thèmes requis';
+                setTimeout(() => errorEl.textContent = '', 3000);
+                return;
+            }
+            this.selectedThemes.splice(index, 1);
+        } else {
+            // Sélectionner (mais maximum 10)
+            if (this.selectedThemes.length >= 10) {
+                const errorEl = document.getElementById('register-error');
+                errorEl.textContent = 'Maximum 10 thèmes autorisés';
+                setTimeout(() => errorEl.textContent = '', 3000);
+                return;
+            }
+            this.selectedThemes.push(slug);
+        }
+
+        this.renderThemes();
     }
 
     // Créer la barre d'info utilisateur

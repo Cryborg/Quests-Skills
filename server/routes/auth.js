@@ -10,7 +10,7 @@ const router = express.Router();
 // POST /api/auth/register - Inscription
 router.post('/register', async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, theme_slugs } = req.body;
 
         // Validation
         if (!username || !email || !password) {
@@ -51,15 +51,31 @@ router.post('/register', async (req, res) => {
             [user.id, 10, now, now]
         );
 
-        // Assigner 3 thèmes aléatoires par défaut
-        const allThemes = await all('SELECT slug FROM card_themes');
-        const shuffled = allThemes.sort(() => 0.5 - Math.random());
-        const selectedThemes = shuffled.slice(0, 3);
+        // Assigner les thèmes : utiliser ceux fournis ou 3 aléatoires par défaut
+        let themesToAssign = [];
 
-        for (const theme of selectedThemes) {
+        if (theme_slugs && Array.isArray(theme_slugs) && theme_slugs.length >= 3 && theme_slugs.length <= 10) {
+            // Vérifier que tous les thèmes existent
+            const allThemes = await all('SELECT slug FROM card_themes');
+            const validSlugs = allThemes.map(t => t.slug);
+            const validThemeSlugs = theme_slugs.filter(slug => validSlugs.includes(slug));
+
+            if (validThemeSlugs.length >= 3 && validThemeSlugs.length <= 10) {
+                themesToAssign = validThemeSlugs;
+            }
+        }
+
+        // Si pas de thèmes valides fournis, assigner 3 aléatoires
+        if (themesToAssign.length === 0) {
+            const allThemes = await all('SELECT slug FROM card_themes');
+            const shuffled = allThemes.sort(() => 0.5 - Math.random());
+            themesToAssign = shuffled.slice(0, 3).map(t => t.slug);
+        }
+
+        for (const themeSlug of themesToAssign) {
             await run(
                 'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
-                [user.id, theme.slug, now]
+                [user.id, themeSlug, now]
             );
         }
 

@@ -201,6 +201,10 @@ class AdminUsers {
             creditsAdjustmentInput.value = 0;
             passwordGroup.querySelector('small').style.display = 'none';
             creditsGroup.style.display = 'none';
+            themesGroup.style.display = 'block';
+
+            // Charger les thèmes disponibles pour la création
+            await this.loadThemesForCreation();
         }
 
         adminUI.showModal('user-modal');
@@ -263,8 +267,8 @@ class AdminUsers {
                 const savedUser = await response.json();
                 const finalUserId = userId || savedUser.id;
 
-                // Sauvegarder les thèmes si on édite un utilisateur
-                if (userId && this.selectedThemes.length > 0) {
+                // Sauvegarder les thèmes (création ou édition)
+                if (this.selectedThemes.length > 0) {
                     const themesSaved = await this.saveUserThemes(finalUserId);
                     if (!themesSaved) {
                         return; // Arrêter si la sauvegarde des thèmes a échoué
@@ -423,6 +427,25 @@ class AdminUsers {
             stats.forEach(stat => {
                 this.themeStats[stat.theme_slug] = stat.card_count;
             });
+
+            // Afficher les thèmes
+            this.renderThemes();
+        } catch (error) {
+            console.error('Failed to load themes:', error);
+            adminUI.showToast('Erreur lors du chargement des thèmes', 'error');
+        }
+    }
+
+    // Charger les thèmes pour la création d'un nouvel utilisateur
+    async loadThemesForCreation() {
+        try {
+            // Charger tous les thèmes disponibles
+            const themesResponse = await authService.fetchAPI('/themes/all');
+            this.allThemes = await themesResponse.json();
+
+            // Aucun thème sélectionné par défaut
+            this.selectedThemes = [];
+            this.themeStats = {};
 
             // Afficher les thèmes
             this.renderThemes();
