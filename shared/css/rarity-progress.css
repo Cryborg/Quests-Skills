@@ -1,0 +1,47 @@
+/* Rarity Progress Bars - Shared Component */
+
+.rarity-progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.rarity-progress-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rarity-progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.rarity-name {
+    color: var(--text-secondary, #b0b0b0);
+    font-weight: 500;
+}
+
+.rarity-count {
+    color: var(--text-primary, #ffffff);
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.rarity-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.rarity-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+    min-width: 2px;
+}

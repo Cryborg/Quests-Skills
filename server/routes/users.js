@@ -83,6 +83,28 @@ router.get('/:id/profile', requireAdmin, async (req, res) => {
             [userId]
         );
 
+        // Enrichir les thèmes avec les stats de collection par rareté
+        for (const theme of themes) {
+            const rarityStats = await all(`
+                SELECT
+                    c.rarity,
+                    COUNT(DISTINCT c.id) as total,
+                    COUNT(DISTINCT uc.card_id) as owned
+                FROM cards c
+                LEFT JOIN user_cards uc ON c.id = uc.card_id AND uc.user_id = ?
+                WHERE c.theme = ?
+                GROUP BY c.rarity
+            `, [userId, theme.slug]);
+
+            theme.rarityStats = rarityStats.reduce((acc, stat) => {
+                acc[stat.rarity] = {
+                    total: stat.total,
+                    owned: stat.owned
+                };
+                return acc;
+            }, {});
+        }
+
         res.json({
             user,
             stats: {
