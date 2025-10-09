@@ -221,13 +221,14 @@
 
                     <div class="form-group">
                         <label for="theme-slug">Identifiant (slug) :</label>
-                        <input type="text" id="theme-slug" required pattern="[a-z0-9_-]+" placeholder="ex: dinosaurs">
-                        <small>Utilisez uniquement des lettres minuscules, chiffres, tirets et underscores</small>
+                        <input type="text" id="theme-slug" required pattern="[a-z0-9_\-]+" placeholder="ex: chateaux">
+                        <small>Lettres minuscules (sans accents), chiffres, tirets et underscores uniquement</small>
                     </div>
 
                     <div class="form-group">
                         <label for="theme-name">Nom du thème :</label>
-                        <input type="text" id="theme-name" required placeholder="ex: Dinosaures">
+                        <input type="text" id="theme-name" required placeholder="ex: Châteaux">
+                        <small>Nom affiché (accents autorisés)</small>
                     </div>
 
                     <div class="form-group">

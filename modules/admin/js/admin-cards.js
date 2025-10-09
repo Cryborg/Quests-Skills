@@ -209,18 +209,14 @@ class AdminCards {
             }
         });
 
-        // Soumettre les formulaires
+        // Soumettre le formulaire de carte
         const cardForm = document.getElementById('card-form');
         cardForm.addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveCard();
         });
 
-        const themeForm = document.getElementById('theme-form');
-        themeForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveTheme();
-        });
+        // Note: Le formulaire de thème (#theme-form) est géré par admin-themes.js
     }
 
     // Attacher les événements des boutons cartes

@@ -14,9 +14,11 @@ class AdminThemes {
 
     // Charger tous les thèmes
     async loadThemes() {
+        console.log('🟢 [loadThemes] Chargement des thèmes...');
         try {
             const response = await authService.fetchAPI('/themes/all');
             this.themes = await response.json();
+            console.log('🟢 [loadThemes] Thèmes chargés:', this.themes.length);
             this.renderThemes();
         } catch (error) {
             console.error('Failed to load themes:', error);
@@ -26,6 +28,7 @@ class AdminThemes {
 
     // Afficher les thèmes
     renderThemes() {
+        console.log('🟢 [renderThemes] Affichage de', this.themes.length, 'thèmes');
         const container = document.getElementById('themes-container');
         if (!container) {
             console.error('themes-container not found');
@@ -34,6 +37,7 @@ class AdminThemes {
 
         if (this.themes.length === 0) {
             container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Aucun thème. Créez-en un pour commencer !</p>';
+            console.log('🟢 [renderThemes] Container vidé (aucun thème)');
             return;
         }
 
@@ -131,13 +135,25 @@ class AdminThemes {
 
     // Sauvegarder un thème
     async saveTheme() {
+        console.log('🔵 [saveTheme] START - Fonction appelée');
+
+        const saveBtn = document.querySelector('#theme-form button[type="submit"]');
+        console.log('🔵 [saveTheme] Bouton trouvé:', saveBtn);
+
+        const spinner = ButtonSpinner.start(saveBtn);
+        console.log('🔵 [saveTheme] Spinner démarré, bouton disabled:', saveBtn.disabled);
+
         const themeId = document.getElementById('theme-id').value;
         const slug = document.getElementById('theme-slug').value.trim();
         const name = document.getElementById('theme-name').value.trim();
         const icon = document.getElementById('theme-icon').value.trim();
 
+        console.log('🔵 [saveTheme] Données:', { themeId, slug, name, icon });
+
         if (!slug || !name || !icon) {
+            console.log('🔴 [saveTheme] Validation échouée');
             adminUI.showToast('Tous les champs sont requis', 'error');
+            spinner.stop();
             return;
         }
 
@@ -147,24 +163,25 @@ class AdminThemes {
             icon
         };
 
-        const saveBtn = document.querySelector('#theme-form button[type="submit"]');
-        const spinner = ButtonSpinner.start(saveBtn);
-
         try {
+            console.log('🔵 [saveTheme] Début appel API...');
             let response;
             if (themeId) {
+                console.log('🔵 [saveTheme] Mode UPDATE');
                 // Mise à jour
                 response = await authService.fetchAPI(`/themes/${themeId}`, {
                     method: 'PUT',
                     body: JSON.stringify(themeData)
                 });
             } else {
+                console.log('🔵 [saveTheme] Mode CREATE');
                 // Création
                 response = await authService.fetchAPI('/themes', {
                     method: 'POST',
                     body: JSON.stringify(themeData)
                 });
             }
+            console.log('🔵 [saveTheme] Réponse API reçue:', response.status);
 
             if (response.ok) {
                 adminUI.showToast(themeId ? 'Thème modifié' : 'Thème créé', 'success');
