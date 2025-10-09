@@ -130,8 +130,6 @@ class UIManager {
 
     // Met à jour l'affichage complet
     async render() {
-        console.log('🎨 render() - currentTheme:', CARD_SYSTEM.currentTheme);
-        console.log('🎨 render() - onglet actif:', document.querySelector('.tab-btn.active')?.dataset.theme);
         this.updateStats();
         await this.updateThemeTabs();
         this.renderCards();

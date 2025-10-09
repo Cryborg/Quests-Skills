@@ -72,7 +72,6 @@ class DatabaseManager {
 
             this.cardsTimestamp = now;
             console.log(`✅ ${this.cardsCache.length} cartes chargées depuis l'API`);
-            console.log('🔍 Premiers IDs des cartes:', this.cardsCache.slice(0, 3).map(c => ({ id: c.id, name: c.name })));
             return this.cardsCache;
         } catch (error) {
             console.error('Error loading cards from API:', error);
@@ -357,9 +356,6 @@ class DatabaseManager {
                     firstObtained: new Date(userCard.created_at).getTime()
                 };
             }
-
-            console.log('🔍 Collection keys (card_id):', Object.keys(collection).slice(0, 5));
-            console.log('🔍 Premier élément de collection:', Object.entries(collection)[0]);
 
             // Met à jour le cache pour getCollectionSync()
             this.collectionCache = collection;
