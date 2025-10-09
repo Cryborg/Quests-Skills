@@ -228,12 +228,15 @@ class UIManager {
             };
         });
 
-        // Compte les cartes par rareté actuelle
+        // Compte le total par rareté de BASE et les possédées par rareté ACTUELLE
         themeCards.forEach(card => {
-            const currentRarity = card.currentRarity || 'common';
-            rarityStats[currentRarity].total++;
+            // Le total est basé sur la rareté de base de la carte
+            const baseRarity = card.base_rarity || card.rarity || 'common';
+            rarityStats[baseRarity].total++;
 
+            // Les cartes possédées sont comptées par rareté actuelle
             if (card.owned) {
+                const currentRarity = card.currentRarity || 'common';
                 rarityStats[currentRarity].owned++;
             }
         });
