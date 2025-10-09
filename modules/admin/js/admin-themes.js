@@ -168,8 +168,9 @@ class AdminThemes {
                 adminUI.closeModal('theme-modal');
                 await this.loadThemes();
 
-                // Recharger les cartes pour mettre à jour les filtres
+                // Recharger les thèmes et cartes dans adminCards pour mise à jour immédiate
                 if (typeof adminCards !== 'undefined') {
+                    await adminCards.loadThemes();
                     await adminCards.loadCards();
                 }
             } else {
@@ -208,8 +209,9 @@ class AdminThemes {
                 adminUI.showToast('Thème supprimé', 'success');
                 await this.loadThemes();
 
-                // Recharger les cartes pour mettre à jour les filtres
+                // Recharger les thèmes et cartes dans adminCards pour mise à jour immédiate
                 if (typeof adminCards !== 'undefined') {
+                    await adminCards.loadThemes();
                     await adminCards.loadCards();
                 }
             } else {
