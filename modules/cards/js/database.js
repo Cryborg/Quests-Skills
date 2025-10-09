@@ -463,6 +463,9 @@ class DatabaseManager {
             const user = authService.getCurrentUser();
             if (!user) return { success: false, message: 'Utilisateur non connecté' };
 
+            // Recharge toujours la collection depuis l'API pour avoir les données à jour
+            await this.getCollection();
+
             const collection = this.getCollectionSync();
             const card = this.getCardById(cardId);
 

@@ -473,21 +473,27 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
         const cardId = parseInt(req.params.cardId);
         const { to_rarity, cost } = req.body;
 
+        console.log('🔺 UPGRADE REQUEST:', { userId, cardId, to_rarity, cost });
+
         // Vérifier que l'user a la carte
         const userCard = await get(
-            `SELECT uc.*, c.*
+            `SELECT uc.id as user_card_id, uc.user_id, uc.card_id, uc.quantity, uc.current_rarity, c.*
              FROM user_cards uc
              JOIN cards c ON uc.card_id = c.id
              WHERE uc.user_id = ? AND uc.card_id = ?`,
             [userId, cardId]
         );
 
+        console.log('🔍 Found user_card:', userCard);
+
         if (!userCard) {
+            console.log('❌ Card not found');
             return res.status(404).json({ error: 'Card not owned' });
         }
 
         // Vérifier que l'user a assez de cartes pour l'upgrade
         if (userCard.quantity < cost) {
+            console.log('❌ Not enough cards:', userCard.quantity, '<', cost);
             return res.status(400).json({ error: 'Not enough cards to upgrade' });
         }
 
@@ -495,11 +501,15 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
         let excessCards = 0;
         let newQuantity = userCard.quantity - cost;
 
+        console.log('📊 Calculating new values:', { currentQuantity: userCard.quantity, cost, newQuantity });
+
         // Si on atteint Légendaire, convertit les cartes en excès en crédits
         if (to_rarity === 'legendary') {
             excessCards = Math.max(0, newQuantity);
             creditsEarned = excessCards * 1; // 1 crédit par carte en excès
             newQuantity = 1; // Garde seulement 1 exemplaire Légendaire
+
+            console.log('💎 Legendary upgrade:', { excessCards, creditsEarned, newQuantity });
 
             // Ajoute les crédits gagnés si nécessaire
             if (creditsEarned > 0) {
@@ -511,18 +521,29 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
         }
 
         // Upgrade: déduire le coût et changer la rareté
-        await run(
+        console.log('💾 Executing UPDATE:', {
+            user_card_id: userCard.user_card_id,
+            to_rarity,
+            newQuantity,
+            currentRarity: userCard.current_rarity
+        });
+
+        const result = await run(
             'UPDATE user_cards SET current_rarity = ?, quantity = ?, updated_at = ? WHERE id = ?',
-            [to_rarity, newQuantity, new Date().toISOString(), userCard.id]
+            [to_rarity, newQuantity, new Date().toISOString(), userCard.user_card_id]
         );
+
+        console.log('✅ UPDATE result:', result);
 
         const updated = await get(
             `SELECT uc.*, c.*
              FROM user_cards uc
              JOIN cards c ON uc.card_id = c.id
              WHERE uc.id = ?`,
-            [userCard.id]
+            [userCard.user_card_id]
         );
+
+        console.log('🔄 Updated card:', updated);
 
         res.json({
             card: updated,
@@ -530,7 +551,7 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
             excessCards
         });
     } catch (error) {
-        console.error('Error upgrading card:', error);
+        console.error('❌❌❌ Error upgrading card:', error);
         res.status(500).json({ error: 'Failed to upgrade card' });
     }
 });
