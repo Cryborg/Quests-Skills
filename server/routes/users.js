@@ -85,24 +85,38 @@ router.get('/:id/profile', requireAdmin, async (req, res) => {
 
         // Enrichir les thèmes avec les stats de collection par rareté
         for (const theme of themes) {
+            // Pour chaque rareté, compter le total de cartes et celles possédées
             const rarityStats = await all(`
                 SELECT
-                    c.rarity,
-                    COUNT(DISTINCT c.id) as total,
+                    uc.current_rarity as rarity,
                     COUNT(DISTINCT uc.card_id) as owned
-                FROM cards c
-                LEFT JOIN user_cards uc ON c.id = uc.card_id AND uc.user_id = ?
-                WHERE c.theme = ?
-                GROUP BY c.rarity
+                FROM user_cards uc
+                JOIN cards c ON uc.card_id = c.id
+                WHERE uc.user_id = ? AND c.category = ?
+                GROUP BY uc.current_rarity
             `, [userId, theme.slug]);
 
-            theme.rarityStats = rarityStats.reduce((acc, stat) => {
-                acc[stat.rarity] = {
-                    total: stat.total,
-                    owned: stat.owned
+            // Compter le total de cartes par rareté base dans ce thème
+            const totalByRarity = await all(`
+                SELECT base_rarity as rarity, COUNT(*) as total
+                FROM cards
+                WHERE category = ?
+                GROUP BY base_rarity
+            `, [theme.slug]);
+
+            // Fusionner les stats
+            theme.rarityStats = {};
+            for (const t of totalByRarity) {
+                theme.rarityStats[t.rarity] = {
+                    total: t.total,
+                    owned: 0
                 };
-                return acc;
-            }, {});
+            }
+            for (const owned of rarityStats) {
+                if (theme.rarityStats[owned.rarity]) {
+                    theme.rarityStats[owned.rarity].owned = owned.owned;
+                }
+            }
         }
 
         res.json({
