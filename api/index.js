@@ -16,6 +16,7 @@ const authRouter = require('../server/routes/auth');
 const themesRouter = require('../server/routes/themes');
 const gamesRouter = require('../server/routes/games');
 const wordSearchRouter = require('../server/routes/word-search');
+const imagesRouter = require('../server/routes/images');
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/themes', themesRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/word-search', wordSearchRouter);
+app.use('/api/images', imagesRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
