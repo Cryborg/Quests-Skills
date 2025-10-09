@@ -56,6 +56,14 @@ class AdminUI {
         document.querySelectorAll('.admin-section').forEach(section => {
             section.classList.toggle('active', section.id === `${tab}-section`);
         });
+
+        // Rafraîchir les données selon l'onglet affiché
+        if (tab === 'cards-themes' && typeof adminCards !== 'undefined') {
+            adminCards.loadThemes();
+            adminCards.loadCards();
+        } else if (tab === 'word-search' && typeof WordSearchAdmin !== 'undefined') {
+            WordSearchAdmin.loadThemes();
+        }
     }
 
     // Afficher un toast

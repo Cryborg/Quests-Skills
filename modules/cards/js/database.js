@@ -417,6 +417,9 @@ class DatabaseManager {
             // Invalide le cache pour forcer un refresh
             this.invalidateCollectionCache();
 
+            // Force le rechargement de la collection pour mettre à jour le cache
+            await this.getCollection();
+
             return { success: true, collection: result.collection };
         } catch (error) {
             console.error('❌ Exception when adding cards to collection:', error);
