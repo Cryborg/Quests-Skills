@@ -8,8 +8,18 @@ const { seedWords } = require('./seed-words');
 /**
  * Seed des données initiales
  * Orchestre tous les seeders dans le bon ordre
+ *
+ * PROTECTION: En production, ne seed QUE si explicitement autorisé via ALLOW_SEED=true
  */
 async function seedInitialData() {
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+    const allowSeed = process.env.ALLOW_SEED === 'true';
+
+    if (isProduction && !allowSeed) {
+        console.log('⚠️  PRODUCTION: Seeding skipped (set ALLOW_SEED=true to enable)');
+        return;
+    }
+
     console.log('🌱 Seeding initial data...');
 
     // 1. Seed Card Themes (obligatoire en premier car référencé par d'autres tables)
