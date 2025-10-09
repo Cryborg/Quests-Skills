@@ -10,17 +10,41 @@ class AdminCards {
         this.filters = {
             rarity: ''
         };
-        this.collapsedThemes = new Set(); // Track collapsed themes
+        this.collapsedThemes = this.loadCollapsedState(); // Track collapsed themes
         this.allCollapsed = false; // Track global collapse state
+        this.availableImages = []; // Chargé dynamiquement depuis l'API
+    }
+
+    // Charger l'état des thèmes repliés depuis localStorage
+    loadCollapsedState() {
+        const saved = localStorage.getItem('admin-cards-collapsed-themes');
+        return saved ? new Set(JSON.parse(saved)) : new Set();
+    }
+
+    // Sauvegarder l'état des thèmes repliés dans localStorage
+    saveCollapsedState() {
+        localStorage.setItem('admin-cards-collapsed-themes', JSON.stringify([...this.collapsedThemes]));
     }
 
     // Initialiser la gestion des cartes et thèmes
     async init() {
         await Promise.all([
             this.loadThemes(),
-            this.loadCards()
+            this.loadCards(),
+            this.loadAvailableImages()
         ]);
         this.attachEvents();
+    }
+
+    // Charger la liste des images disponibles
+    async loadAvailableImages() {
+        try {
+            const response = await authService.fetchAPI('/images');
+            this.availableImages = await response.json();
+        } catch (error) {
+            console.error('Failed to load available images:', error);
+            this.availableImages = [];
+        }
     }
 
     // Charger tous les thèmes
@@ -171,10 +195,18 @@ class AdminCards {
         const cancelThemeBtn = document.getElementById('theme-form-cancel');
         cancelThemeBtn.addEventListener('click', () => adminUI.closeModal('theme-modal'));
 
-        // Aperçu de l'image
+        // Aperçu de l'image + autocomplétion
         const imageInput = document.getElementById('card-image');
         imageInput.addEventListener('input', (e) => {
             this.updateImagePreview(e.target.value);
+            this.showImageAutocomplete(e.target.value);
+        });
+
+        // Fermer l'autocomplétion si on clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.image-input-wrapper')) {
+                this.hideImageAutocomplete();
+            }
         });
 
         // Soumettre les formulaires
@@ -292,6 +324,67 @@ class AdminCards {
             preview.style.display = 'block';
         } else {
             preview.style.display = 'none';
+        }
+    }
+
+    // Afficher l'autocomplétion pour les images
+    showImageAutocomplete(inputValue) {
+        // Ne pas afficher si le champ est vide
+        if (!inputValue.trim()) {
+            this.hideImageAutocomplete();
+            return;
+        }
+
+        // Filtrer les images qui matchent l'input
+        const matches = this.availableImages.filter(img =>
+            img.toLowerCase().includes(inputValue.toLowerCase())
+        );
+
+        // N'afficher que si on a entre 1 et 5 résultats
+        if (matches.length === 0 || matches.length > 5) {
+            this.hideImageAutocomplete();
+            return;
+        }
+
+        // Créer ou récupérer le conteneur d'autocomplétion
+        let autocompleteDiv = document.getElementById('image-autocomplete');
+        if (!autocompleteDiv) {
+            autocompleteDiv = document.createElement('div');
+            autocompleteDiv.id = 'image-autocomplete';
+            autocompleteDiv.className = 'image-autocomplete';
+
+            const imageInput = document.getElementById('card-image');
+            imageInput.parentElement.style.position = 'relative';
+            imageInput.parentElement.appendChild(autocompleteDiv);
+        }
+
+        // Afficher les suggestions
+        autocompleteDiv.innerHTML = matches.map(img => `
+            <div class="autocomplete-item" data-value="${img}">
+                <img src="/shared/${img}" alt="${img}" class="autocomplete-img">
+                <span>${img}</span>
+            </div>
+        `).join('');
+
+        // Attacher les événements de clic sur les suggestions
+        autocompleteDiv.querySelectorAll('.autocomplete-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const value = e.currentTarget.dataset.value;
+                const imageInput = document.getElementById('card-image');
+                imageInput.value = value;
+                this.updateImagePreview(value);
+                this.hideImageAutocomplete();
+            });
+        });
+
+        autocompleteDiv.style.display = 'block';
+    }
+
+    // Cacher l'autocomplétion
+    hideImageAutocomplete() {
+        const autocompleteDiv = document.getElementById('image-autocomplete');
+        if (autocompleteDiv) {
+            autocompleteDiv.style.display = 'none';
         }
     }
 
@@ -426,6 +519,7 @@ class AdminCards {
         } else {
             this.collapsedThemes.add(themeSlug);
         }
+        this.saveCollapsedState();
         this.renderCards();
     }
 
@@ -444,6 +538,7 @@ class AdminCards {
             this.allCollapsed = true;
             toggleBtn.innerHTML = '📂 Tout déplier';
         }
+        this.saveCollapsedState();
         this.renderCards();
     }
 

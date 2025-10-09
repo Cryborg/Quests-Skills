@@ -18,6 +18,7 @@ const bonusRouter = require('./routes/bonus');
 const authRouter = require('./routes/auth');
 const themesRouter = require('./routes/themes');
 const gamesRouter = require('./routes/games');
+const imagesRouter = require('./routes/images');
 
 console.log('📦 Loading word-search router...');
 const wordSearchRouter = require('./routes/word-search');
@@ -51,6 +52,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/themes', themesRouter);
 app.use('/api/games', gamesRouter);
 app.use('/api/word-search', wordSearchRouter);
+app.use('/api/images', imagesRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

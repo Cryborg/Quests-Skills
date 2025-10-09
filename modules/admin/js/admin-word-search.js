@@ -2,12 +2,36 @@
 const WordSearchAdmin = {
     themes: [],
     cardThemes: [],
+    collapsedThemes: new Set(),
 
     async init() {
         console.log('🔧 Initializing WordSearch Admin');
+        this.loadCollapsedState();
         await this.loadCardThemes();
         await this.loadThemes();
         this.attachEvents();
+    },
+
+    // Charger l'état des thèmes repliés depuis localStorage
+    loadCollapsedState() {
+        const saved = localStorage.getItem('admin-words-collapsed-themes');
+        this.collapsedThemes = saved ? new Set(JSON.parse(saved)) : new Set();
+    },
+
+    // Sauvegarder l'état des thèmes repliés dans localStorage
+    saveCollapsedState() {
+        localStorage.setItem('admin-words-collapsed-themes', JSON.stringify([...this.collapsedThemes]));
+    },
+
+    // Toggle un thème
+    toggleTheme(themeSlug) {
+        if (this.collapsedThemes.has(themeSlug)) {
+            this.collapsedThemes.delete(themeSlug);
+        } else {
+            this.collapsedThemes.add(themeSlug);
+        }
+        this.saveCollapsedState();
+        this.renderThemes();
     },
 
     async loadCardThemes() {
@@ -105,10 +129,19 @@ const WordSearchAdmin = {
             return;
         }
 
-        container.innerHTML = this.themes.map(theme => `
-            <div class="word-theme-card" data-theme-slug="${theme.slug || 'generic'}">
+        container.innerHTML = this.themes.map(theme => {
+            const themeSlug = theme.slug || 'generic';
+            const isCollapsed = this.collapsedThemes.has(themeSlug);
+
+            return `
+            <div class="word-theme-card ${isCollapsed ? 'collapsed' : ''}" data-theme-slug="${themeSlug}">
                 <div class="word-theme-header">
-                    <h3>${theme.icon} ${theme.name}</h3>
+                    <div class="word-theme-header-left">
+                        <button class="theme-collapse-btn" onclick="WordSearchAdmin.toggleTheme('${themeSlug}')" title="${isCollapsed ? 'Déplier' : 'Replier'}">
+                            ${isCollapsed ? '▶' : '▼'}
+                        </button>
+                        <h3>${theme.icon} ${theme.name}</h3>
+                    </div>
                     <div class="word-theme-actions">
                         <button class="admin-btn-small admin-btn-secondary" onclick="WordSearchAdmin.openAddWordModal('${theme.slug || ''}')">
                             ➕ Ajouter un mot
@@ -125,7 +158,7 @@ const WordSearchAdmin = {
                     `).join('') : '<p class="empty-state-small">Aucun mot dans ce thème</p>'}
                 </div>
             </div>
-        `).join('');
+        `}).join('');
     },
 
     openAddWordModal(themeSlug) {
