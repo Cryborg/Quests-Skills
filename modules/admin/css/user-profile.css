@@ -18,33 +18,43 @@
     padding-bottom: 10px;
 }
 
-/* Grille d'informations de base */
-.profile-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 15px;
+/* Tableau d'informations de base */
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.profile-info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.profile-table td {
     padding: 12px 15px;
-    background: #2a2a2a;
     border: 1px solid #404040;
-    border-radius: 8px;
 }
 
-.profile-info-label {
+.profile-table td:nth-child(odd) {
+    background: #2a2a2a;
     color: #b0b0b0;
-    font-size: 0.95rem;
     font-weight: 500;
+    width: 15%;
+    white-space: nowrap;
 }
 
-.profile-info-value {
+.profile-table td:nth-child(even) {
+    background: #1a1a1a;
     color: #ffffff;
     font-weight: 600;
-    text-align: right;
+}
+
+.profile-table td:nth-child(3) {
+    background: #2a2a2a;
+    color: #b0b0b0;
+    font-weight: 500;
+    width: 15%;
+    white-space: nowrap;
+}
+
+.profile-table td:nth-child(4) {
+    background: #1a1a1a;
+    color: #ffffff;
+    font-weight: 600;
 }
 
 /* Badge utilisateur dans le profil */

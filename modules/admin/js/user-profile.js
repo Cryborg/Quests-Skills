@@ -75,36 +75,30 @@ class UserProfile {
         });
 
         container.innerHTML = `
-            <div class="profile-info-item">
-                <span class="profile-info-label">🆔 ID</span>
-                <span class="profile-info-value">${user.id}</span>
-            </div>
-            <div class="profile-info-item">
-                <span class="profile-info-label">👤 Nom d'utilisateur</span>
-                <span class="profile-info-value">${user.username}</span>
-            </div>
-            <div class="profile-info-item">
-                <span class="profile-info-label">📧 Email</span>
-                <span class="profile-info-value">${user.email}</span>
-            </div>
-            <div class="profile-info-item">
-                <span class="profile-info-label">💰 Crédits</span>
-                <span class="profile-info-value">${user.credits}</span>
-            </div>
-            <div class="profile-info-item">
-                <span class="profile-info-label">🔐 Statut</span>
-                <span class="profile-info-value">
-                    ${user.is_admin ? '<span class="user-badge admin">ADMIN</span>' : '<span class="user-badge user">UTILISATEUR</span>'}
-                </span>
-            </div>
-            <div class="profile-info-item">
-                <span class="profile-info-label">📅 Inscription</span>
-                <span class="profile-info-value">${createdDate}</span>
-            </div>
-            <div class="profile-info-item">
-                <span class="profile-info-label">🔄 Dernière modification</span>
-                <span class="profile-info-value">${updatedDate}</span>
-            </div>
+            <tr>
+                <td>🆔 ID</td>
+                <td>${user.id}</td>
+                <td>💰 Crédits</td>
+                <td>${user.credits}</td>
+            </tr>
+            <tr>
+                <td>👤 Nom d'utilisateur</td>
+                <td>${user.username}</td>
+                <td>🔐 Statut</td>
+                <td>${user.is_admin ? '<span class="user-badge admin">ADMIN</span>' : '<span class="user-badge user">UTILISATEUR</span>'}</td>
+            </tr>
+            <tr>
+                <td>📧 Email</td>
+                <td colspan="3">${user.email}</td>
+            </tr>
+            <tr>
+                <td>📅 Inscription</td>
+                <td colspan="3">${createdDate}</td>
+            </tr>
+            <tr>
+                <td>🔄 Dernière modification</td>
+                <td colspan="3">${updatedDate}</td>
+            </tr>
         `;
     }
 
