@@ -59,10 +59,15 @@ class AdminUI {
 
         // Rafraîchir les données selon l'onglet affiché
         if (tab === 'cards-themes' && typeof adminCards !== 'undefined') {
-            adminCards.loadThemes();
-            adminCards.loadCards();
+            // Force le render après que l'onglet soit visible
+            setTimeout(() => {
+                adminCards.renderCards();
+            }, 0);
         } else if (tab === 'word-search' && typeof WordSearchAdmin !== 'undefined') {
-            WordSearchAdmin.loadThemes();
+            // Force le render après que l'onglet soit visible
+            setTimeout(() => {
+                WordSearchAdmin.renderThemes();
+            }, 0);
         }
     }
 
