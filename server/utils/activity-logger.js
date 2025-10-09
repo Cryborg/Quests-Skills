@@ -1,4 +1,5 @@
 const { run } = require('../turso-db');
+const { runMigrations } = require('../../database/migrate');
 
 /**
  * Logger d'activité utilisateur
@@ -10,6 +11,8 @@ const { run } = require('../turso-db');
  * - 'credits_spent' : Crédits dépensés
  */
 
+let migrationAttempted = false;
+
 async function logActivity(userId, actionType, details = null) {
     try {
         const now = new Date().toISOString();
@@ -20,7 +23,24 @@ async function logActivity(userId, actionType, details = null) {
             [userId, actionType, detailsJson, now]
         );
     } catch (error) {
-        console.error('Failed to log activity:', error);
+        // Si la table n'existe pas et qu'on n'a pas encore tenté de migration
+        if (error.message?.includes('no such table') && !migrationAttempted) {
+            console.log('⚠️  Activity table missing, running migrations...');
+            migrationAttempted = true;
+
+            try {
+                await runMigrations();
+                // Réessayer après migration
+                await run(
+                    'INSERT INTO user_activity_logs (user_id, action_type, details, created_at) VALUES (?, ?, ?, ?)',
+                    [userId, actionType, detailsJson, new Date().toISOString()]
+                );
+            } catch (retryError) {
+                console.error('Failed to log activity after migration:', retryError);
+            }
+        } else {
+            console.error('Failed to log activity:', error);
+        }
         // Ne pas faire planter l'application si le log échoue
     }
 }

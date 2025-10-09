@@ -32,13 +32,13 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Auto-run migrations on first API call (runs only once)
-app.use('/api', ensureMigrations);
-
 // Serve static files (frontend)
 app.use(express.static(path.join(__dirname, '..')));
 
-// API Routes
+// Auto-run migrations BEFORE any API route (runs only once)
+app.use('/api', ensureMigrations);
+
+// API Routes (migrations will run before these)
 app.use('/api/cards', cardsRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/bonus-operations', bonusRouter);
