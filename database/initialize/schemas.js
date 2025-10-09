@@ -11,14 +11,15 @@ async function createTables() {
     await query(`
         CREATE TABLE IF NOT EXISTS users
         (
-            id         INTEGER PRIMARY KEY AUTOINCREMENT,
-            username   TEXT UNIQUE NOT NULL,
-            email      TEXT UNIQUE NOT NULL,
-            password   TEXT        NOT NULL,
-            credits    INTEGER DEFAULT 100,
-            is_admin   INTEGER DEFAULT 0,
-            created_at TEXT        NOT NULL,
-            updated_at TEXT        NOT NULL
+            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+            username         TEXT UNIQUE NOT NULL,
+            email            TEXT UNIQUE NOT NULL,
+            password         TEXT        NOT NULL,
+            credits          INTEGER DEFAULT 100,
+            is_admin         INTEGER DEFAULT 0,
+            last_daily_cards TEXT,
+            created_at       TEXT        NOT NULL,
+            updated_at       TEXT        NOT NULL
         )
     `);
     console.log('  ✓ users');

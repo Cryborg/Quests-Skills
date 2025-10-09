@@ -24,6 +24,9 @@ class AuthService {
                 this.currentUser = user;
                 this.notifyAuthChange();
 
+                // Réclamer les cartes quotidiennes automatiques
+                await this.claimDailyCards();
+
                 // Initialiser le gestionnaire de crédits
                 if (typeof CreditsManager !== 'undefined') {
                     await CreditsManager.init();
@@ -145,6 +148,30 @@ class AuthService {
     // Vérifier si l'utilisateur est admin
     isAdmin() {
         return this.currentUser && this.currentUser.is_admin;
+    }
+
+    // Réclame les cartes quotidiennes automatiques
+    async claimDailyCards() {
+        if (!this.currentUser) return;
+
+        try {
+            const response = await this.fetchAPI(`/users/${this.currentUser.id}/daily-cards`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+
+                // Affiche un toast si des cartes ont été données
+                if (result.success && result.cardsGiven > 0 && typeof Toast !== 'undefined') {
+                    Toast.success(result.message);
+                }
+
+                console.log('🎁 Cartes quotidiennes:', result);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la réclamation des cartes quotidiennes:', error);
+        }
     }
 
     // Faire une requête API authentifiée

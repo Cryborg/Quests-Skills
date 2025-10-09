@@ -964,4 +964,99 @@ router.put('/:id/themes', checkOwnership, async (req, res) => {
     }
 });
 
+// POST /api/users/:id/daily-cards - Récupère les cartes quotidiennes automatiques
+router.post('/:id/daily-cards', checkOwnership, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+        const DAILY_CARDS = 5;
+
+        // Récupère l'utilisateur
+        const user = await get('SELECT id, last_daily_cards FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Première connexion : marque la date mais ne donne rien
+        if (!user.last_daily_cards) {
+            await run('UPDATE users SET last_daily_cards = ? WHERE id = ?', [today, userId]);
+
+            // Log l'action
+            await run(
+                `INSERT INTO user_activity_logs (user_id, action_type, details, created_at)
+                 VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
+                [userId, 'daily_cards', JSON.stringify({ firstConnection: true, cards: 0 })]
+            );
+
+            return res.json({
+                success: false,
+                message: 'Première connexion - cartes quotidiennes disponibles demain',
+                cardsGiven: 0,
+                daysAwarded: 0
+            });
+        }
+
+        // Même jour = déjà réclamé
+        if (user.last_daily_cards === today) {
+            return res.json({
+                success: false,
+                message: 'Cartes quotidiennes déjà réclamées aujourd\'hui',
+                cardsGiven: 0,
+                daysAwarded: 0
+            });
+        }
+
+        // Calcule le nombre de jours d'absence
+        const lastDate = new Date(user.last_daily_cards);
+        const currentDate = new Date(today);
+        const daysDifference = Math.floor((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+
+        // Donne 5 cartes par jour d'absence
+        const cardsToGive = daysDifference * DAILY_CARDS;
+
+        // Récupère les crédits actuels
+        let userCredit = await get('SELECT credits FROM user_credits WHERE user_id = ?', [userId]);
+        const currentCredits = userCredit ? userCredit.credits : 0;
+        const newCredits = currentCredits + cardsToGive;
+
+        // Met à jour les crédits
+        if (userCredit) {
+            await run('UPDATE user_credits SET credits = ? WHERE user_id = ?', [newCredits, userId]);
+        } else {
+            await run('INSERT INTO user_credits (user_id, credits) VALUES (?, ?)', [userId, newCredits]);
+        }
+
+        // Met à jour la date de dernière réclamation
+        await run('UPDATE users SET last_daily_cards = ? WHERE id = ?', [today, userId]);
+
+        // Log l'action
+        await run(
+            `INSERT INTO user_activity_logs (user_id, action_type, details, created_at)
+             VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
+            [userId, 'daily_cards', JSON.stringify({
+                daysAwarded: daysDifference,
+                cardsGiven: cardsToGive,
+                previousCredits: currentCredits,
+                newCredits: newCredits
+            })]
+        );
+
+        const dayText = daysDifference === 1 ? 'jour' : 'jours';
+        const cardText = cardsToGive === 1 ? 'carte' : 'cartes';
+
+        res.json({
+            success: true,
+            cardsGiven: cardsToGive,
+            daysAwarded: daysDifference,
+            totalCredits: newCredits,
+            message: daysDifference === 1
+                ? `+${cardsToGive} ${cardText} quotidienne !`
+                : `+${cardsToGive} ${cardText} pour ${daysDifference} ${dayText} d'absence !`
+        });
+    } catch (error) {
+        console.error('Error claiming daily cards:', error);
+        res.status(500).json({ error: 'Failed to claim daily cards' });
+    }
+});
+
 module.exports = router;
