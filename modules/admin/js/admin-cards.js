@@ -318,10 +318,17 @@ class AdminCards {
     updateImagePreview(url) {
         const preview = document.getElementById('card-preview-img');
         if (url) {
-            // Convertir le chemin relatif en chemin absolu pour l'aperçu (images dans shared/)
-            const imageUrl = url.startsWith('http') ? url : `/shared/${url}`;
-            preview.src = imageUrl;
-            preview.style.display = 'block';
+            // Vérifier si l'image existe dans notre liste avant de l'afficher (évite les 404)
+            const imageExists = url.startsWith('http') || this.availableImages.includes(url);
+
+            if (imageExists) {
+                // Convertir le chemin relatif en chemin absolu pour l'aperçu (images dans shared/)
+                const imageUrl = url.startsWith('http') ? url : `/shared/${url}`;
+                preview.src = imageUrl;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
         } else {
             preview.style.display = 'none';
         }
