@@ -441,7 +441,7 @@ class AdminUsers {
     }
 
     // Toggle un thème
-    toggleTheme(slug, themeName) {
+    async toggleTheme(slug, themeName) {
         const index = this.selectedThemes.indexOf(slug);
 
         if (index > -1) {
@@ -454,7 +454,7 @@ class AdminUsers {
             // Avertir si l'utilisateur a des cartes dans ce thème
             const cardCount = this.themeStats[slug] || 0;
             if (cardCount > 0) {
-                if (!confirm(`⚠️ ATTENTION : L'utilisateur possède ${cardCount} carte(s) unique(s) dans le thème "${themeName}".\n\nEn décochant ce thème :\n• Les cartes ne seront PAS supprimées\n• Elles seront simplement masquées\n• L'utilisateur ne piochera plus de cartes de ce thème\n• Les cartes pourront être récupérées en recochant le thème\n\nConfirmer la désélection ?`)) {
+                if (!await confirm(`⚠️ ATTENTION : L'utilisateur possède ${cardCount} carte(s) unique(s) dans le thème "${themeName}".<br><br>En décochant ce thème :<br>• Les cartes ne seront PAS supprimées<br>• Elles seront simplement masquées<br>• L'utilisateur ne piochera plus de cartes de ce thème<br>• Les cartes pourront être récupérées en recochant le thème<br><br>Confirmer la désélection ?`)) {
                     return;
                 }
             }
