@@ -9,6 +9,7 @@ dotenv.config();
 
 // Import database initialization
 const { ensureDatabaseExists } = require('../database/initialize');
+const ensureMigrations = require('./middleware/ensure-migrations');
 
 // Import routes
 const cardsRouter = require('./routes/cards');
@@ -30,6 +31,9 @@ app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Auto-run migrations on first API call (runs only once)
+app.use('/api', ensureMigrations);
 
 // Serve static files (frontend)
 app.use(express.static(path.join(__dirname, '..')));
