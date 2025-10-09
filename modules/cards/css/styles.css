@@ -1111,6 +1111,13 @@
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
     border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.progress-section {
+    flex: 1;
 }
 
 .progress-label {
@@ -1143,6 +1150,44 @@
     color: var(--accent-primary);
     text-align: center;
     font-weight: 600;
+}
+
+/* Bouton d'amélioration inline */
+.upgrade-btn-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3));
+    border: 2px solid rgba(16, 185, 129, 0.5);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.upgrade-btn-inline:hover {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.4));
+    border-color: rgba(16, 185, 129, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.upgrade-btn-inline:active {
+    transform: translateY(0);
+}
+
+.upgrade-btn-inline .upgrade-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.upgrade-btn-inline .upgrade-text {
+    font-size: 0.85rem;
 }
 
 /* Animations d'amélioration */

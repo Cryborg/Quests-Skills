@@ -362,10 +362,18 @@ class UIManager {
 
                         ${card.owned && currentRarityKey !== 'legendary' ? `
                             <div class="upgrade-progress">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: ${upgradeInfo ? Math.min((card.count / upgradeInfo.cost) * 100, 100) : 0}%"></div>
+                                <div class="progress-section">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${upgradeInfo ? Math.min((card.count / upgradeInfo.cost) * 100, 100) : 0}%"></div>
+                                    </div>
+                                    <div class="progress-text">${card.count} / ${upgradeInfo ? upgradeInfo.cost : '?'} cartes</div>
                                 </div>
-                                <div class="progress-text">${card.count} / ${upgradeInfo ? upgradeInfo.cost : '?'} cartes</div>
+                                ${upgradeInfo.canUpgrade ? `
+                                    <button class="upgrade-btn-inline" data-card-id="${card.id}">
+                                        <img src="/shared/icons/card_update_icon.svg" alt="Upgrade" class="upgrade-icon">
+                                        <span class="upgrade-text">Améliorer</span>
+                                    </button>
+                                ` : ''}
                             </div>
                         ` : ''}
                     </div>
@@ -377,37 +385,21 @@ class UIManager {
         // Boutons d'action
         this.elements.modalActions.innerHTML = '';
 
-        // Toujours afficher le statut d'amélioration si la carte est possédée
-        if (card.owned) {
+        // Gérer le clic sur le bouton d'amélioration inline
+        const upgradeBtnInline = document.querySelector('.upgrade-btn-inline');
+        if (upgradeBtnInline) {
+            upgradeBtnInline.addEventListener('click', () => this.handleCardUpgrade(card));
+        }
 
-            if (upgradeInfo.canUpgrade) {
-                const upgradeBtn = document.createElement('button');
-                upgradeBtn.className = 'modal-btn upgrade-btn';
-                upgradeBtn.innerHTML = `
-                    <span class="btn-icon">🔺</span>
-                    <span class="btn-text">Améliorer la rareté</span>
-                    <span class="btn-cost">Coût : ${upgradeInfo.cost} cartes → ${CONFIG.RARITIES[upgradeInfo.nextRarity].emoji} ${CONFIG.RARITIES[upgradeInfo.nextRarity].name}</span>
-                `;
-                upgradeBtn.addEventListener('click', () => this.handleCardUpgrade(card));
-                this.elements.modalActions.appendChild(upgradeBtn);
-            } else {
-                // Afficher pourquoi on ne peut pas améliorer
-                const infoDiv = document.createElement('div');
-                infoDiv.className = 'upgrade-info-message';
-
-                if (currentRarityKey === 'legendary') {
-                    infoDiv.innerHTML = `
-                        <span class="info-icon">👑</span>
-                        <span class="info-text">Rareté maximale atteinte !</span>
-                    `;
-                } else {
-                    infoDiv.innerHTML = `
-                        <span class="info-icon">📊</span>
-                        <span class="info-text">Prochain niveau : ${upgradeInfo.cost} cartes nécessaires (vous en avez ${upgradeInfo.current})</span>
-                    `;
-                }
-                this.elements.modalActions.appendChild(infoDiv);
-            }
+        // Afficher un message informatif si la carte ne peut pas être améliorée
+        if (card.owned && !upgradeInfo.canUpgrade && currentRarityKey !== 'legendary') {
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'upgrade-info-message';
+            infoDiv.innerHTML = `
+                <span class="info-icon">📊</span>
+                <span class="info-text">Prochain niveau : ${upgradeInfo.cost} cartes nécessaires (vous en avez ${upgradeInfo.current})</span>
+            `;
+            this.elements.modalActions.appendChild(infoDiv);
         }
 
 
