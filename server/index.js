@@ -35,6 +35,11 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (frontend)
 app.use(express.static(path.join(__dirname, '..')));
 
+// Redirect favicon.ico to favicon.png
+app.get('/favicon.ico', (req, res) => {
+    res.redirect(301, '/favicon.png');
+});
+
 // Auto-run migrations BEFORE any API route (runs only once)
 app.use('/api', ensureMigrations);
 

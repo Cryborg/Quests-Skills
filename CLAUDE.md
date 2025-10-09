@@ -23,6 +23,7 @@ modules/nom-du-module/
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎮 Nom du Module</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="stylesheet" href="../../shared/css/theme.css">
     <link rel="stylesheet" href="../../shared/css/navigation.css">
     <link rel="stylesheet" href="../../shared/css/page-header.css">
