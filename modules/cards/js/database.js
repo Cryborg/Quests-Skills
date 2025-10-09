@@ -1,9 +1,7 @@
-// Gestionnaire de base de données (API + cache en mémoire)
+// Gestionnaire de base de données (API uniquement, sans cache)
 class DatabaseManager {
     constructor() {
-        this.collectionCache = null; // Cache de la collection pour éviter trop d'appels API
-        this.cacheTimestamp = 0; // Timestamp du dernier fetch
-        this.CACHE_DURATION = 30000; // 30 secondes de cache
+        this.collectionCache = null; // Pas de cache de collection
         this.cardsCache = null; // Cache des cartes depuis l'API
         this.cardsTimestamp = 0; // Timestamp du cache des cartes
         this.userThemes = []; // Thèmes sélectionnés par l'utilisateur
@@ -74,6 +72,7 @@ class DatabaseManager {
 
             this.cardsTimestamp = now;
             console.log(`✅ ${this.cardsCache.length} cartes chargées depuis l'API`);
+            console.log('🔍 Premiers IDs des cartes:', this.cardsCache.slice(0, 3).map(c => ({ id: c.id, name: c.name })));
             return this.cardsCache;
         } catch (error) {
             console.error('Error loading cards from API:', error);
@@ -332,25 +331,13 @@ class DatabaseManager {
         return allCards.find(card => card.id === cardId);
     }
 
-    // Invalide le cache de la collection
-    invalidateCollectionCache() {
-        this.collectionCache = null;
-        this.cacheTimestamp = 0;
-    }
-
-    // Récupère la collection du joueur depuis l'API
+    // Récupère la collection du joueur depuis l'API (TOUJOURS frais)
     async getCollection() {
         try {
             const user = authService.getCurrentUser();
             if (!user) return {};
 
-            // Utilise le cache si valide
-            const now = Date.now();
-            if (this.collectionCache && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
-                return this.collectionCache;
-            }
-
-            // Fetch depuis l'API
+            // TOUJOURS fetch depuis l'API (pas de cache pour éviter les données périmées)
             const response = await authService.fetchAPI(`/users/${user.id}/cards`);
             if (!response.ok) {
                 console.error('Failed to fetch collection');
@@ -371,9 +358,11 @@ class DatabaseManager {
                 };
             }
 
-            // Met en cache
+            console.log('🔍 Collection keys (card_id):', Object.keys(collection).slice(0, 5));
+            console.log('🔍 Premier élément de collection:', Object.entries(collection)[0]);
+
+            // Met à jour le cache pour getCollectionSync()
             this.collectionCache = collection;
-            this.cacheTimestamp = now;
 
             return collection;
         } catch (error) {
@@ -413,9 +402,6 @@ class DatabaseManager {
 
             const result = await response.json();
             console.log('✅ Cards added successfully:', result.added);
-
-            // Invalide le cache pour forcer un refresh
-            this.invalidateCollectionCache();
 
             // Force le rechargement de la collection pour mettre à jour le cache
             await this.getCollection();
@@ -522,8 +508,7 @@ class DatabaseManager {
 
             const result = await response.json();
 
-            // Invalide le cache et recharge immédiatement pour mettre à jour l'affichage
-            this.invalidateCollectionCache();
+            // Recharge immédiatement pour mettre à jour l'affichage
             await this.getCollection();
 
             return {

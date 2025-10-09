@@ -130,6 +130,8 @@ class UIManager {
 
     // Met à jour l'affichage complet
     async render() {
+        console.log('🎨 render() - currentTheme:', CARD_SYSTEM.currentTheme);
+        console.log('🎨 render() - onglet actif:', document.querySelector('.tab-btn.active')?.dataset.theme);
         this.updateStats();
         await this.updateThemeTabs();
         this.renderCards();
@@ -157,6 +159,9 @@ class UIManager {
 
         this.elements.themeTabs.forEach(tab => {
             const theme = tab.dataset.theme;
+
+            // Synchronise la classe active avec le thème actuel
+            tab.classList.toggle('active', theme === CARD_SYSTEM.currentTheme);
             const themeCards = DB.getCardsByTheme(theme);
             const ownedThemeCards = themeCards.filter(card => DB.hasCard(card.id));
 
@@ -166,6 +171,19 @@ class UIManager {
             // Vérifie s'il y a des cartes améliorables dans ce thème
             const themeCardsWithInfo = CARD_SYSTEM.getCardsWithCollectionInfo(theme);
             const upgradeableInTheme = themeCardsWithInfo.filter(card => card.canUpgrade).length;
+
+            // Debug: affiche les cartes améliorables pour tous les thèmes
+            if (upgradeableInTheme > 0) {
+                console.log(`🔺 Thème ${theme}: ${upgradeableInTheme} carte(s) améliorable(s)`,
+                    themeCardsWithInfo.filter(card => card.canUpgrade).map(c => ({
+                        name: c.name,
+                        id: c.id,
+                        count: c.count,
+                        currentRarity: c.currentRarity,
+                        upgradeInfo: c.upgradeInfo
+                    }))
+                );
+            }
 
             // Supprime les anciens indicateurs
             const existingIndicator = tab.querySelector('.theme-completion');
