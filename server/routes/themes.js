@@ -3,11 +3,30 @@ const router = express.Router();
 const { get, all, run, query } = require('../turso-db');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
-// GET /api/themes - Récupérer tous les thèmes
-router.get('/', async (req, res) => {
+// GET /api/themes - Récupérer les thèmes de l'utilisateur connecté
+router.get('/', authenticateToken, async (req, res) => {
   try {
-    const themes = await all('SELECT * FROM card_themes ORDER BY name ASC');
-    res.json(themes);
+    const userId = req.user.id;
+
+    // Récupérer les thèmes actifs pour cet utilisateur
+    const userThemesResult = await query(
+      'SELECT theme_slug FROM user_themes WHERE user_id = ?',
+      [userId]
+    );
+
+    if (!userThemesResult.rows || userThemesResult.rows.length === 0) {
+      return res.json([]);
+    }
+
+    const userThemeSlugs = userThemesResult.rows.map(row => row.theme_slug);
+    const placeholders = userThemeSlugs.map(() => '?').join(',');
+
+    const themesResult = await query(
+      `SELECT * FROM card_themes WHERE slug IN (${placeholders}) ORDER BY name ASC`,
+      userThemeSlugs
+    );
+
+    res.json(themesResult.rows || []);
   } catch (error) {
     console.error('Failed to fetch themes:', error);
     res.status(500).json({ error: 'Failed to fetch themes' });
