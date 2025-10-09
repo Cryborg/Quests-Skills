@@ -388,7 +388,7 @@ class AdminUsers {
     async loadUserThemes(userId) {
         try {
             // Charger tous les thèmes disponibles
-            const themesResponse = await authService.fetchAPI('/themes');
+            const themesResponse = await authService.fetchAPI('/themes/all');
             this.allThemes = await themesResponse.json();
 
             // Charger les thèmes sélectionnés par l'utilisateur

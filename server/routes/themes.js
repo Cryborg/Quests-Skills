@@ -3,6 +3,17 @@ const router = express.Router();
 const { get, all, run, query } = require('../turso-db');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
+// GET /api/themes/all - Récupérer tous les thèmes (admin only)
+router.get('/all', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const themes = await all('SELECT * FROM card_themes ORDER BY name ASC');
+    res.json(themes);
+  } catch (error) {
+    console.error('Failed to fetch all themes:', error);
+    res.status(500).json({ error: 'Failed to fetch themes' });
+  }
+});
+
 // GET /api/themes - Récupérer les thèmes de l'utilisateur connecté
 router.get('/', authenticateToken, async (req, res) => {
   try {

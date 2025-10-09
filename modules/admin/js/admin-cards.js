@@ -50,7 +50,7 @@ class AdminCards {
     // Charger tous les thèmes
     async loadThemes() {
         try {
-            const response = await authService.fetchAPI('/themes');
+            const response = await authService.fetchAPI('/themes/all');
             const data = await response.json();
             // L'API retourne directement un tableau
             this.themes = Array.isArray(data) ? data : data.themes || [];

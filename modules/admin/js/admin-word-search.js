@@ -36,7 +36,7 @@ const WordSearchAdmin = {
 
     async loadCardThemes() {
         try {
-            const response = await authService.fetchAPI('/themes');
+            const response = await authService.fetchAPI('/themes/all');
             const data = await response.json();
             this.cardThemes = Array.isArray(data) ? data : data.themes || [];
         } catch (error) {
@@ -230,8 +230,15 @@ const WordSearchAdmin = {
                     })
                 });
                 showToast('✅ Mot ajouté');
+
+                // Garder la modale ouverte, vider le champ et refocus pour ajout rapide
+                document.getElementById('word-text').value = '';
+                document.getElementById('word-text').focus();
+                await this.loadThemes();
+                return; // On ne ferme pas la modale
             }
 
+            // Si édition, on ferme la modale
             document.getElementById('word-modal').classList.remove('show');
             await this.loadThemes();
         } catch (error) {

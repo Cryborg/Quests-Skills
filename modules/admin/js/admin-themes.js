@@ -15,7 +15,7 @@ class AdminThemes {
     // Charger tous les thèmes
     async loadThemes() {
         try {
-            const response = await authService.fetchAPI('/themes');
+            const response = await authService.fetchAPI('/themes/all');
             this.themes = await response.json();
             this.renderThemes();
         } catch (error) {
