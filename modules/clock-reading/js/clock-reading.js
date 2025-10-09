@@ -342,7 +342,31 @@ class ClockReadingGame {
         Toast.success(message);
     }
 
-    incorrectAnswer(correctAnswer) {
+    async incorrectAnswer(correctAnswer) {
+        // Enregistrer la tentative ratée
+        await GameAttempts.recordAttempt('clock-reading', {
+            score: this.score,
+            completed: false
+        });
+
+        // Mettre à jour l'affichage des essais restants
+        const remaining = await GameAttempts.initHeaderDisplay('clock-reading', 3);
+
+        if (remaining === 0) {
+            Toast.error(`Incorrect. La bonne réponse était ${correctAnswer}. Plus d'essais pour aujourd'hui !`);
+
+            // Désactiver tous les contrôles
+            this.elements.answerButtons.forEach(btn => btn.disabled = true);
+            this.elements.validatePlacementBtn.disabled = true;
+            this.elements.modeReadBtn.disabled = true;
+            this.elements.modePlaceBtn.disabled = true;
+
+            setTimeout(() => {
+                Toast.info('Reviens demain pour un nouveau défi !');
+            }, 3000);
+            return;
+        }
+
         Toast.error(`Incorrect. La bonne réponse était ${correctAnswer}`);
     }
 

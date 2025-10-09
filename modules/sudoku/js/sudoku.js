@@ -391,6 +391,34 @@ class SudokuGame {
                 await navigationUI.refresh();
             }
         } else {
+            // Enregistrer la tentative ratée
+            await GameAttempts.recordAttempt('sudoku', {
+                score: this.completedCount,
+                completed: false
+            });
+
+            // Mettre à jour l'affichage des essais restants
+            const remaining = await GameAttempts.initHeaderDisplay('sudoku', 3);
+
+            if (remaining === 0) {
+                Toast.error(`${errorCount} erreur${errorCount > 1 ? 's' : ''} dans la grille ! Plus d'essais pour aujourd'hui !`);
+
+                // Désactiver tous les contrôles
+                document.querySelectorAll('.sudoku-cell').forEach(cell => {
+                    if (!this.isInitialCell(parseInt(cell.dataset.row), parseInt(cell.dataset.col))) {
+                        cell.style.pointerEvents = 'none';
+                    }
+                });
+                this.elements.checkBtn.disabled = true;
+                this.elements.hintBtn.disabled = true;
+                this.elements.numberPad.style.pointerEvents = 'none';
+
+                setTimeout(() => {
+                    Toast.info('Reviens demain pour un nouveau défi !');
+                }, 3000);
+                return;
+            }
+
             Toast.error(`${errorCount} erreur${errorCount > 1 ? 's' : ''} dans la grille !`);
 
             setTimeout(() => {

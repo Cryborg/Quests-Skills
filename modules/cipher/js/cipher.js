@@ -246,7 +246,31 @@ class CipherGame {
         Toast.success(message);
     }
 
-    incorrectAnswer() {
+    async incorrectAnswer() {
+        // Enregistrer la tentative ratée
+        await GameAttempts.recordAttempt('cipher', {
+            score: this.score,
+            completed: false
+        });
+
+        // Mettre à jour l'affichage des essais restants
+        const remaining = await GameAttempts.initHeaderDisplay('cipher', 3);
+
+        if (remaining === 0) {
+            Toast.error(`Incorrect. La bonne réponse était : ${this.currentAnswer}. Plus d'essais pour aujourd'hui !`);
+
+            // Désactiver les contrôles
+            this.elements.answerInput.disabled = true;
+            this.elements.validateBtn.disabled = true;
+            this.elements.hintBtn.disabled = true;
+            this.elements.cipherBtns.forEach(btn => btn.disabled = true);
+
+            setTimeout(() => {
+                Toast.info('Reviens demain pour un nouveau défi !');
+            }, 3000);
+            return;
+        }
+
         Toast.error(`Incorrect. La bonne réponse était : ${this.currentAnswer}`);
     }
 

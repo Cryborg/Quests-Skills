@@ -719,7 +719,21 @@ class GridNavigationGame {
             return;
         }
 
-        // Sinon, échec total - réessayer
+        // Sinon, échec total - enregistrer la tentative ratée
+        await GameAttempts.recordAttempt('grid-navigation', {
+            score: this.score,
+            completed: false
+        });
+
+        // Mettre à jour l'affichage des essais restants
+        const remaining = await GameAttempts.initHeaderDisplay('grid-navigation', 3);
+
+        if (remaining === 0) {
+            Toast.error('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
+            this.showGameEnd();
+            return;
+        }
+
         Toast.error('Tu n\'es pas arrivé à la bonne case ! Réessaye.');
 
         this.elements.controlButtons.forEach(btn => btn.disabled = true);

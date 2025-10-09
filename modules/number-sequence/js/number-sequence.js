@@ -226,12 +226,35 @@ class NumberSequenceGame {
         }, 3000);
     }
 
-    incorrectAnswer() {
+    async incorrectAnswer() {
         this.streak = 0;
         this.updateStats();
 
         // Animation de validation
         this.showValidationAnimation('❌');
+
+        // Enregistrer la tentative ratée
+        await GameAttempts.recordAttempt('number-sequence', {
+            score: this.score,
+            completed: false
+        });
+
+        // Mettre à jour l'affichage des essais restants
+        const remaining = await GameAttempts.initHeaderDisplay('number-sequence', 3);
+
+        if (remaining === 0) {
+            Toast.error(`Incorrect. La réponse était ${this.currentSequence.answer}. Plus d'essais pour aujourd'hui !`);
+
+            // Désactiver les contrôles
+            this.elements.answerInput.disabled = true;
+            this.elements.validateBtn.disabled = true;
+            this.elements.skipBtn.disabled = true;
+
+            setTimeout(() => {
+                Toast.info('Reviens demain pour un nouveau défi !');
+            }, 3000);
+            return;
+        }
 
         Toast.error(`Incorrect. La réponse était ${this.currentSequence.answer}`);
 
