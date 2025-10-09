@@ -696,18 +696,12 @@
     position: absolute;
     top: 10px;
     left: 10px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    padding: 6px;
-    border-radius: 50%;
-    font-size: 0.9rem;
     width: 28px;
     height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10;
-    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.5);
     cursor: pointer;
     transition: all 0.3s ease;
     animation: pulse-upgrade 2s ease-in-out infinite;
@@ -715,7 +709,6 @@
 
 .card-upgrade-indicator:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.7);
 }
 
 .card-upgrade-indicator img {
