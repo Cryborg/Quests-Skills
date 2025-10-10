@@ -1,10 +1,10 @@
 require('dotenv').config();
 
-const { seedInitialData } = require('./database/initialize/index');
+const { seedInitialData } = require('../database/initialize/index');
 
 /**
  * Script pour seeder la base de données de production
- * Usage: node seed-production.js
+ * Usage: node tools/seed-production.js
  */
 async function main() {
     console.log('🚀 Starting production seeding...');
