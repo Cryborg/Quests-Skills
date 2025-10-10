@@ -436,7 +436,7 @@ class CrosswordGame {
         this.currentWord = word;
         this.currentDirection = direction;
 
-        // Mettre en surbrillance le mot
+        // Mettre en surbrillance le mot avec bordure
         this.highlightWord(word);
 
         // Focus sur la première cellule vide du mot
@@ -445,12 +445,20 @@ class CrosswordGame {
             return input && !input.value;
         });
 
-        if (firstEmptyCell) {
-            const input = document.querySelector(`input[data-row="${firstEmptyCell.row}"][data-col="${firstEmptyCell.col}"]`);
-            if (input) input.focus();
-        } else {
-            const input = document.querySelector(`input[data-row="${word.row}"][data-col="${word.col}"]`);
-            if (input) input.focus();
+        const targetCell = firstEmptyCell || word.cells[0];
+        const input = document.querySelector(`input[data-row="${targetCell.row}"][data-col="${targetCell.col}"]`);
+
+        if (input) {
+            // Scroll automatique vers la cellule
+            const cellDiv = input.closest('.crossword-cell');
+            if (cellDiv) {
+                cellDiv.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }
+
+            // Focus après le scroll
+            setTimeout(() => {
+                input.focus();
+            }, 300);
         }
 
         // Mettre à jour les définitions actives
@@ -462,13 +470,13 @@ class CrosswordGame {
 
     highlightWord(word) {
         document.querySelectorAll('.crossword-cell').forEach(cell => {
-            cell.classList.remove('highlighted', 'selected');
+            cell.classList.remove('highlighted', 'selected', 'word-selected');
         });
 
         word.cells.forEach(cell => {
             const cellDiv = document.querySelector(`.crossword-cell[data-row="${cell.row}"][data-col="${cell.col}"]`);
             if (cellDiv) {
-                cellDiv.classList.add('highlighted');
+                cellDiv.classList.add('highlighted', 'word-selected');
             }
         });
     }
@@ -479,7 +487,7 @@ class CrosswordGame {
         input.value = value;
 
         if (value) {
-            this.moveToNextCell(input);
+            this.moveToNextCellInDirection(input);
             this.checkCompletion();
         }
     }
@@ -509,9 +517,51 @@ class CrosswordGame {
     handleFocus(e) {
         const input = e.target;
         const cellDiv = input.closest('.crossword-cell');
+        const row = parseInt(input.dataset.row);
+        const col = parseInt(input.dataset.col);
 
         document.querySelectorAll('.crossword-cell').forEach(c => c.classList.remove('selected'));
         cellDiv.classList.add('selected');
+
+        // Déterminer la direction automatiquement si pas encore définie
+        if (!this.currentDirection) {
+            // Trouver les mots qui passent par cette case
+            const wordsAtCell = this.placedWords.filter(word =>
+                word.cells.some(cell => cell.row === row && cell.col === col)
+            );
+
+            if (wordsAtCell.length > 0) {
+                // Prendre le premier mot horizontal, sinon le premier vertical
+                const horizontalWord = wordsAtCell.find(w => w.direction === 'horizontal');
+                this.currentWord = horizontalWord || wordsAtCell[0];
+                this.currentDirection = this.currentWord.direction;
+                this.highlightWord(this.currentWord);
+            }
+        }
+    }
+
+    moveToNextCellInDirection(currentInput) {
+        if (!this.currentDirection) return;
+
+        const row = parseInt(currentInput.dataset.row);
+        const col = parseInt(currentInput.dataset.col);
+
+        // Calculer la prochaine cellule selon la direction
+        let nextRow = row;
+        let nextCol = col;
+
+        if (this.currentDirection === 'horizontal') {
+            nextCol++;
+        } else {
+            nextRow++;
+        }
+
+        // Vérifier que la cellule suivante existe et n'est pas noire
+        if (nextRow >= this.gridSize || nextCol >= this.gridSize) return;
+        if (this.grid[nextRow][nextCol].black) return;
+
+        const nextInput = document.querySelector(`input[data-row="${nextRow}"][data-col="${nextCol}"]`);
+        if (nextInput) nextInput.focus();
     }
 
     moveToNextCell(currentInput) {
