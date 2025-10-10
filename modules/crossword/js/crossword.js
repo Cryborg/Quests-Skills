@@ -546,22 +546,34 @@ class CrosswordGame {
         const row = parseInt(currentInput.dataset.row);
         const col = parseInt(currentInput.dataset.col);
 
-        // Calculer la prochaine cellule selon la direction
+        // Trouver la prochaine cellule vide dans la direction
         let nextRow = row;
         let nextCol = col;
+        let found = false;
 
-        if (this.currentDirection === 'horizontal') {
-            nextCol++;
-        } else {
-            nextRow++;
+        // Chercher jusqu'à 10 cases max (taille de la grille)
+        for (let i = 1; i <= this.gridSize; i++) {
+            if (this.currentDirection === 'horizontal') {
+                nextCol = col + i;
+            } else {
+                nextRow = row + i;
+            }
+
+            // Vérifier que la cellule existe et n'est pas noire
+            if (nextRow >= this.gridSize || nextCol >= this.gridSize) break;
+            if (this.grid[nextRow][nextCol].black) break;
+
+            const nextInput = document.querySelector(`input[data-row="${nextRow}"][data-col="${nextCol}"]`);
+
+            // Si la cellule est vide, on s'y arrête
+            if (nextInput && !nextInput.value) {
+                nextInput.focus();
+                found = true;
+                break;
+            }
         }
 
-        // Vérifier que la cellule suivante existe et n'est pas noire
-        if (nextRow >= this.gridSize || nextCol >= this.gridSize) return;
-        if (this.grid[nextRow][nextCol].black) return;
-
-        const nextInput = document.querySelector(`input[data-row="${nextRow}"][data-col="${nextCol}"]`);
-        if (nextInput) nextInput.focus();
+        // Si aucune cellule vide trouvée, ne rien faire (rester sur la cellule actuelle)
     }
 
     moveToNextCell(currentInput) {
