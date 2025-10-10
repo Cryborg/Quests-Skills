@@ -7,6 +7,8 @@
     min-height: 400px;
     margin-bottom: 2rem;
     padding: 0 1rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #crossword-grid {
@@ -138,31 +140,34 @@
 @media (max-width: 768px) {
     .game-area {
         padding: 0 0.5rem;
-        overflow: visible;
+        overflow-x: hidden;
     }
 
     #crossword-grid {
         margin: 0 auto;
         gap: 0;
         border: 1px solid var(--border-color);
+        /* Utiliser toute la largeur disponible - 1rem de padding total */
+        width: calc(100vw - 1rem);
+        max-width: 100%;
     }
 
     .crossword-cell {
-        /* Calcul: (100vw - padding - bordure) / 10 cellules */
+        /* Chaque cellule = largeur de grille / 10 */
         width: calc((100vw - 1rem - 2px) / 10);
         height: calc((100vw - 1rem - 2px) / 10);
-        max-width: 35px;
-        max-height: 35px;
-        font-size: clamp(0.75rem, 2.5vw, 1rem);
+        max-width: 36px;
+        max-height: 36px;
+        font-size: clamp(0.65rem, 2.2vw, 0.9rem);
         border-width: 0.5px;
     }
 
     .crossword-cell input {
-        font-size: clamp(0.75rem, 2.5vw, 1rem);
+        font-size: clamp(0.65rem, 2.2vw, 0.9rem);
     }
 
     .crossword-cell .cell-number {
-        font-size: clamp(0.4rem, 1.5vw, 0.5rem);
+        font-size: clamp(0.35rem, 1.3vw, 0.5rem);
         top: 1px;
         left: 2px;
     }
@@ -173,27 +178,30 @@
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 400px) {
     .game-area {
         padding: 0 0.25rem;
     }
 
+    #crossword-grid {
+        width: calc(100vw - 0.5rem);
+    }
+
     .crossword-cell {
-        /* Calcul plus serré pour très petits écrans */
         width: calc((100vw - 0.5rem - 2px) / 10);
         height: calc((100vw - 0.5rem - 2px) / 10);
-        max-width: 30px;
-        max-height: 30px;
-        font-size: clamp(0.65rem, 2vw, 0.85rem);
+        max-width: 32px;
+        max-height: 32px;
+        font-size: clamp(0.6rem, 2vw, 0.8rem);
         border-width: 0.5px;
     }
 
     .crossword-cell input {
-        font-size: clamp(0.65rem, 2vw, 0.85rem);
+        font-size: clamp(0.6rem, 2vw, 0.8rem);
     }
 
     .crossword-cell .cell-number {
-        font-size: clamp(0.35rem, 1.2vw, 0.45rem);
+        font-size: clamp(0.3rem, 1.2vw, 0.4rem);
         top: 0px;
         left: 1px;
     }
