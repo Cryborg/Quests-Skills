@@ -30,12 +30,20 @@ async function ensureMigrations(req, res, next) {
         }
     }
 
-    // Lancer les migrations puis le seeding
+    // Lancer les migrations puis le seeding (optionnel)
     migrationPromise = runMigrations()
         .then(async () => {
-            // Après les migrations, lancer le seeding partiel (thèmes + mots)
-            console.log('🌱 Running initial data seeding...');
-            await seedInitialData();
+            // Seeding uniquement si ENABLE_AUTO_SEED=true en production
+            const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+            const enableAutoSeed = process.env.ENABLE_AUTO_SEED === 'true';
+
+            if (!isProduction || enableAutoSeed) {
+                console.log('🌱 Running initial data seeding...');
+                await seedInitialData();
+            } else {
+                console.log('⏭️  Auto-seeding disabled in production (set ENABLE_AUTO_SEED=true to enable)');
+            }
+
             migrationsRun = true;
             migrationPromise = null;
         })

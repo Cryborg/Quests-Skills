@@ -447,52 +447,65 @@ async function seedWords() {
     let definitionsAdded = 0;
     const now = new Date().toISOString();
 
-    // Insérer les mots génériques (theme_slug = NULL)
+    // Récupérer tous les mots existants en une seule requête
+    const { all } = require('../../server/turso-db');
+    const existingWords = await all('SELECT id, word, definition, theme_slug FROM word_search_words');
+    const existingMap = new Map();
+    existingWords.forEach(w => {
+        const key = `${w.theme_slug || 'NULL'}:${w.word}`;
+        existingMap.set(key, w);
+    });
+
+    // Préparer les inserts et updates
+    const toInsert = [];
+    const toUpdate = [];
+
+    // Traiter les mots génériques
     for (const [word, definition] of genericWords) {
-        const existing = await get(
-            'SELECT * FROM word_search_words WHERE word = ? AND theme_slug IS NULL',
-            [word]
-        );
+        const key = `NULL:${word}`;
+        const existing = existingMap.get(key);
 
         if (!existing) {
-            await run(
-                'INSERT INTO word_search_words (theme_slug, word, definition, created_at) VALUES (NULL, ?, ?, ?)',
-                [word, definition, now]
-            );
-            wordCount++;
+            toInsert.push([null, word, definition, now]);
         } else if (definition && existing.definition !== definition) {
-            // Mettre à jour la définition si elle est différente ou manquante
-            await run(
-                'UPDATE word_search_words SET definition = ? WHERE id = ?',
-                [definition, existing.id]
-            );
-            definitionsAdded++;
+            toUpdate.push([definition, existing.id]);
         }
     }
 
-    // Insérer les mots par thème
+    // Traiter les mots par thème
     for (const [themeSlug, words] of Object.entries(wordLists)) {
         for (const [word, definition] of words) {
-            const existing = await get(
-                'SELECT * FROM word_search_words WHERE theme_slug = ? AND word = ?',
-                [themeSlug, word]
-            );
+            const key = `${themeSlug}:${word}`;
+            const existing = existingMap.get(key);
 
             if (!existing) {
-                await run(
-                    'INSERT INTO word_search_words (theme_slug, word, definition, created_at) VALUES (?, ?, ?, ?)',
-                    [themeSlug, word, definition, now]
-                );
-                wordCount++;
+                toInsert.push([themeSlug, word, definition, now]);
             } else if (definition && existing.definition !== definition) {
-                // Mettre à jour la définition si elle est différente ou manquante
-                await run(
-                    'UPDATE word_search_words SET definition = ? WHERE id = ?',
-                    [definition, existing.id]
-                );
-                definitionsAdded++;
+                toUpdate.push([definition, existing.id]);
             }
         }
+    }
+
+    // Exécuter les inserts par batch
+    if (toInsert.length > 0) {
+        for (const [themeSlug, word, definition, createdAt] of toInsert) {
+            await run(
+                'INSERT INTO word_search_words (theme_slug, word, definition, created_at) VALUES (?, ?, ?, ?)',
+                [themeSlug, word, definition, createdAt]
+            );
+        }
+        wordCount = toInsert.length;
+    }
+
+    // Exécuter les updates par batch
+    if (toUpdate.length > 0) {
+        for (const [definition, id] of toUpdate) {
+            await run(
+                'UPDATE word_search_words SET definition = ? WHERE id = ?',
+                [definition, id]
+            );
+        }
+        definitionsAdded = toUpdate.length;
     }
 
     console.log(`  ✅ ${wordCount} new words seeded, ${definitionsAdded} definitions added (${genericWords.length} generic + ${Object.keys(wordLists).length} themes)`);
