@@ -444,6 +444,7 @@ async function seedWords() {
     };
 
     let wordCount = 0;
+    let definitionsAdded = 0;
     const now = new Date().toISOString();
 
     // Insérer les mots génériques (theme_slug = NULL)
@@ -465,6 +466,7 @@ async function seedWords() {
                 'UPDATE word_search_words SET definition = ? WHERE id = ?',
                 [definition, existing.id]
             );
+            definitionsAdded++;
         }
     }
 
@@ -488,11 +490,12 @@ async function seedWords() {
                     'UPDATE word_search_words SET definition = ? WHERE id = ?',
                     [definition, existing.id]
                 );
+                definitionsAdded++;
             }
         }
     }
 
-    console.log(`  ✅ ${wordCount} new words seeded (${genericWords.length} generic + ${Object.keys(wordLists).length} themes)`);
+    console.log(`  ✅ ${wordCount} new words seeded, ${definitionsAdded} definitions added (${genericWords.length} generic + ${Object.keys(wordLists).length} themes)`);
 }
 
 module.exports = { seedWords };
