@@ -364,7 +364,7 @@ class CrosswordGame {
     }
 
     renderGrid() {
-        this.elements.grid.style.gridTemplateColumns = `repeat(${this.gridSize}, 40px)`;
+        // Le CSS gère grid-template-columns en responsive
         this.elements.grid.innerHTML = '';
 
         for (let row = 0; row < this.gridSize; row++) {
