@@ -19,9 +19,25 @@ router.get('/', requireAdmin, async (req, res) => {
             ORDER BY u.created_at DESC
         `);
 
-        // Ne pas retourner les passwords
-        const usersWithoutPasswords = users.map(({ password, ...user }) => user);
-        res.json(usersWithoutPasswords);
+        // Pour chaque utilisateur, récupérer la dernière connexion
+        const usersWithLastLogin = await Promise.all(users.map(async (user) => {
+            const lastLogin = await get(
+                `SELECT created_at
+                 FROM user_activity_logs
+                 WHERE user_id = ? AND action_type = 'login'
+                 ORDER BY created_at DESC
+                 LIMIT 1`,
+                [user.id]
+            );
+
+            const { password, ...userWithoutPassword } = user;
+            return {
+                ...userWithoutPassword,
+                last_login_at: lastLogin ? lastLogin.created_at : null
+            };
+        }));
+
+        res.json(usersWithLastLogin);
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ error: 'Failed to fetch users' });
@@ -883,6 +899,49 @@ router.get('/:id/themes', checkOwnership, async (req, res) => {
     } catch (error) {
         console.error('Error fetching user themes:', error);
         res.status(500).json({ error: 'Failed to fetch user themes' });
+    }
+});
+
+// POST /api/users/:id/themes - Ajouter/remplacer les thèmes d'un utilisateur
+router.post('/:id/themes', checkOwnership, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+        const { theme_slugs } = req.body;
+
+        // Validation
+        if (!theme_slugs || !Array.isArray(theme_slugs)) {
+            return res.status(400).json({ error: 'theme_slugs must be an array' });
+        }
+
+        if (theme_slugs.length < 3 || theme_slugs.length > 10) {
+            return res.status(400).json({ error: 'You must select between 3 and 10 themes' });
+        }
+
+        // Vérifier que tous les thèmes existent
+        const allThemes = await all('SELECT slug FROM card_themes');
+        const validSlugs = allThemes.map(t => t.slug);
+        const invalidSlugs = theme_slugs.filter(slug => !validSlugs.includes(slug));
+
+        if (invalidSlugs.length > 0) {
+            return res.status(400).json({ error: `Invalid theme slugs: ${invalidSlugs.join(', ')}` });
+        }
+
+        // Supprimer les anciens thèmes
+        await run('DELETE FROM user_themes WHERE user_id = ?', [userId]);
+
+        // Ajouter les nouveaux thèmes
+        const now = new Date().toISOString();
+        for (const themeSlug of theme_slugs) {
+            await run(
+                'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
+                [userId, themeSlug, now]
+            );
+        }
+
+        res.json({ success: true, message: 'Themes updated successfully' });
+    } catch (error) {
+        console.error('Error updating user themes:', error);
+        res.status(500).json({ error: 'Failed to update user themes' });
     }
 });
 

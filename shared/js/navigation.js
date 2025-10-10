@@ -3,7 +3,6 @@ class NavigationUI {
     constructor() {
         this.isOpen = false;
         this.currentUser = null;
-        this.userCredits = 0;
 
         // Configuration des liens de navigation avec catégories
         this.navCategories = [
@@ -104,17 +103,8 @@ class NavigationUI {
             return;
         }
 
-        // Charger les crédits de l'utilisateur
-        await this.loadUserCredits();
-
-        // Charger les tentatives d'exercices de maths
-        const mathData = await this.loadMathAttempts();
-
         // Créer et injecter la navigation
         this.render();
-
-        // Mettre à jour l'affichage des exercices de maths
-        this.updateMathAttempts(mathData.remaining, mathData.total);
 
         // Attacher les événements
         this.attachEvents();
@@ -126,62 +116,6 @@ class NavigationUI {
         document.body.classList.add('nav-loaded');
     }
 
-    // Charger les crédits de l'utilisateur
-    async loadUserCredits() {
-        try {
-            const response = await authService.fetchAPI(`/users/${this.currentUser.id}/credits`);
-            const data = await response.json();
-            this.userCredits = data.credits || 0;
-        } catch (error) {
-            console.error('Failed to load user credits:', error);
-            this.userCredits = 0;
-        }
-    }
-
-    // Charger le nombre d'exercices de maths restants depuis l'API
-    async loadMathAttempts() {
-        try {
-            const response = await authService.fetchAPI(`/users/${this.currentUser.id}/attempts`);
-            const attempts = await response.json();
-
-            // Compter les tentatives d'aujourd'hui par type d'opération
-            const today = new Date().toDateString();
-            const todayAttempts = attempts.filter(attempt => {
-                const attemptDate = new Date(attempt.created_at).toDateString();
-                return attemptDate === today;
-            });
-
-            // Compter par type d'opération
-            const MAX_PER_TYPE = 3;
-            const countByType = {
-                addition: 0,
-                subtraction: 0,
-                multiplication: 0
-            };
-
-            todayAttempts.forEach(attempt => {
-                try {
-                    const exercise = JSON.parse(attempt.exercise);
-                    if (exercise.operation && countByType.hasOwnProperty(exercise.operation)) {
-                        countByType[exercise.operation]++;
-                    }
-                } catch (e) {
-                    // Ignorer les erreurs de parsing
-                }
-            });
-
-            // Calculer le total restant
-            let totalRemaining = 0;
-            Object.values(countByType).forEach(used => {
-                totalRemaining += Math.max(0, MAX_PER_TYPE - used);
-            });
-
-            return { remaining: totalRemaining, total: MAX_PER_TYPE * 3 };
-        } catch (error) {
-            console.error('Failed to load math attempts:', error);
-            return { remaining: 9, total: 9 }; // Par défaut, tout est disponible
-        }
-    }
 
     // Générer le HTML de la navigation
     render() {
@@ -205,16 +139,6 @@ class NavigationUI {
                             ${this.currentUser.is_admin ? '<span class="nav-admin-badge">ADMIN</span>' : ''}
                         </div>
                     </a>
-                    <div class="nav-user-stats">
-                        <div class="nav-stat">
-                            <span>Cartes à piocher:</span>
-                            <span class="nav-stat-value" id="nav-credits">${this.userCredits}</span>
-                        </div>
-                        <div class="nav-stat">
-                            <span>Exercices restants:</span>
-                            <span class="nav-stat-value" id="nav-math-attempts">0/9</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Navigation links -->
@@ -405,35 +329,6 @@ class NavigationUI {
         }
     }
 
-    // Mettre à jour l'affichage des crédits (appelé depuis l'extérieur)
-    updateCredits(newCredits) {
-        this.userCredits = newCredits;
-        const creditsEl = document.getElementById('nav-credits');
-        if (creditsEl) {
-            creditsEl.textContent = newCredits;
-        }
-    }
-
-    // Mettre à jour le compteur d'exercices de maths (appelé depuis l'extérieur)
-    updateMathAttempts(remaining, total = 9) {
-        const attemptsEl = document.getElementById('nav-math-attempts');
-        if (attemptsEl) {
-            attemptsEl.textContent = `${remaining}/${total}`;
-        }
-    }
-
-    // Rafraîchir les données utilisateur
-    async refresh() {
-        await this.loadUserCredits();
-        const creditsEl = document.getElementById('nav-credits');
-        if (creditsEl) {
-            creditsEl.textContent = this.userCredits;
-        }
-
-        // Rafraîchir aussi les exercices de maths
-        const mathData = await this.loadMathAttempts();
-        this.updateMathAttempts(mathData.remaining, mathData.total);
-    }
 }
 
 // Instance globale de la navigation

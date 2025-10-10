@@ -58,32 +58,51 @@ class AdminUsers {
             return;
         }
 
-        container.innerHTML = this.filteredUsers.map(user => `
-            <div class="user-card" data-user-id="${user.id}">
-                <div class="user-info">
-                    <h3>
-                        <a href="user-profile.html?userId=${user.id}" class="user-profile-link">${user.username}</a>
-                        ${user.is_admin ? '<span class="user-badge admin">ADMIN</span>' : ''}
-                    </h3>
-                    <p>📧 ${user.email}</p>
-                    <p>📅 Inscrit le ${adminUI.formatDate(user.created_at)}</p>
-                </div>
-                <div class="user-stats">
-                    <div class="user-stat">
-                        <span class="user-stat-label">Crédits</span>
-                        <span class="user-stat-value">${user.credits || 0}</span>
+        container.innerHTML = this.filteredUsers.map(user => {
+            // Calculer les jours depuis la dernière connexion
+            let lastLoginText = 'Jamais connecté';
+            if (user.last_login_at) {
+                const lastLogin = new Date(user.last_login_at);
+                const now = new Date();
+                const daysDiff = Math.floor((now - lastLogin) / (1000 * 60 * 60 * 24));
+
+                if (daysDiff === 0) {
+                    lastLoginText = "Aujourd'hui";
+                } else if (daysDiff === 1) {
+                    lastLoginText = 'Il y a 1 jour';
+                } else {
+                    lastLoginText = `Il y a ${daysDiff} jours`;
+                }
+            }
+
+            return `
+                <div class="user-card" data-user-id="${user.id}">
+                    <div class="user-info">
+                        <h3>
+                            <a href="user-profile.html?userId=${user.id}" class="user-profile-link">${user.username}</a>
+                            ${user.is_admin ? '<span class="user-badge admin">ADMIN</span>' : ''}
+                        </h3>
+                        <p>📧 ${user.email}</p>
+                        <p>📅 Inscrit le ${adminUI.formatDate(user.created_at)}</p>
+                        <p>🔐 Dernière connexion : ${lastLoginText}</p>
+                    </div>
+                    <div class="user-stats">
+                        <div class="user-stat">
+                            <span class="user-stat-label">Crédits</span>
+                            <span class="user-stat-value">${user.credits || 0}</span>
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <button class="admin-btn-primary edit-user-btn" data-user-id="${user.id}">
+                            ✏️ Modifier
+                        </button>
+                        <button class="admin-btn-danger delete-user-btn" data-user-id="${user.id}">
+                            🗑️ Supprimer
+                        </button>
                     </div>
                 </div>
-                <div class="user-actions">
-                    <button class="admin-btn-primary edit-user-btn" data-user-id="${user.id}">
-                        ✏️ Modifier
-                    </button>
-                    <button class="admin-btn-danger delete-user-btn" data-user-id="${user.id}">
-                        🗑️ Supprimer
-                    </button>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         this.attachUserEvents();
     }

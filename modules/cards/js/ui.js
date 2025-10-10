@@ -134,12 +134,6 @@ class UIManager {
         await this.updateThemeTabs();
         this.renderCards();
         await this.updateDrawButton();
-
-        // Mettre à jour la sidebar si elle existe
-        if (window.navigationUI) {
-            const credits = await DB.getCredits();
-            navigationUI.updateCredits(credits);
-        }
     }
 
     // Met à jour les statistiques en haut
@@ -443,12 +437,6 @@ class UIManager {
                         // Après l'animation, met à jour l'affichage complet
                         await this.render();
 
-                        // Mettre à jour les compteurs de la sidebar
-                        if (window.navigationUI) {
-                            const credits = await DB.getCredits();
-                            navigationUI.updateCredits(credits);
-                        }
-
                         // Animation des nouvelles cartes dans la collection
                         setTimeout(() => {
                             Object.keys(result.groupedCards).forEach(cardId => {
@@ -642,19 +630,9 @@ class UIManager {
         this.elements.drawButton.disabled = !hasCredits;
 
         // Met à jour le texte du bouton selon la situation
-        if (hasCredits) {
-            const cardText = creditsCount === 1 ? 'carte' : 'cartes';
-            this.elements.drawButton.innerHTML = `🎁 Piocher ${creditsCount} ${cardText}`;
-            this.elements.drawCooldown.style.display = 'none';
-        } else {
-            this.elements.drawButton.innerHTML = `🎁 Piocher une carte`;
-            this.elements.drawCooldown.style.display = 'none';
-        }
-
-        // Mettre à jour la sidebar si elle existe
-        if (window.navigationUI) {
-            navigationUI.updateCredits(creditsCount);
-        }
+        const cardText = creditsCount === 1 ? 'carte' : 'cartes';
+        this.elements.drawButton.innerHTML = `🎁 Piocher ${creditsCount} ${cardText}`;
+        this.elements.drawCooldown.style.display = 'none';
     }
 
     // Démarre la mise à jour du cooldown

@@ -19,6 +19,10 @@ class ButtonSpinner {
         // Sauvegarder l'état original
         const originalContent = button.innerHTML;
         const wasDisabled = button.disabled;
+        const originalWidth = button.offsetWidth;
+
+        // Fixer la largeur pour éviter la déformation
+        button.style.minWidth = `${originalWidth}px`;
 
         // Désactiver le bouton
         button.disabled = true;
@@ -37,6 +41,7 @@ class ButtonSpinner {
                 button.innerHTML = originalContent;
                 button.disabled = wasDisabled;
                 button.classList.remove('loading');
+                button.style.minWidth = '';
             }
         };
     }

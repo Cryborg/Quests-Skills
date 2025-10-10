@@ -137,12 +137,6 @@ async function updateRemainingCounts() {
             card.classList.remove('disabled');
         }
     });
-
-    // Mettre à jour la sidebar si elle existe
-    if (window.navigationUI) {
-        const totalMax = BONUS_CONFIG.MAX_OPERATIONS_PER_TYPE * 3; // 3 types d'opérations
-        navigationUI.updateMathAttempts(totalRemaining, totalMax);
-    }
 }
 
 // Affiche un écran
@@ -686,10 +680,6 @@ async function handleSuccess() {
         currentOperation = null;
         currentExercise = null;
 
-        // Rafraîchir la sidebar
-        if (window.navigationUI) {
-            await navigationUI.refresh();
-        }
     }, 2000);
 }
 
@@ -712,10 +702,6 @@ async function handleError() {
         currentOperation = null;
         currentExercise = null;
 
-        // Rafraîchir la sidebar
-        if (window.navigationUI) {
-            await navigationUI.refresh();
-        }
     }, 2000);
 }
 
