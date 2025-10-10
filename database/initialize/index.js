@@ -10,20 +10,24 @@ const { seedWords } = require('./seed-words');
  * Orchestre tous les seeders dans le bon ordre
  *
  * PROTECTION: En production, ne seed QUE si explicitement autorisé via ALLOW_SEED=true
+ * EXCEPTION: Les mots et thèmes sont toujours seedés (update uniquement)
  */
 async function seedInitialData() {
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
     const allowSeed = process.env.ALLOW_SEED === 'true';
 
-    if (isProduction && !allowSeed) {
-        console.log('⚠️  PRODUCTION: Seeding skipped (set ALLOW_SEED=true to enable)');
-        return;
-    }
-
     console.log('🌱 Seeding initial data...');
 
-    // 1. Seed Card Themes (obligatoire en premier car référencé par d'autres tables)
+    // 1. Seed Card Themes (toujours exécuté, ajoute seulement les nouveaux)
     const themes = await seedThemes();
+
+    // 5. Seed Word Search Words (toujours exécuté, met à jour les définitions)
+    await seedWords();
+
+    if (isProduction && !allowSeed) {
+        console.log('⚠️  PRODUCTION: Limited seeding (themes + words only). Set ALLOW_SEED=true for full seed.');
+        return;
+    }
 
     // 2. Seed Admin User (dépend de themes pour user_themes)
     await seedAdmin(themes);
@@ -33,9 +37,6 @@ async function seedInitialData() {
 
     // 4. Seed Bonus Operations (indépendant)
     await seedBonusOperations();
-
-    // 5. Seed Word Search Words (dépend de themes)
-    await seedWords();
 
     console.log('✅ Initial data seeded');
 }

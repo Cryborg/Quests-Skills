@@ -41,30 +41,17 @@
     </div>
 
     <!-- Scripts partagés -->
-    <script src="../../shared/js/page-header.js"></script>
-    <script src="../../shared/js/config.js"></script>
-    <script src="../../shared/js/auth.js"></script>
-    <script src="../../shared/js/auth-ui.js"></script>
-    <script src="../../shared/js/navigation.js"></script>
-    <script src="../../shared/js/toast.js"></script>
     <script src="../../shared/js/common.js"></script>
-    <script src="../../shared/js/game-attempts.js"></script>
-    <script src="../../shared/js/credits-manager.js"></script>
 
     <!-- Script du module -->
     <script src="js/crossword.js"></script>
 
-    <!-- Initialisation de l'auth -->
+    <!-- Initialisation -->
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const isAuth = await authService.init();
-
-            if (!isAuth) {
-                window.location.href = '/';
-            } else {
-                await navigationUI.init();
+        window.addEventListener('common-scripts-loaded', async () => {
+            await initializeApp(async () => {
                 await crosswordGame.init();
-            }
+            });
         });
     </script>
 </body>
