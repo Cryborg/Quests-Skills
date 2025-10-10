@@ -62,15 +62,7 @@ async function ensureDatabaseExists() {
             await initializeDatabase();
         } else {
             console.log('✅ Database tables verified (8/8)');
-
-            // En production, toujours exécuter le seeding partiel (thèmes + mots)
-            // pour s'assurer que les nouvelles définitions sont ajoutées
-            if (isProduction) {
-                console.log('🌱 Running partial seeding (themes + words)...');
-                const { seedInitialData } = require('./initialize/index');
-                await seedInitialData();
-            }
-
+            // Le seeding est maintenant géré par le middleware ensure-migrations
             databaseInitialized = true;
         }
     } catch (error) {

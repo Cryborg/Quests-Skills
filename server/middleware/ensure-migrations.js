@@ -1,13 +1,14 @@
 const { runMigrations } = require('../../database/migrate');
+const { seedInitialData } = require('../../database/initialize/index');
 
 let migrationsRun = false;
 let migrationPromise = null;
 
 /**
- * Middleware qui s'assure que les migrations ont été exécutées
+ * Middleware qui s'assure que les migrations et le seeding ont été exécutés
  * avant de traiter toute requête API.
  *
- * Exécute les migrations une seule fois au premier appel,
+ * Exécute les migrations et seeding une seule fois au premier appel,
  * puis laisse passer toutes les requêtes suivantes.
  */
 async function ensureMigrations(req, res, next) {
@@ -29,14 +30,17 @@ async function ensureMigrations(req, res, next) {
         }
     }
 
-    // Lancer les migrations
+    // Lancer les migrations puis le seeding
     migrationPromise = runMigrations()
-        .then(() => {
+        .then(async () => {
+            // Après les migrations, lancer le seeding partiel (thèmes + mots)
+            console.log('🌱 Running initial data seeding...');
+            await seedInitialData();
             migrationsRun = true;
             migrationPromise = null;
         })
         .catch(error => {
-            console.error('Migration failed:', error);
+            console.error('Migration/Seeding failed:', error);
             migrationPromise = null;
             throw error;
         });
@@ -46,7 +50,7 @@ async function ensureMigrations(req, res, next) {
         next();
     } catch (error) {
         res.status(503).json({
-            error: 'Database migration failed',
+            error: 'Database initialization failed',
             details: error.message
         });
     }
