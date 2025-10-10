@@ -51,9 +51,7 @@ router.post('/register', async (req, res) => {
             [user.id, 10, now, now]
         );
 
-        // Assigner les thèmes : utiliser ceux fournis ou 3 aléatoires par défaut
-        let themesToAssign = [];
-
+        // Assigner les thèmes seulement si fournis par l'admin
         if (theme_slugs && Array.isArray(theme_slugs) && theme_slugs.length >= 3 && theme_slugs.length <= 10) {
             // Vérifier que tous les thèmes existent
             const allThemes = await all('SELECT slug FROM card_themes');
@@ -61,23 +59,15 @@ router.post('/register', async (req, res) => {
             const validThemeSlugs = theme_slugs.filter(slug => validSlugs.includes(slug));
 
             if (validThemeSlugs.length >= 3 && validThemeSlugs.length <= 10) {
-                themesToAssign = validThemeSlugs;
+                for (const themeSlug of validThemeSlugs) {
+                    await run(
+                        'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
+                        [user.id, themeSlug, now]
+                    );
+                }
             }
         }
-
-        // Si pas de thèmes valides fournis, assigner 3 aléatoires
-        if (themesToAssign.length === 0) {
-            const allThemes = await all('SELECT slug FROM card_themes');
-            const shuffled = allThemes.sort(() => 0.5 - Math.random());
-            themesToAssign = shuffled.slice(0, 3).map(t => t.slug);
-        }
-
-        for (const themeSlug of themesToAssign) {
-            await run(
-                'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
-                [user.id, themeSlug, now]
-            );
-        }
+        // Sinon, aucun thème n'est assigné et l'utilisateur devra les choisir à sa première connexion
 
         // Créer le token JWT
         const token = jwt.sign(

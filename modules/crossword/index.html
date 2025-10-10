@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔠 Mots Croisés</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="css/crossword.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté automatiquement par PageHeader.render() -->
+
+        <main class="main-content">
+            <div class="game-area">
+                <div id="crossword-grid"></div>
+            </div>
+
+            <div class="clues-container">
+                <div class="clues-section">
+                    <h3>Horizontal</h3>
+                    <div id="horizontal-clues" class="clues-list"></div>
+                </div>
+                <div class="clues-section">
+                    <h3>Vertical</h3>
+                    <div id="vertical-clues" class="clues-list"></div>
+                </div>
+            </div>
+
+            <div class="game-actions">
+                <button class="btn-secondary" id="hint-btn">💡 Indice</button>
+                <button class="btn-primary" id="new-game-btn">🔄 Nouvelle grille</button>
+            </div>
+        </main>
+
+        <!-- Toast pour les notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <!-- Scripts partagés -->
+    <script src="../../shared/js/page-header.js"></script>
+    <script src="../../shared/js/config.js"></script>
+    <script src="../../shared/js/auth.js"></script>
+    <script src="../../shared/js/auth-ui.js"></script>
+    <script src="../../shared/js/navigation.js"></script>
+    <script src="../../shared/js/toast.js"></script>
+    <script src="../../shared/js/common.js"></script>
+    <script src="../../shared/js/game-attempts.js"></script>
+    <script src="../../shared/js/credits-manager.js"></script>
+
+    <!-- Script du module -->
+    <script src="js/crossword.js"></script>
+
+    <!-- Initialisation de l'auth -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const isAuth = await authService.init();
+
+            if (!isAuth) {
+                window.location.href = '/';
+            } else {
+                await navigationUI.init();
+                await crosswordGame.init();
+            }
+        });
+    </script>
+</body>
+</html>

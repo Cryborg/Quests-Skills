@@ -40,6 +40,7 @@ window.initializeApp = async function(moduleInitFunction, options = {}) {
         '/shared/js/page-header.js',
         '/shared/js/credits-manager.js',
         '/shared/js/auth.js',
+        '/shared/js/theme-selector.js',
         '/shared/js/navigation.js',
         '/shared/js/toast.js',
         '/shared/js/game-attempts.js',

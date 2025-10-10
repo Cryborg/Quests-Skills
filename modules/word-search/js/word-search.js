@@ -108,9 +108,9 @@ class WordSearchGame {
         const themes = Object.keys(this.wordLists);
         const randomTheme = themes[Math.floor(Math.random() * themes.length)];
 
-        // Sélectionner 5-7 mots du thème
+        // Sélectionner jusqu'à 10 mots du thème
         const themeWords = [...this.wordLists[randomTheme]];
-        const numWords = 5 + Math.floor(Math.random() * 3); // 5 à 7 mots
+        const numWords = Math.min(10, themeWords.length); // Jusqu'à 10 mots (ou moins si pas assez de mots)
         this.words = this.shuffleArray(themeWords).slice(0, numWords);
 
         this.foundWords.clear();
@@ -216,7 +216,14 @@ class WordSearchGame {
     }
 
     renderWordsList() {
-        this.elements.wordsList.innerHTML = this.words.map((word, index) => `
+        // Créer un tableau avec les mots et leurs indices originaux
+        const wordsWithIndices = this.words.map((word, index) => ({ word, index }));
+
+        // Trier par ordre alphabétique
+        wordsWithIndices.sort((a, b) => a.word.localeCompare(b.word));
+
+        // Générer le HTML
+        this.elements.wordsList.innerHTML = wordsWithIndices.map(({ word, index }) => `
             <div class="word-item ${this.foundWords.has(index) ? 'found' : ''}" data-word-id="${index}">
                 ${word}
             </div>

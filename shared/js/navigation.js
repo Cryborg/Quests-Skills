@@ -49,6 +49,11 @@ class NavigationUI {
                         label: 'Mots mêlés',
                         href: '/modules/word-search/index.html',
                         id: 'word-search'
+                    },
+                    {
+                        label: 'Mots croisés',
+                        href: '/modules/crossword/index.html',
+                        id: 'crossword'
                     }
                 ]
             },

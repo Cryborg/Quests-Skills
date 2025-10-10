@@ -32,6 +32,11 @@ class AuthService {
                     await CreditsManager.init();
                 }
 
+                // Vérifier si l'utilisateur a assez de thèmes
+                if (typeof themeSelector !== 'undefined') {
+                    await themeSelector.checkAndShowIfNeeded();
+                }
+
                 return true;
             } catch (error) {
                 console.error('Token expired or invalid, logging out');
