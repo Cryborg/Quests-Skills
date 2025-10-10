@@ -460,8 +460,8 @@ async function seedWords() {
                 [word, definition, now]
             );
             wordCount++;
-        } else if (definition && !existing.definition) {
-            // Mettre à jour la définition si elle n'existe pas
+        } else if (definition && existing.definition !== definition) {
+            // Mettre à jour la définition si elle est différente ou manquante
             await run(
                 'UPDATE word_search_words SET definition = ? WHERE id = ?',
                 [definition, existing.id]
@@ -484,8 +484,8 @@ async function seedWords() {
                     [themeSlug, word, definition, now]
                 );
                 wordCount++;
-            } else if (definition && !existing.definition) {
-                // Mettre à jour la définition si elle n'existe pas
+            } else if (definition && existing.definition !== definition) {
+                // Mettre à jour la définition si elle est différente ou manquante
                 await run(
                     'UPDATE word_search_words SET definition = ? WHERE id = ?',
                     [definition, existing.id]
