@@ -26,7 +26,7 @@
     width: 40px;
     height: 40px;
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    border: none;
     position: relative;
     display: flex;
     align-items: center;
@@ -145,10 +145,10 @@
 
     #crossword-grid {
         margin: 0 auto;
-        gap: 0.5px;
+        gap: 1px;
         background: var(--border-color);
         border: 1px solid var(--border-color);
-        padding: 0.5px;
+        padding: 1px;
         /* Calcul: 100vw - (padding gauche 0.5rem + padding droit 0.5rem) */
         width: calc(100vw - 1rem);
         max-width: 400px;
@@ -156,13 +156,12 @@
     }
 
     .crossword-cell {
-        /* Calcul: (largeur grille - bordure 2px - padding 1px - gaps 4.5px) / 10 */
-        width: calc((100vw - 1rem - 7.5px) / 10);
-        height: calc((100vw - 1rem - 7.5px) / 10);
+        /* Calcul: (largeur grille - bordure 2px - padding 2px - gaps 9px) / 10 */
+        width: calc((100vw - 1rem - 13px) / 10);
+        height: calc((100vw - 1rem - 13px) / 10);
         max-width: 36px;
         max-height: 36px;
         font-size: clamp(0.65rem, 2.2vw, 0.9rem);
-        border: none;
     }
 
     .crossword-cell input {
@@ -192,8 +191,8 @@
     }
 
     .crossword-cell {
-        width: calc((100vw - 0.5rem - 7.5px) / 10);
-        height: calc((100vw - 0.5rem - 7.5px) / 10);
+        width: calc((100vw - 0.5rem - 13px) / 10);
+        height: calc((100vw - 0.5rem - 13px) / 10);
         max-width: 34px;
         max-height: 34px;
         font-size: clamp(0.6rem, 2vw, 0.8rem);
