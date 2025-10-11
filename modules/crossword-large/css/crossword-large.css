@@ -1,0 +1,94 @@
+/* Mots Croisés Grand Format - Styles spécifiques 15x15 */
+
+/* Override pour la grille 15x15 */
+#crossword-grid {
+    grid-template-columns: repeat(15, 35px);
+}
+
+.crossword-cell {
+    width: 35px;
+    height: 35px;
+}
+
+.crossword-cell input {
+    font-size: 1rem;
+}
+
+.crossword-cell .cell-number {
+    font-size: 1rem;
+}
+
+/* Responsive pour 15x15 */
+@media (max-width: 768px) {
+    .game-area {
+        padding: 0 calc(0.5rem + 10px);
+        overflow-x: hidden;
+    }
+
+    #crossword-grid {
+        margin: 0 auto;
+        /* Calcul responsive: chaque cellule prend (100vw - padding - border - gaps) / 15 */
+        /* padding total = 1rem + 20px (10px de chaque côté) */
+        /* gaps = 14px (14 gaps de 1px entre 15 cellules) */
+        grid-template-columns: repeat(15, calc((100vw - 1rem - 20px - 16px) / 15));
+        gap: 1px;
+        background: var(--border-color);
+        border: 1px solid var(--border-color);
+        padding: 1px;
+        width: calc(100vw - 1rem - 20px);
+        max-width: 550px;
+        box-sizing: border-box;
+    }
+
+    .crossword-cell {
+        /* Les cellules héritent de la taille de grid-template-columns */
+        width: 100%;
+        height: 100%;
+        max-width: 32px;
+        max-height: 32px;
+        font-size: clamp(0.5rem, 1.8vw, 0.8rem);
+    }
+
+    .crossword-cell input {
+        font-size: clamp(0.5rem, 1.8vw, 0.8rem);
+    }
+
+    .crossword-cell .cell-number {
+        font-size: clamp(0.55rem, 2vw, 0.85rem);
+        top: 0px;
+        left: 1px;
+    }
+
+    .clues-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .game-area {
+        padding: 0 calc(0.25rem + 10px);
+    }
+
+    #crossword-grid {
+        grid-template-columns: repeat(15, calc((100vw - 0.5rem - 20px - 16px) / 15));
+        width: calc(100vw - 0.5rem - 20px);
+        max-width: 380px;
+    }
+
+    .crossword-cell {
+        max-width: 22px;
+        max-height: 22px;
+        font-size: clamp(0.45rem, 1.6vw, 0.7rem);
+    }
+
+    .crossword-cell input {
+        font-size: clamp(0.45rem, 1.6vw, 0.7rem);
+    }
+
+    .crossword-cell .cell-number {
+        font-size: clamp(0.5rem, 1.8vw, 0.75rem);
+        top: 0px;
+        left: 0px;
+    }
+}

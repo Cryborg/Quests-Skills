@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔠 Mots Croisés Grand Format</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="../crossword/css/crossword.css">
+    <link rel="stylesheet" href="css/crossword-large.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté automatiquement par PageHeader.render() -->
+
+        <main class="main-content">
+            <div class="game-area">
+                <div id="crossword-grid"></div>
+            </div>
+
+            <div class="clues-container">
+                <div class="clues-section">
+                    <h3>Horizontal</h3>
+                    <div id="horizontal-clues" class="clues-list"></div>
+                </div>
+                <div class="clues-section">
+                    <h3>Vertical</h3>
+                    <div id="vertical-clues" class="clues-list"></div>
+                </div>
+            </div>
+
+            <div class="game-actions">
+                <button class="btn-secondary" id="hint-btn">💡 Indice</button>
+                <button class="btn-primary" id="new-game-btn">🔄 Nouvelle grille</button>
+            </div>
+        </main>
+
+        <!-- Toast pour les notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <!-- Scripts partagés -->
+    <script src="../../shared/js/common.js"></script>
+
+    <!-- Script du module crossword (réutilisé) -->
+    <script src="../crossword/js/crossword.js"></script>
+
+    <!-- Initialisation avec configuration 15x15 -->
+    <script>
+        window.addEventListener('common-scripts-loaded', async () => {
+            await initializeApp(async () => {
+                // Créer une instance avec configuration 15x15
+                const crosswordLargeGame = new CrosswordGame({
+                    gridSize: 15,
+                    minWords: 25,
+                    maxWords: 35,
+                    minWordLength: 3,
+                    maxWordLength: 12,
+                    maxHints: 5,
+                    maxAttemptsPerDay: 2,
+                    baseCredits: 10,
+                    gameType: 'crossword-large',
+                    title: 'Mots Croisés Grand Format',
+                    subtitle: 'Une grille 15x15 pour les experts !',
+                    icon: '📰'
+                });
+
+                await crosswordLargeGame.init();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,14 +1,31 @@
 // Jeu de Mots Croisés
 class CrosswordGame {
-    constructor() {
-        this.gridSize = 10;
+    constructor(config = {}) {
+        // Configuration par défaut
+        this.config = {
+            gridSize: 10,
+            minWords: 12,
+            maxWords: 15,
+            minWordLength: 3,
+            maxWordLength: 8,
+            maxHints: 3,
+            maxAttemptsPerDay: 3,
+            baseCredits: 5,
+            gameType: 'crossword',
+            title: 'Mots Croisés',
+            subtitle: 'Remplis la grille avec les bonnes lettres !',
+            icon: '🔠',
+            ...config
+        };
+
+        this.gridSize = this.config.gridSize;
         this.grid = [];
         this.words = [];
         this.placedWords = [];
         this.currentWord = null;
         this.currentDirection = null;
         this.hintsUsed = 0;
-        this.maxHints = 3;
+        this.maxHints = this.config.maxHints;
         this.timer = 0;
         this.timerInterval = null;
     }
@@ -16,20 +33,20 @@ class CrosswordGame {
     async init() {
         // Créer le header avec les stats
         PageHeader.render({
-            icon: '🔠',
-            title: 'Mots Croisés',
-            subtitle: 'Remplis la grille avec les bonnes lettres !',
+            icon: this.config.icon,
+            title: this.config.title,
+            subtitle: this.config.subtitle,
             actions: [],
             stats: [
                 { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '...' },
                 { label: 'Mots trouvés', id: 'words-found', value: '0/0' },
                 { label: 'Temps', id: 'timer', value: '00:00' },
-                { label: 'Indices', id: 'hints-used', value: '0/3' }
+                { label: 'Indices', id: 'hints-used', value: `0/${this.config.maxHints}` }
             ]
         });
 
         // Initialiser le compteur d'essais
-        const remaining = await GameAttempts.initHeaderDisplay('crossword', 3);
+        const remaining = await GameAttempts.initHeaderDisplay(this.config.gameType, this.config.maxAttemptsPerDay);
 
         if (remaining === 0) {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
@@ -94,21 +111,27 @@ class CrosswordGame {
     }
 
     startNewGame() {
-        // Sélectionner 12-15 mots aléatoires avec définitions
+        // Sélectionner des mots aléatoires avec définitions
         if (!this.allWords || this.allWords.length === 0) {
             Toast.error('Aucun mot disponible avec des définitions');
             return;
         }
 
-        // Sélectionner des mots de longueur variée (3-8 lettres pour une grille 10x10)
-        const suitableWords = this.allWords.filter(w => w.word.length >= 3 && w.word.length <= 8);
+        // Sélectionner des mots de longueur variée selon la config
+        const suitableWords = this.allWords.filter(w =>
+            w.word.length >= this.config.minWordLength &&
+            w.word.length <= this.config.maxWordLength
+        );
 
-        if (suitableWords.length < 12) {
+        if (suitableWords.length < this.config.minWords) {
             Toast.error('Pas assez de mots disponibles');
             return;
         }
 
-        const numWords = Math.min(12 + Math.floor(Math.random() * 4), suitableWords.length);
+        const numWords = Math.min(
+            this.config.minWords + Math.floor(Math.random() * (this.config.maxWords - this.config.minWords + 1)),
+            suitableWords.length
+        );
         const shuffled = this.shuffleArray([...suitableWords]);
         this.words = shuffled.slice(0, numWords);
 
@@ -666,7 +689,7 @@ class CrosswordGame {
 
         const timeBonus = Math.max(0, 600 - this.timer); // Bonus si < 10min
         const hintPenalty = this.hintsUsed * 2;
-        const totalCredits = 5 + Math.floor(timeBonus / 120) - hintPenalty;
+        const totalCredits = this.config.baseCredits + Math.floor(timeBonus / 120) - hintPenalty;
 
         await CreditsManager.addCredits(totalCredits, `Mots croisés complétés en ${this.formatTime(this.timer)}`);
 
