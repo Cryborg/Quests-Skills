@@ -55,13 +55,13 @@ class CrosswordGame {
             const response = await authService.fetchAPI(`/word-search/themes/${user.id}/available`);
             const data = await response.json();
 
-            // Récupérer tous les mots avec leurs définitions
-            this.allWords = [];
+            // Récupérer tous les mots avec leurs définitions (dédupliquer par mot)
+            const wordsMap = new Map();
             data.themes.forEach(theme => {
                 if (theme.words && theme.words.length > 0) {
                     theme.words.forEach(w => {
-                        if (w.definition) { // Seulement les mots avec définitions
-                            this.allWords.push({
+                        if (w.definition && !wordsMap.has(w.word)) {
+                            wordsMap.set(w.word, {
                                 word: w.word,
                                 definition: w.definition
                             });
@@ -70,6 +70,7 @@ class CrosswordGame {
                 }
             });
 
+            this.allWords = Array.from(wordsMap.values());
             console.log('📚 Loaded words with definitions:', this.allWords.length);
         } catch (error) {
             console.error('Failed to load words:', error);
