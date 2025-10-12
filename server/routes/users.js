@@ -376,30 +376,34 @@ router.get('/:id/cards', checkOwnership, async (req, res) => {
         );
 
         // Si l'utilisateur n'a pas de thèmes sélectionnés, retourner toutes ses cartes
+        let userCards;
         if (userThemes.length === 0) {
-            const userCards = await all(
+            userCards = await all(
                 `SELECT uc.*, c.*
                  FROM user_cards uc
                  JOIN cards c ON uc.card_id = c.id
                  WHERE uc.user_id = ?`,
                 [userId]
             );
-            return res.json(userCards);
+        } else {
+            // Filtrer les cartes par thèmes sélectionnés
+            const themeSlugs = userThemes.map(t => t.theme_slug);
+            const placeholders = DBHelpers.buildInClause(themeSlugs);
+
+            userCards = await all(
+                `SELECT uc.*, c.*
+                 FROM user_cards uc
+                 JOIN cards c ON uc.card_id = c.id
+                 WHERE uc.user_id = ? AND c.category IN (${placeholders})`,
+                [userId, ...themeSlugs]
+            );
         }
 
-        // Filtrer les cartes par thèmes sélectionnés
-        const themeSlugs = userThemes.map(t => t.theme_slug);
-        const placeholders = DBHelpers.buildInClause(themeSlugs);
+        // Transformer les chemins d'images avec la structure par catégorie
+        const CardsService = require('../services/cards-service');
+        const cardsWithFullPaths = CardsService.transformImagePaths(userCards);
 
-        const userCards = await all(
-            `SELECT uc.*, c.*
-             FROM user_cards uc
-             JOIN cards c ON uc.card_id = c.id
-             WHERE uc.user_id = ? AND c.category IN (${placeholders})`,
-            [userId, ...themeSlugs]
-        );
-
-        res.json(userCards);
+        res.json(cardsWithFullPaths);
     } catch (error) {
         console.error('Error fetching user cards:', error);
         res.status(500).json({ error: 'Failed to fetch user cards' });
@@ -500,9 +504,13 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
             [userId]
         );
 
-        console.log(`✅ Collection has ${userCards.length} cards`);
+        // Transformer les chemins d'images avec la structure par catégorie
+        const CardsService = require('../services/cards-service');
+        const cardsWithFullPaths = CardsService.transformImagePaths(userCards);
+
+        console.log(`✅ Collection has ${cardsWithFullPaths.length} cards`);
         console.log('========================================');
-        res.json({ added: Object.keys(cardCounts).length, collection: userCards });
+        res.json({ added: Object.keys(cardCounts).length, collection: cardsWithFullPaths });
     } catch (error) {
         console.error('❌❌❌ ERROR IN /users/:id/cards:', error);
         console.error('❌ Error stack:', error.stack);
@@ -585,10 +593,14 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
             [userCard.user_card_id]
         );
 
-        console.log('🔄 Updated card:', updated);
+        // Transformer le chemin d'image avec la structure par catégorie
+        const CardsService = require('../services/cards-service');
+        const updatedWithFullPath = CardsService.transformImagePath(updated);
+
+        console.log('🔄 Updated card:', updatedWithFullPath);
 
         res.json({
-            card: updated,
+            card: updatedWithFullPath,
             creditsEarned,
             excessCards
         });

@@ -1,5 +1,6 @@
 const { get, run } = require('../turso-db');
 const DBHelpers = require('../utils/db-helpers');
+const ImageHelper = require('../utils/image-helper');
 
 /**
  * Service pour la logique métier des cartes
@@ -12,17 +13,12 @@ class CardsService {
      * @returns {Object} - Carte avec image path transformé
      *
      * @example
-     * const card = { id: 1, image: 'images/card.jpg' };
+     * const card = { id: 1, image: 'creeper.webp', category: 'minecraft' };
      * const transformed = CardsService.transformImagePath(card);
-     * // transformed.image = '/shared/images/card.jpg'
+     * // transformed.image = '/shared/images/minecraft/creeper.webp'
      */
     static transformImagePath(card) {
-        return {
-            ...card,
-            image: card.image.startsWith('images/')
-                ? `/shared/${card.image}`
-                : card.image
-        };
+        return ImageHelper.transformCardImage(card, true);
     }
 
     /**
@@ -31,7 +27,7 @@ class CardsService {
      * @returns {Array} - Cartes transformées
      */
     static transformImagePaths(cards) {
-        return cards.map(card => this.transformImagePath(card));
+        return ImageHelper.transformCardImages(cards, true);
     }
 
     /**

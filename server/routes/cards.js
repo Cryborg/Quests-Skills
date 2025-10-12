@@ -12,13 +12,9 @@ router.get('/', async (req, res) => {
     try {
         const cards = await all('SELECT * FROM cards ORDER BY name ASC');
 
-        // Transformer les chemins d'images relatifs en chemins absolus
-        const cardsWithFullPaths = cards.map(card => ({
-            ...card,
-            image: card.image.startsWith('images/')
-                ? `/shared/${card.image}`
-                : card.image
-        }));
+        // Transformer les chemins d'images avec la nouvelle structure par catégorie
+        const CardsService = require('../services/cards-service');
+        const cardsWithFullPaths = CardsService.transformImagePaths(cards);
 
         res.json(cardsWithFullPaths);
     } catch (error) {
@@ -36,13 +32,9 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Card not found' });
         }
 
-        // Transformer le chemin d'image relatif en chemin absolu
-        const cardWithFullPath = {
-            ...card,
-            image: card.image.startsWith('images/')
-                ? `/shared/${card.image}`
-                : card.image
-        };
+        // Transformer le chemin d'image avec la nouvelle structure par catégorie
+        const CardsService = require('../services/cards-service');
+        const cardWithFullPath = CardsService.transformImagePath(card);
 
         res.json(cardWithFullPath);
     } catch (error) {
@@ -299,13 +291,9 @@ router.post('/draw/:userId',
             `, [userId, cardId, quantityToAdd, now, now]);
         }
 
-        // Transformer les cartes pour inclure les chemins d'images absolus
-        const cardsWithFullPaths = drawnCards.map(card => ({
-            ...card,
-            image: card.image.startsWith('images/')
-                ? `/shared/${card.image}`
-                : card.image
-        }));
+        // Transformer les cartes pour inclure les chemins d'images avec la nouvelle structure
+        const CardsService = require('../services/cards-service');
+        const cardsWithFullPaths = CardsService.transformImagePaths(drawnCards);
 
         res.json({
             success: true,

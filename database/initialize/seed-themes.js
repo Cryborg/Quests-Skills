@@ -10,7 +10,8 @@ async function seedThemes() {
         { slug: 'minecraft', name: 'Minecraft', icon: '🟫' },
         { slug: 'space', name: 'Astronomie', icon: '🌌' },
         { slug: 'dinosaurs', name: 'Dinosaures', icon: '🦕' },
-        { slug: 'monuments', name: 'Monuments', icon: '🏛️' }
+        { slug: 'monuments', name: 'Monuments', icon: '🏛️' },
+        { slug: 'jeux-videos', name: 'Jeux Vidéo', icon: '🎮' }
     ];
 
     let themeCount = 0;
