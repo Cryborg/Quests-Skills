@@ -31,7 +31,6 @@ class DatabaseManager {
 
             const themes = await response.json();
             this.userThemes = themes.map(t => t.slug);
-            console.log(`✅ ${this.userThemes.length} thèmes sélectionnés:`, this.userThemes);
         } catch (error) {
             console.error('Error loading user themes:', error);
         }

@@ -171,8 +171,6 @@ class AuthService {
                 if (result.success && result.cardsGiven > 0 && typeof Toast !== 'undefined') {
                     Toast.success(result.message);
                 }
-
-                console.log('🎁 Cartes quotidiennes:', result);
             }
         } catch (error) {
             console.error('Erreur lors de la réclamation des cartes quotidiennes:', error);

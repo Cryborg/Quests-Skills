@@ -164,19 +164,6 @@ class UIManager {
             const themeCardsWithInfo = CARD_SYSTEM.getCardsWithCollectionInfo(theme);
             const upgradeableInTheme = themeCardsWithInfo.filter(card => card.canUpgrade).length;
 
-            // Debug: affiche les cartes améliorables pour tous les thèmes
-            if (upgradeableInTheme > 0) {
-                console.log(`🔺 Thème ${theme}: ${upgradeableInTheme} carte(s) améliorable(s)`,
-                    themeCardsWithInfo.filter(card => card.canUpgrade).map(c => ({
-                        name: c.name,
-                        id: c.id,
-                        count: c.count,
-                        currentRarity: c.currentRarity,
-                        upgradeInfo: c.upgradeInfo
-                    }))
-                );
-            }
-
             // Supprime les anciens indicateurs
             const existingIndicator = tab.querySelector('.theme-completion');
             const existingUpgradeIndicator = tab.querySelector('.theme-upgrade-indicator');
