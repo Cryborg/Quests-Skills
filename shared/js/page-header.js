@@ -8,9 +8,10 @@ class PageHeader {
      * @param {string} [config.subtitle] - Sous-titre optionnel
      * @param {Array} [config.actions] - Boutons d'action [{icon, text, id, className}]
      * @param {Array} [config.stats] - Stats à afficher [{label, id, value}]
+     * @param {Object} [config.reward] - Badge de récompense {baseCredits, bonusText, size}
      */
     static render(config) {
-        const { icon, title, subtitle, actions = [], stats = [] } = config;
+        const { icon, title, subtitle, actions = [], stats = [], reward = null } = config;
 
         // Créer le HTML du header
         let headerHTML = `
@@ -39,6 +40,11 @@ class PageHeader {
             headerHTML += `<p class="page-header-subtitle">${subtitle}</p>`;
         }
 
+        // Ajouter le badge de récompense si présent
+        if (reward) {
+            headerHTML += '<div class="page-header-reward" id="page-header-reward"></div>';
+        }
+
         // Ajouter les stats si présentes
         if (stats.length > 0) {
             headerHTML += '<div class="page-header-stats">';
@@ -59,6 +65,13 @@ class PageHeader {
         const container = document.querySelector('.container');
         if (container) {
             container.insertAdjacentHTML('afterbegin', headerHTML);
+
+            // Injecter le badge de récompense si présent (nécessite RewardBadge)
+            if (reward && typeof RewardBadge !== 'undefined') {
+                setTimeout(() => {
+                    RewardBadge.renderCentered('#page-header-reward', reward);
+                }, 0);
+            }
         } else {
             console.error('PageHeader: No .container element found');
         }
@@ -75,6 +88,18 @@ class PageHeader {
         const statElement = document.getElementById(statId);
         if (statElement) {
             statElement.textContent = value;
+        }
+    }
+
+    /**
+     * Met à jour le badge de récompense
+     * @param {Object} reward - Nouvelle config du badge {baseCredits, bonusText, size}
+     */
+    static updateReward(reward) {
+        const container = document.getElementById('page-header-reward');
+        if (container && typeof RewardBadge !== 'undefined') {
+            container.innerHTML = '';
+            RewardBadge.renderCentered('#page-header-reward', reward);
         }
     }
 }

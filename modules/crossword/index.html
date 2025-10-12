@@ -22,9 +22,6 @@
                 <button class="difficulty-btn" data-size="15x15">Grand Format (15x15)</button>
             </div>
 
-            <!-- Badge de récompense -->
-            <div id="reward-badge-container"></div>
-
             <div class="game-area">
                 <div id="crossword-grid"></div>
             </div>
@@ -117,13 +114,11 @@
 
             const config = configs[size];
 
-            // Afficher le badge de récompense
-            const badgeContainer = document.getElementById('reward-badge-container');
-            badgeContainer.innerHTML = '';
-            RewardBadge.renderCentered('#reward-badge-container', {
+            // Ajouter le badge de récompense dans la config
+            config.reward = {
                 baseCredits: config.baseCredits,
                 bonusText: '+ bonus temps'
-            });
+            };
 
             // Créer une nouvelle instance avec la config appropriée
             crosswordGame = new CrosswordGame(config);

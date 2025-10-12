@@ -40,6 +40,15 @@
     margin: 8px 0 0 0;
 }
 
+/* Badge de récompense dans le header */
+.page-header-reward {
+    margin-top: 16px;
+}
+
+.page-header-reward .reward-badge-container {
+    margin: 0;
+}
+
 /* Actions (boutons dans le header) */
 .page-header-actions {
     display: flex;
