@@ -65,7 +65,8 @@ class DatabaseManager {
                 name: card.name,
                 theme: card.category, // category dans la base, theme dans le front
                 baseRarity: card.base_rarity,
-                image: card.image,
+                // Construire le chemin complet de l'image : /shared/images/{category}/{filename}
+                image: card.image ? `/shared/images/${card.category}/${card.image}` : null,
                 description: card.description
             }));
 
