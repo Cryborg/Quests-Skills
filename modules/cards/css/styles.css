@@ -478,8 +478,8 @@
     object-position: center top;
 }
 
-/* Animation de défilement vertical automatique pour les images */
-.card-visual-image.medium {
+/* Animation de défilement vertical automatique pour les images portrait */
+.card-visual-image.medium:not(.landscape) {
     animation: pan-vertical 12s ease-in-out infinite;
     transform-origin: center;
 }
@@ -496,6 +496,31 @@
     }
 }
 
+/* Images en paysage (plus larges que hautes) : scroll horizontal */
+.card-visual-image.landscape {
+    width: auto;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    object-position: left center;
+}
+
+.card-visual-image.medium.landscape {
+    animation: pan-horizontal 12s ease-in-out infinite;
+}
+
+@keyframes pan-horizontal {
+    0%, 15% {
+        object-position: left center;
+    }
+    42%, 58% {
+        object-position: right center;
+    }
+    85%, 100% {
+        object-position: left center;
+    }
+}
+
 .card-visual-emoji {
     display: inline-block;
     transition: transform var(--transition-normal);
@@ -507,8 +532,8 @@
     position: relative;
 }
 
-/* Animation automatique pour les grandes images dans la modal */
-.modal-visual.card-visual-image.large {
+/* Animation automatique pour les grandes images dans la modal (portrait) */
+.modal-visual.card-visual-image.large:not(.landscape) {
     object-position: center top;
     animation: pan-vertical-modal 16s ease-in-out infinite;
 }
@@ -522,6 +547,24 @@
     }
     80%, 100% {
         object-position: center top;
+    }
+}
+
+/* Animation horizontale pour les grandes images en paysage dans la modal */
+.modal-visual.card-visual-image.large.landscape {
+    object-position: left center;
+    animation: pan-horizontal-modal 16s ease-in-out infinite;
+}
+
+@keyframes pan-horizontal-modal {
+    0%, 20% {
+        object-position: left center;
+    }
+    40%, 60% {
+        object-position: right center;
+    }
+    80%, 100% {
+        object-position: left center;
     }
 }
 
@@ -1444,15 +1487,11 @@
     object-position: center top;
 }
 
-/* Animation automatique dans l'animation de pioche */
-.animated-card-image .animated-card-image-content {
+/* Animation automatique dans l'animation de pioche (portrait) */
+.animated-card-image .animated-card-image-content:not(.landscape) {
     animation: pan-vertical-draw 20s ease-in-out infinite !important;
     z-index: 3;
     position: relative;
-}
-
-/* Assure-toi que l'animation démarre immédiatement */
-.animated-card-image .animated-card-image-content {
     animation-delay: 0s !important;
     animation-play-state: running !important;
 }
@@ -1466,6 +1505,30 @@
     }
     75%, 100% {
         object-position: center top;
+    }
+}
+
+/* Animation automatique dans l'animation de pioche (paysage) */
+.animated-card-image .animated-card-image-content.landscape {
+    animation: pan-horizontal-draw 20s ease-in-out infinite !important;
+    z-index: 3;
+    position: relative;
+    animation-delay: 0s !important;
+    animation-play-state: running !important;
+    width: auto;
+    height: 100%;
+    max-width: none;
+}
+
+@keyframes pan-horizontal-draw {
+    0%, 25% {
+        object-position: left center;
+    }
+    37%, 63% {
+        object-position: right center;
+    }
+    75%, 100% {
+        object-position: left center;
     }
 }
 

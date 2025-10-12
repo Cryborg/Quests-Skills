@@ -168,7 +168,7 @@ const UTILS = {
         }
 
         if (card.image) {
-            return `<img src="${card.image}" alt="${card.name}" class="card-visual-image ${size} ${className}" loading="lazy">`;
+            return `<img src="${card.image}" alt="${card.name}" class="card-visual-image ${size} ${className}" loading="lazy" onload="UTILS.handleImageLoad(this)">`;
         }
 
         const sizeClasses = {
@@ -179,6 +179,13 @@ const UTILS = {
         };
 
         return `<span class="card-visual-emoji ${className}" style="${sizeClasses[size]}">${card.emoji}</span>`;
+    },
+
+    // Détermine si une image est en paysage et ajoute la classe appropriée
+    handleImageLoad(img) {
+        if (img.naturalWidth > img.naturalHeight) {
+            img.classList.add('landscape');
+        }
     }
 };
 
