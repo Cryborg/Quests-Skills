@@ -288,7 +288,7 @@ router.post('/draw/:userId', authenticateToken, async (req, res) => {
         }
 
         // Mettre à jour la collection en batch (INSERT ou UPDATE)
-        const now = new Date().toISOString();
+        // Réutilise le 'now' déclaré plus haut (ligne 199)
         for (const [cardId, quantityToAdd] of Object.entries(cardsToUpdate)) {
             const existingCard = await get(
                 'SELECT * FROM user_cards WHERE user_id = ? AND card_id = ?',
