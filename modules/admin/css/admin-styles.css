@@ -1087,6 +1087,23 @@ body {
     background: rgba(102, 126, 234, 0.05);
 }
 
+/* Indicateur visuel pour les mots sans définition */
+.word-chip.no-definition::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 12px solid #f59e0b;
+    border-bottom: 12px solid transparent;
+    border-top-left-radius: 6px;
+}
+
+.word-chip.no-definition:hover::before {
+    border-left-color: #d97706;
+}
+
 .word-text {
     font-weight: 500;
     color: var(--text-primary);

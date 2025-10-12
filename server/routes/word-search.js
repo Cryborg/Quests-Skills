@@ -154,24 +154,33 @@ router.get('/themes/:userId/available',
 router.post('/words',
   authenticateAndTrack,
   requireAdmin,
-  validateRequired(['theme']),
   validateWord,
   async (req, res) => {
   try {
     await ensureDatabaseExists();
-    const { theme } = req.body;
+    const { theme, definition } = req.body;
     const cleanWord = req.cleanWord; // Fourni par validateWord
+    const themeSlug = theme || null; // Permettre les mots génériques (sans thème)
 
     const now = DBHelpers.now();
     await run(
-      'INSERT INTO word_search_words (theme_slug, word, created_at) VALUES (?, ?, ?)',
-      [theme, cleanWord, now]
+      'INSERT INTO word_search_words (theme_slug, word, definition, created_at) VALUES (?, ?, ?, ?)',
+      [themeSlug, cleanWord, definition || null, now]
     );
 
-    const wordRecord = await get(
-      'SELECT * FROM word_search_words WHERE theme_slug = ? AND word = ?',
-      [theme, cleanWord]
-    );
+    // Récupérer le mot créé (gérer NULL pour theme_slug)
+    let wordRecord;
+    if (themeSlug === null) {
+      wordRecord = await get(
+        'SELECT * FROM word_search_words WHERE theme_slug IS NULL AND word = ?',
+        [cleanWord]
+      );
+    } else {
+      wordRecord = await get(
+        'SELECT * FROM word_search_words WHERE theme_slug = ? AND word = ?',
+        [themeSlug, cleanWord]
+      );
+    }
     res.status(201).json({ word: wordRecord });
   } catch (error) {
     console.error('Error creating word:', error);
@@ -190,12 +199,12 @@ router.put('/words/:id',
   try {
     await ensureDatabaseExists();
     const { id } = req.params;
-    const { theme } = req.body;
+    const { theme, definition } = req.body;
     const cleanWord = req.cleanWord; // Fourni par validateWord
 
     await run(
-      'UPDATE word_search_words SET word = ?, theme_slug = ? WHERE id = ?',
-      [cleanWord, theme || null, id]
+      'UPDATE word_search_words SET word = ?, theme_slug = ?, definition = ? WHERE id = ?',
+      [cleanWord, theme || null, definition || null, id]
     );
 
     const wordRecord = await get('SELECT * FROM word_search_words WHERE id = ?', [id]);

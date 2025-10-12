@@ -116,6 +116,15 @@ class AdminUsers {
             this.applyFilters();
         });
 
+        // Effacer le champ de recherche avec Escape
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                this.searchQuery = '';
+                this.applyFilters();
+            }
+        });
+
         // Bouton créer un utilisateur
         const createBtn = document.getElementById('create-user-btn');
         createBtn.addEventListener('click', () => this.openUserModal());

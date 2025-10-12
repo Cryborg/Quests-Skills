@@ -80,6 +80,14 @@ const WordSearchAdmin = {
             searchInput.addEventListener('input', (e) => {
                 this.filterWords(e.target.value);
             });
+
+            // Effacer le champ de recherche avec Escape
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    this.filterWords('');
+                }
+            });
         }
     },
 
@@ -150,9 +158,9 @@ const WordSearchAdmin = {
                 </div>
                 <div class="words-grid">
                     ${theme.words && theme.words.length > 0 ? theme.words.map(word => `
-                        <div class="word-chip">
+                        <div class="word-chip ${!word.definition ? 'no-definition' : ''}">
                             <span class="word-text">${word.word}</span>
-                            <button class="word-edit-btn" onclick="WordSearchAdmin.editWord(${word.id}, '${word.word}', '${word.theme_slug || ''}')" title="Modifier">✏️</button>
+                            <button class="word-edit-btn" onclick="WordSearchAdmin.editWord(${word.id}, '${word.word}', '${word.theme_slug || ''}', '${(word.definition || '').replace(/'/g, '\\\'')}')" title="Modifier">✏️</button>
                             <button class="word-delete-btn" onclick="WordSearchAdmin.deleteWord(${word.id}, '${word.word}')" title="Supprimer">×</button>
                         </div>
                     `).join('') : '<p class="empty-state-small">Aucun mot dans ce thème</p>'}
@@ -166,25 +174,37 @@ const WordSearchAdmin = {
         document.getElementById('word-id').value = '';
         document.getElementById('word-theme-ref').value = themeSlug || '';
         document.getElementById('word-text').value = '';
+        document.getElementById('word-definition').value = '';
         document.getElementById('word-text').disabled = false;
 
         // Charger les thèmes dans le select
         this.populateThemeSelect(themeSlug);
 
         document.getElementById('word-modal').classList.add('show');
+
+        // Focus sur le champ mot après un court délai pour laisser la modale s'afficher
+        setTimeout(() => {
+            document.getElementById('word-text').focus();
+        }, 100);
     },
 
-    editWord(wordId, word, themeSlug) {
+    editWord(wordId, word, themeSlug, definition = '') {
         document.getElementById('word-modal-title').textContent = 'Modifier le mot';
         document.getElementById('word-id').value = wordId;
         document.getElementById('word-theme-ref').value = themeSlug || '';
         document.getElementById('word-text').value = word;
+        document.getElementById('word-definition').value = definition;
         document.getElementById('word-text').disabled = false;
 
         // Charger les thèmes dans le select
         this.populateThemeSelect(themeSlug);
 
         document.getElementById('word-modal').classList.add('show');
+
+        // Focus sur le champ mot après un court délai pour laisser la modale s'afficher
+        setTimeout(() => {
+            document.getElementById('word-text').focus();
+        }, 100);
     },
 
     populateThemeSelect(selectedTheme) {
@@ -200,6 +220,7 @@ const WordSearchAdmin = {
         const wordId = document.getElementById('word-id').value;
         const themeSlug = document.getElementById('word-theme').value || null;
         const word = document.getElementById('word-text').value.trim().toUpperCase();
+        const definition = document.getElementById('word-definition').value.trim() || null;
 
         // Validation du mot
         if (word.length < 3 || word.length > 15) {
@@ -216,26 +237,43 @@ const WordSearchAdmin = {
         const spinner = ButtonSpinner.start(submitBtn);
 
         try {
+            let response;
             if (wordId) {
                 // Mise à jour
-                await authService.fetchAPI(`/word-search/words/${wordId}`, {
+                response = await authService.fetchAPI(`/word-search/words/${wordId}`, {
                     method: 'PUT',
-                    body: JSON.stringify({ word, theme: themeSlug })
+                    body: JSON.stringify({ word, theme: themeSlug, definition })
                 });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showToast(`❌ ${error.error || 'Erreur lors de la modification'}`);
+                    return;
+                }
+
                 showToast('✅ Mot modifié');
             } else {
                 // Création
-                await authService.fetchAPI('/word-search/words', {
+                response = await authService.fetchAPI('/word-search/words', {
                     method: 'POST',
                     body: JSON.stringify({
                         theme: themeSlug,
-                        word
+                        word,
+                        definition
                     })
                 });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showToast(`❌ ${error.error || 'Erreur lors de l\'ajout'}`);
+                    return;
+                }
+
                 showToast('✅ Mot ajouté');
 
-                // Garder la modale ouverte, vider le champ et refocus pour ajout rapide
+                // Garder la modale ouverte, vider les champs et refocus pour ajout rapide
                 document.getElementById('word-text').value = '';
+                document.getElementById('word-definition').value = '';
                 document.getElementById('word-text').focus();
                 await this.loadThemes();
                 spinner.stop();
