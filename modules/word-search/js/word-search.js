@@ -29,7 +29,11 @@ class WordSearchGame {
                 { label: 'Mots trouvés', id: 'words-found', value: '0/0' },
                 { label: 'Temps', id: 'timer', value: '00:00' },
                 { label: 'Indices', id: 'hints-used', value: '0/3' }
-            ]
+            ],
+            reward: {
+                baseCredits: 3,
+                bonusText: '+ bonus temps'
+            }
         });
 
         // Initialiser le compteur d'essais

@@ -27,7 +27,11 @@ class SudokuGame {
                 { label: 'Réussis', id: 'completed-count', value: '0' },
                 { label: 'Temps', id: 'timer', value: '00:00' },
                 { label: 'Erreurs', id: 'errors', value: '0' }
-            ]
+            ],
+            reward: {
+                baseCredits: 5,
+                bonusText: '+ bonus perf'
+            }
         });
 
         // Initialiser le compteur d'essais

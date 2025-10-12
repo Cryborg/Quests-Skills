@@ -20,7 +20,11 @@ class ClockReadingGame {
                 { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '3' },
                 { label: 'Score', id: 'score', value: '0' },
                 { label: 'Bonnes réponses', id: 'correct-count', value: '0' }
-            ]
+            ],
+            reward: {
+                baseCredits: 3,
+                bonusText: '+ bonus série'
+            }
         });
 
         const remaining = await GameAttempts.initHeaderDisplay('clock-reading', 3);

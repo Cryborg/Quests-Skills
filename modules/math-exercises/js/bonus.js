@@ -38,7 +38,11 @@ async function initializeBonus() {
         subtitle: 'Résous des opérations pour gagner des cartes bonus !',
         actions: [
             { icon: '📊', text: 'Historique', id: 'history-btn' }
-        ]
+        ],
+        reward: {
+            baseCredits: 1,
+            bonusText: 'à 5 par opération'
+        }
     });
 
     // Configurer les événements

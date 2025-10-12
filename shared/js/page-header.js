@@ -17,8 +17,24 @@ class PageHeader {
         let headerHTML = `
             <header class="page-header">
                 <div class="page-header-top">
-                    <h1 class="page-header-title"><span class="page-header-icon">${icon}</span> ${title}</h1>
+                    <div class="page-header-left">
+                        <h1 class="page-header-title"><span class="page-header-icon">${icon}</span> ${title}</h1>
         `;
+
+        // Ajouter le sous-titre dans la partie gauche si présent
+        if (subtitle) {
+            headerHTML += `<p class="page-header-subtitle">${subtitle}</p>`;
+        }
+
+        headerHTML += '</div>'; // Ferme page-header-left
+
+        // Partie droite : badge de récompense ou actions
+        headerHTML += '<div class="page-header-right">';
+
+        // Ajouter le badge de récompense si présent
+        if (reward) {
+            headerHTML += '<div class="page-header-reward" id="page-header-reward"></div>';
+        }
 
         // Ajouter les boutons d'action si présents
         if (actions.length > 0) {
@@ -33,17 +49,8 @@ class PageHeader {
             headerHTML += '</div>';
         }
 
+        headerHTML += '</div>'; // Ferme page-header-right
         headerHTML += '</div>'; // Ferme page-header-top
-
-        // Ajouter le sous-titre si présent
-        if (subtitle) {
-            headerHTML += `<p class="page-header-subtitle">${subtitle}</p>`;
-        }
-
-        // Ajouter le badge de récompense si présent
-        if (reward) {
-            headerHTML += '<div class="page-header-reward" id="page-header-reward"></div>';
-        }
 
         // Ajouter les stats si présentes
         if (stats.length > 0) {

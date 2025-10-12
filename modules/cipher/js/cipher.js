@@ -60,7 +60,11 @@ class CipherGame {
                 { label: 'Score', id: 'score', value: '0' },
                 { label: 'Bonnes réponses', id: 'correct-count', value: '0' },
                 { label: 'Niveau', id: 'level', value: '1' }
-            ]
+            ],
+            reward: {
+                baseCredits: 4,
+                bonusText: '+ bonus niveau'
+            }
         });
 
         const remaining = await GameAttempts.initHeaderDisplay('cipher', 3);

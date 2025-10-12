@@ -20,7 +20,11 @@ class NumberSequenceGame {
                 { label: 'Score', id: 'score', value: '0' },
                 { label: 'Série', id: 'streak', value: '0 🔥' },
                 { label: 'Niveau', id: 'level', value: '1' }
-            ]
+            ],
+            reward: {
+                baseCredits: 5,
+                bonusText: '+ bonus série'
+            }
         });
 
         // Initialiser le compteur d'essais
