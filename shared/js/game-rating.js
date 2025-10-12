@@ -122,6 +122,12 @@ class GameRating {
             const response = await authService.fetchAPI(`/ratings/${this.gameType}`);
             if (response.ok) {
                 const rating = await response.json();
+
+                // Si rating est null, l'utilisateur n'a pas encore noté
+                if (!rating) {
+                    return;
+                }
+
                 this.interestRating = rating.interest_rating;
                 this.difficultyRating = rating.difficulty_rating;
                 this.hasRated = true;
@@ -136,8 +142,8 @@ class GameRating {
                 submitBtn.textContent = '✅ Mettre à jour mon évaluation';
             }
         } catch (error) {
-            // Pas de notation existante, c'est normal
-            console.log('No existing rating found');
+            // Erreur réseau ou autre
+            console.error('Error loading rating:', error);
         }
     }
 

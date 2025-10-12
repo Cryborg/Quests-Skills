@@ -25,6 +25,11 @@ class AdminRatings {
 
         try {
             const response = await authService.fetchAPI('/ratings/stats/all/games');
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch stats');
+            }
+
             this.stats = await response.json();
 
             if (this.stats.length === 0) {

@@ -72,11 +72,8 @@ router.get('/:game_type', async (req, res) => {
             [userId, game_type]
         );
 
-        if (!rating) {
-            return res.status(404).json({ error: 'Rating not found' });
-        }
-
-        res.json(rating);
+        // Retourner null si pas de notation (200 OK, pas 404)
+        res.json(rating || null);
     } catch (error) {
         console.error('Error fetching rating:', error);
         res.status(500).json({ error: 'Failed to fetch rating' });
@@ -227,6 +224,7 @@ router.get('/stats/all/games', requireAdmin, async (req, res) => {
             };
         });
 
+        // Retourner un tableau vide si pas de notations (200 OK, pas 404)
         res.json(results);
     } catch (error) {
         console.error('Error fetching all rating stats:', error);
