@@ -15,13 +15,28 @@ router.get('/themes', authenticateToken, async (req, res) => {
     const themesResult = await query('SELECT * FROM card_themes ORDER BY name');
     const themes = themesResult.rows;
 
-    // Pour chaque thème, récupérer ses mots
+    // Récupérer TOUS les mots en une seule requête
+    const themeSlugs = themes.map(t => t.slug);
+    const placeholders = themeSlugs.map(() => '?').join(',');
+    const allWordsResult = await query(
+      `SELECT * FROM word_search_words
+       WHERE theme_slug IN (${placeholders})
+       ORDER BY theme_slug, word`,
+      themeSlugs
+    );
+
+    // Grouper les mots par thème
+    const wordsByTheme = {};
+    allWordsResult.rows.forEach(word => {
+      if (!wordsByTheme[word.theme_slug]) {
+        wordsByTheme[word.theme_slug] = [];
+      }
+      wordsByTheme[word.theme_slug].push(word);
+    });
+
+    // Assigner les mots aux thèmes
     for (const theme of themes) {
-      const wordsResult = await query(
-        'SELECT * FROM word_search_words WHERE theme_slug = ? ORDER BY word',
-        [theme.slug]
-      );
-      theme.words = wordsResult.rows;
+      theme.words = wordsByTheme[theme.slug] || [];
     }
 
     // Ajouter une section "Génériques" pour les mots sans thème
@@ -82,15 +97,31 @@ router.get('/themes/:userId/available', authenticateToken, async (req, res) => {
         userCardThemes
       );
 
-      // Pour chaque thème, récupérer les mots (spécifiques + génériques)
+      // Récupérer TOUS les mots des thèmes en une seule requête
+      const themeSlugs = themesResult.rows.map(t => t.slug);
+      const wordsPlaceholders = themeSlugs.map(() => '?').join(',');
+      const allThemeWordsResult = await query(
+        `SELECT * FROM word_search_words
+         WHERE theme_slug IN (${wordsPlaceholders})
+         ORDER BY theme_slug, word`,
+        themeSlugs
+      );
+
+      // Grouper les mots par thème
+      const wordsByTheme = {};
+      allThemeWordsResult.rows.forEach(word => {
+        if (!wordsByTheme[word.theme_slug]) {
+          wordsByTheme[word.theme_slug] = [];
+        }
+        wordsByTheme[word.theme_slug].push(word);
+      });
+
+      // Pour chaque thème, combiner avec les mots génériques
       for (const theme of themesResult.rows) {
-        const themeWordsResult = await query(
-          'SELECT * FROM word_search_words WHERE theme_slug = ? ORDER BY word',
-          [theme.slug]
-        );
+        const themeWords = wordsByTheme[theme.slug] || [];
 
         // Combiner les mots du thème + les mots génériques en évitant les doublons
-        const allWords = [...themeWordsResult.rows, ...genericWords];
+        const allWords = [...themeWords, ...genericWords];
         const uniqueWordsMap = new Map();
 
         // Garder seulement le premier mot de chaque texte (dédupliquer par le mot lui-même)

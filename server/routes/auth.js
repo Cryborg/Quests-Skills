@@ -53,12 +53,13 @@ router.post('/register', async (req, res) => {
             const validThemeSlugs = theme_slugs.filter(slug => validSlugs.includes(slug));
 
             if (validThemeSlugs.length >= 3 && validThemeSlugs.length <= 10) {
-                for (const themeSlug of validThemeSlugs) {
-                    await run(
-                        'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
-                        [user.id, themeSlug, now]
-                    );
-                }
+                // Batch INSERT pour tous les thèmes en une seule requête
+                const placeholders = validThemeSlugs.map(() => '(?, ?, ?)').join(',');
+                const values = validThemeSlugs.flatMap(slug => [user.id, slug, now]);
+                await run(
+                    `INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES ${placeholders}`,
+                    values
+                );
             }
         }
         // Sinon, aucun thème n'est assigné et l'utilisateur devra les choisir à sa première connexion

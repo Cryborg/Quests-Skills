@@ -49,13 +49,28 @@ router.get('/with-words', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const themes = await all('SELECT * FROM card_themes ORDER BY name ASC');
 
-    // Charger les mots de chaque thème
+    // Récupérer TOUS les mots en une seule requête
+    const themeSlugs = themes.map(t => t.slug);
+    const placeholders = themeSlugs.map(() => '?').join(',');
+    const allWordsResult = await query(
+      `SELECT * FROM word_search_words
+       WHERE theme_slug IN (${placeholders})
+       ORDER BY theme_slug, word`,
+      themeSlugs
+    );
+
+    // Grouper les mots par thème
+    const wordsByTheme = {};
+    allWordsResult.rows.forEach(word => {
+      if (!wordsByTheme[word.theme_slug]) {
+        wordsByTheme[word.theme_slug] = [];
+      }
+      wordsByTheme[word.theme_slug].push(word);
+    });
+
+    // Assigner les mots aux thèmes
     for (const theme of themes) {
-      const wordsResult = await query(
-        'SELECT * FROM word_search_words WHERE theme_slug = ? ORDER BY word',
-        [theme.slug]
-      );
-      theme.words = wordsResult.rows || [];
+      theme.words = wordsByTheme[theme.slug] || [];
     }
 
     // Ajouter une "section" pour les mots génériques (sans thème)

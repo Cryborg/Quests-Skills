@@ -11,29 +11,32 @@ router.use(authenticateToken);
 // GET /api/users - Récupérer tous les utilisateurs (admin seulement)
 router.get('/', requireAdmin, async (req, res) => {
     try {
+        // Récupérer tous les utilisateurs
         const users = await all(`
             SELECT u.*
             FROM users u
             ORDER BY u.created_at DESC
         `);
 
-        // Pour chaque utilisateur, récupérer la dernière connexion
-        const usersWithLastLogin = await Promise.all(users.map(async (user) => {
-            const lastLogin = await get(
-                `SELECT created_at
-                 FROM user_activity_logs
-                 WHERE user_id = ? AND action_type = 'login'
-                 ORDER BY created_at DESC
-                 LIMIT 1`,
-                [user.id]
-            );
+        // Récupérer TOUS les derniers logins en une seule requête
+        const lastLogins = await all(`
+            SELECT ual.user_id, MAX(ual.created_at) as created_at
+            FROM user_activity_logs ual
+            WHERE ual.action_type = 'login'
+            GROUP BY ual.user_id
+        `);
 
+        // Créer un map pour un accès O(1)
+        const lastLoginMap = new Map(lastLogins.map(l => [l.user_id, l.created_at]));
+
+        // Fusionner les données
+        const usersWithLastLogin = users.map(user => {
             const { password, ...userWithoutPassword } = user;
             return {
                 ...userWithoutPassword,
-                last_login_at: lastLogin ? lastLogin.created_at : null
+                last_login_at: lastLoginMap.get(user.id) || null
             };
-        }));
+        });
 
         res.json(usersWithLastLogin);
     } catch (error) {
@@ -97,27 +100,51 @@ router.get('/:id/profile', requireAdmin, async (req, res) => {
         );
 
         // Enrichir les thèmes avec les stats de collection par rareté
+        // Récupérer TOUTES les stats owned en une seule requête
+        const themeSlugs = themes.map(t => t.slug);
+        const placeholders = themeSlugs.map(() => '?').join(',');
+
+        const allRarityStats = await all(`
+            SELECT
+                c.category as theme_slug,
+                uc.current_rarity as rarity,
+                COUNT(DISTINCT uc.card_id) as owned
+            FROM user_cards uc
+            JOIN cards c ON uc.card_id = c.id
+            WHERE uc.user_id = ? AND c.category IN (${placeholders})
+            GROUP BY c.category, uc.current_rarity
+        `, [userId, ...themeSlugs]);
+
+        // Récupérer TOUS les totaux en une seule requête
+        const allTotalsByRarity = await all(`
+            SELECT
+                category as theme_slug,
+                base_rarity as rarity,
+                COUNT(*) as total
+            FROM cards
+            WHERE category IN (${placeholders})
+            GROUP BY category, base_rarity
+        `, themeSlugs);
+
+        // Créer des maps pour regrouper par thème
+        const ownedByTheme = {};
+        const totalsByTheme = {};
+
+        allRarityStats.forEach(stat => {
+            if (!ownedByTheme[stat.theme_slug]) ownedByTheme[stat.theme_slug] = [];
+            ownedByTheme[stat.theme_slug].push(stat);
+        });
+
+        allTotalsByRarity.forEach(stat => {
+            if (!totalsByTheme[stat.theme_slug]) totalsByTheme[stat.theme_slug] = [];
+            totalsByTheme[stat.theme_slug].push(stat);
+        });
+
+        // Enrichir les thèmes
         for (const theme of themes) {
-            // Pour chaque rareté, compter le total de cartes et celles possédées
-            const rarityStats = await all(`
-                SELECT
-                    uc.current_rarity as rarity,
-                    COUNT(DISTINCT uc.card_id) as owned
-                FROM user_cards uc
-                JOIN cards c ON uc.card_id = c.id
-                WHERE uc.user_id = ? AND c.category = ?
-                GROUP BY uc.current_rarity
-            `, [userId, theme.slug]);
+            const rarityStats = ownedByTheme[theme.slug] || [];
+            const totalByRarity = totalsByTheme[theme.slug] || [];
 
-            // Compter le total de cartes par rareté base dans ce thème
-            const totalByRarity = await all(`
-                SELECT base_rarity as rarity, COUNT(*) as total
-                FROM cards
-                WHERE category = ?
-                GROUP BY base_rarity
-            `, [theme.slug]);
-
-            // Fusionner les stats
             theme.rarityStats = {};
             for (const t of totalByRarity) {
                 theme.rarityStats[t.rarity] = {
@@ -197,12 +224,14 @@ router.post('/', requireAdmin, async (req, res) => {
         console.log(`📊 Found ${allThemes.length} themes`);
         const shuffled = allThemes.sort(() => 0.5 - Math.random());
         const selectedThemes = shuffled.slice(0, 3);
-        for (const theme of selectedThemes) {
-            await run(
-                'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
-                [userId, theme.slug, now]
-            );
-        }
+
+        // Batch INSERT pour tous les thèmes en une seule requête
+        const placeholders = selectedThemes.map(() => '(?, ?, ?)').join(',');
+        const values = selectedThemes.flatMap(theme => [userId, theme.slug, now]);
+        await run(
+            `INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES ${placeholders}`,
+            values
+        );
         console.log('✅ 3 random themes added:', selectedThemes.map(t => t.slug).join(', '));
 
         const newUser = await get('SELECT * FROM users WHERE id = ?', [userId]);
@@ -914,14 +943,14 @@ router.post('/:id/themes', checkOwnership, async (req, res) => {
         // Supprimer les anciens thèmes
         await run('DELETE FROM user_themes WHERE user_id = ?', [userId]);
 
-        // Ajouter les nouveaux thèmes
+        // Ajouter les nouveaux thèmes avec batch INSERT
         const now = new Date().toISOString();
-        for (const themeSlug of theme_slugs) {
-            await run(
-                'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
-                [userId, themeSlug, now]
-            );
-        }
+        const placeholders = theme_slugs.map(() => '(?, ?, ?)').join(',');
+        const values = theme_slugs.flatMap(slug => [userId, slug, now]);
+        await run(
+            `INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES ${placeholders}`,
+            values
+        );
 
         res.json({ success: true, message: 'Themes updated successfully' });
     } catch (error) {
@@ -982,14 +1011,14 @@ router.put('/:id/themes', checkOwnership, async (req, res) => {
         // Supprimer tous les thèmes existants
         await run('DELETE FROM user_themes WHERE user_id = ?', [userId]);
 
-        // Ajouter les nouveaux thèmes
+        // Ajouter les nouveaux thèmes avec batch INSERT
         const now = new Date().toISOString();
-        for (const slug of theme_slugs) {
-            await run(
-                'INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES (?, ?, ?)',
-                [userId, slug, now]
-            );
-        }
+        const placeholders = theme_slugs.map(() => '(?, ?, ?)').join(',');
+        const values = theme_slugs.flatMap(slug => [userId, slug, now]);
+        await run(
+            `INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES ${placeholders}`,
+            values
+        );
 
         // Retourner les thèmes actualisés
         const updatedThemes = await all(

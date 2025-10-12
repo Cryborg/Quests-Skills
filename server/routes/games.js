@@ -23,15 +23,19 @@ router.get('/:userId/sessions/:gameType', authenticateToken, async (req, res) =>
             return res.status(403).json({ error: 'Forbidden' });
         }
 
-        // Récupérer les sessions d'aujourd'hui
-        const today = new Date().toISOString().split('T')[0];
+        // Récupérer les sessions d'aujourd'hui avec range comparisons (optimisé pour l'index)
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).toISOString();
+
         const sessions = await query(
             `SELECT * FROM game_sessions
              WHERE user_id = ?
              AND game_type = ?
-             AND DATE(created_at) = DATE(?)
+             AND created_at >= ?
+             AND created_at <= ?
              ORDER BY created_at DESC`,
-            [userId, gameType, today]
+            [userId, gameType, todayStart, todayEnd]
         );
 
         // Calculer le total de cartes gagnées aujourd'hui
@@ -63,14 +67,18 @@ router.post('/:userId/sessions', authenticateToken, async (req, res) => {
             return res.status(403).json({ error: 'Forbidden' });
         }
 
-        // Vérifier les sessions d'aujourd'hui
-        const today = new Date().toISOString().split('T')[0];
+        // Vérifier les sessions d'aujourd'hui avec range comparisons (optimisé pour l'index)
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).toISOString();
+
         const sessions = await query(
             `SELECT SUM(cards_earned) as total FROM game_sessions
              WHERE user_id = ?
              AND game_type = ?
-             AND DATE(created_at) = DATE(?)`,
-            [userId, gameType, today]
+             AND created_at >= ?
+             AND created_at <= ?`,
+            [userId, gameType, todayStart, todayEnd]
         );
 
         const totalCardsEarned = sessions.rows[0]?.total || 0;
