@@ -3,6 +3,8 @@ const router = express.Router();
 const { query, get, run } = require('../turso-db');
 const { ensureDatabaseExists } = require('../../database/initialize');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { validateRequired, validateWord, validateOwnership } = require('../middleware/validators');
+const DBHelpers = require('../utils/db-helpers');
 
 // ========================================
 // GET /word-search/themes - Liste tous les thèmes de cartes avec leurs mots + mots génériques
@@ -17,7 +19,7 @@ router.get('/themes', authenticateToken, async (req, res) => {
 
     // Récupérer TOUS les mots en une seule requête
     const themeSlugs = themes.map(t => t.slug);
-    const placeholders = themeSlugs.map(() => '?').join(',');
+    const placeholders = DBHelpers.buildInClause(themeSlugs);
     const allWordsResult = await query(
       `SELECT * FROM word_search_words
        WHERE theme_slug IN (${placeholders})
@@ -64,15 +66,13 @@ router.get('/themes', authenticateToken, async (req, res) => {
 // ========================================
 // GET /word-search/themes/:userId/available - Liste les thèmes disponibles pour un utilisateur
 // ========================================
-router.get('/themes/:userId/available', authenticateToken, async (req, res) => {
+router.get('/themes/:userId/available',
+  authenticateToken,
+  validateOwnership,
+  async (req, res) => {
   try {
     await ensureDatabaseExists();
     const { userId } = req.params;
-
-    // Vérifier que l'utilisateur accède à ses propres données ou est admin
-    if (req.user.id !== parseInt(userId) && !req.user.is_admin) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
 
     // Récupérer les thèmes de cartes de l'utilisateur
     const userThemesResult = await query(
@@ -91,7 +91,7 @@ router.get('/themes/:userId/available', authenticateToken, async (req, res) => {
 
     // Récupérer uniquement les thèmes que l'utilisateur a débloqués
     if (userCardThemes.length > 0) {
-      const placeholders = userCardThemes.map(() => '?').join(',');
+      const placeholders = DBHelpers.buildInClause(userCardThemes);
       const themesResult = await query(
         `SELECT * FROM card_themes WHERE slug IN (${placeholders}) ORDER BY name`,
         userCardThemes
@@ -99,7 +99,7 @@ router.get('/themes/:userId/available', authenticateToken, async (req, res) => {
 
       // Récupérer TOUS les mots des thèmes en une seule requête
       const themeSlugs = themesResult.rows.map(t => t.slug);
-      const wordsPlaceholders = themeSlugs.map(() => '?').join(',');
+      const wordsPlaceholders = DBHelpers.buildInClause(themeSlugs);
       const allThemeWordsResult = await query(
         `SELECT * FROM word_search_words
          WHERE theme_slug IN (${wordsPlaceholders})
@@ -150,26 +150,18 @@ router.get('/themes/:userId/available', authenticateToken, async (req, res) => {
 // ========================================
 // POST /word-search/words - Créer un nouveau mot (Admin only)
 // ========================================
-router.post('/words', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/words',
+  authenticateToken,
+  requireAdmin,
+  validateRequired(['theme']),
+  validateWord,
+  async (req, res) => {
   try {
     await ensureDatabaseExists();
-    const { theme, word } = req.body;
+    const { theme } = req.body;
+    const cleanWord = req.cleanWord; // Fourni par validateWord
 
-    if (!theme || !word) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // Validation du mot
-    const cleanWord = word.toUpperCase().trim();
-    if (cleanWord.length < 3 || cleanWord.length > 15) {
-      return res.status(400).json({ error: 'Word must be between 3 and 15 characters' });
-    }
-
-    if (!/^[A-ZÀ-ÿ\s]+$/.test(cleanWord)) {
-      return res.status(400).json({ error: 'Word must contain only letters' });
-    }
-
-    const now = new Date().toISOString();
+    const now = DBHelpers.now();
     await run(
       'INSERT INTO word_search_words (theme_slug, word, created_at) VALUES (?, ?, ?)',
       [theme, cleanWord, now]
@@ -189,25 +181,16 @@ router.post('/words', authenticateToken, requireAdmin, async (req, res) => {
 // ========================================
 // PUT /word-search/words/:id - Mettre à jour un mot (Admin only)
 // ========================================
-router.put('/words/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.put('/words/:id',
+  authenticateToken,
+  requireAdmin,
+  validateWord,
+  async (req, res) => {
   try {
     await ensureDatabaseExists();
     const { id } = req.params;
-    const { word, theme } = req.body;
-
-    if (!word) {
-      return res.status(400).json({ error: 'Missing word field' });
-    }
-
-    // Validation du mot
-    const cleanWord = word.toUpperCase().trim();
-    if (cleanWord.length < 3 || cleanWord.length > 15) {
-      return res.status(400).json({ error: 'Word must be between 3 and 15 characters' });
-    }
-
-    if (!/^[A-ZÀ-ÿ\s]+$/.test(cleanWord)) {
-      return res.status(400).json({ error: 'Word must contain only letters' });
-    }
+    const { theme } = req.body;
+    const cleanWord = req.cleanWord; // Fourni par validateWord
 
     await run(
       'UPDATE word_search_words SET word = ?, theme_slug = ? WHERE id = ?',

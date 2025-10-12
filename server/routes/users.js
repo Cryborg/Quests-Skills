@@ -2,6 +2,8 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { all, get, run } = require('../turso-db');
 const { authenticateToken, checkOwnership, requireAdmin } = require('../middleware/auth');
+const { validateRequired, validateEmail, validateThemes, validatePositiveNumber, validateOwnership } = require('../middleware/validators');
+const DBHelpers = require('../utils/db-helpers');
 
 const router = express.Router();
 
@@ -102,7 +104,7 @@ router.get('/:id/profile', requireAdmin, async (req, res) => {
         // Enrichir les thèmes avec les stats de collection par rareté
         // Récupérer TOUTES les stats owned en une seule requête
         const themeSlugs = themes.map(t => t.slug);
-        const placeholders = themeSlugs.map(() => '?').join(',');
+        const placeholders = DBHelpers.buildInClause(themeSlugs);
 
         const allRarityStats = await all(`
             SELECT
@@ -177,19 +179,17 @@ router.get('/:id/profile', requireAdmin, async (req, res) => {
 });
 
 // POST /api/users - Créer un utilisateur (admin seulement)
-router.post('/', requireAdmin, async (req, res) => {
+router.post('/',
+    requireAdmin,
+    validateRequired(['username', 'email', 'password']),
+    validateEmail,
+    async (req, res) => {
     try {
         const { username, email, password, is_admin } = req.body;
 
         console.log('========================================');
         console.log('👤 POST /api/users - Create user');
         console.log('📝 Request body:', { username, email, is_admin, password: '***' });
-
-        // Valider les champs requis
-        if (!username || !email || !password) {
-            console.error('❌ Missing required fields');
-            return res.status(400).json({ error: 'Username, email and password are required' });
-        }
 
         // Vérifier si l'email existe déjà
         console.log('🔍 Checking if email exists:', email);
@@ -207,7 +207,7 @@ router.post('/', requireAdmin, async (req, res) => {
 
         // Créer l'utilisateur
         console.log('📝 Creating user in database...');
-        const now = new Date().toISOString();
+        const now = DBHelpers.now();
         const result = await run(
             'INSERT INTO users (username, email, password, is_admin, credits, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [username, email, hashedPassword, is_admin ? 1 : 0, 10, now, now]
@@ -226,8 +226,10 @@ router.post('/', requireAdmin, async (req, res) => {
         const selectedThemes = shuffled.slice(0, 3);
 
         // Batch INSERT pour tous les thèmes en une seule requête
-        const placeholders = selectedThemes.map(() => '(?, ?, ?)').join(',');
-        const values = selectedThemes.flatMap(theme => [userId, theme.slug, now]);
+        const { placeholders, values } = DBHelpers.buildBatchInsert(
+            selectedThemes.map(theme => ({ user_id: userId, theme_slug: theme.slug, created_at: now })),
+            ['user_id', 'theme_slug', 'created_at']
+        );
         await run(
             `INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES ${placeholders}`,
             values
@@ -381,7 +383,7 @@ router.get('/:id/cards', checkOwnership, async (req, res) => {
 
         // Filtrer les cartes par thèmes sélectionnés
         const themeSlugs = userThemes.map(t => t.theme_slug);
-        const placeholders = themeSlugs.map(() => '?').join(',');
+        const placeholders = DBHelpers.buildInClause(themeSlugs);
 
         const userCards = await all(
             `SELECT uc.*, c.*
@@ -472,7 +474,7 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
                 console.log(`✅ Updated to ${existing.quantity + count}`);
             } else {
                 // Insère avec current_rarity = 'common' par défaut
-                const now = new Date().toISOString();
+                const now = DBHelpers.now();
                 console.log(`📝 Inserting new user_card: user=${userId}, card=${cardId}, qty=${count}`);
                 const result = await run(
                     'INSERT INTO user_cards (user_id, card_id, quantity, current_rarity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
@@ -550,10 +552,7 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
 
             // Ajoute les crédits gagnés si nécessaire
             if (creditsEarned > 0) {
-                await run(
-                    'UPDATE users SET credits = credits + ? WHERE id = ?',
-                    [creditsEarned, userId]
-                );
+                await DBHelpers.addCredits(userId, creditsEarned);
             }
         }
 
@@ -567,7 +566,7 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
 
         const result = await run(
             'UPDATE user_cards SET current_rarity = ?, quantity = ?, updated_at = ? WHERE id = ?',
-            [to_rarity, newQuantity, new Date().toISOString(), userCard.user_card_id]
+            [to_rarity, newQuantity, DBHelpers.now(), userCard.user_card_id]
         );
 
         console.log('✅ UPDATE result:', result);
@@ -639,7 +638,7 @@ router.post('/:id/credits/claim-daily', checkOwnership, async (req, res) => {
         if (!lastClaim) {
             await run(
                 'UPDATE users SET last_daily_claim = ?, updated_at = ? WHERE id = ?',
-                [today, new Date().toISOString(), userId]
+                [today, DBHelpers.now(), userId]
             );
             return res.json({
                 success: false,
@@ -672,7 +671,7 @@ router.post('/:id/credits/claim-daily', checkOwnership, async (req, res) => {
         // Met à jour les crédits et la date de claim
         await run(
             'UPDATE users SET credits = ?, last_daily_claim = ?, updated_at = ? WHERE id = ?',
-            [newCredits, today, new Date().toISOString(), userId]
+            [newCredits, today, DBHelpers.now(), userId]
         );
 
         const dayText = daysDifference === 1 ? 'jour' : 'jours';
@@ -694,7 +693,10 @@ router.post('/:id/credits/claim-daily', checkOwnership, async (req, res) => {
 });
 
 // POST /api/users/:id/credits - Ajouter ou définir des crédits
-router.post('/:id/credits', checkOwnership, async (req, res) => {
+router.post('/:id/credits',
+    checkOwnership,
+    validatePositiveNumber('amount'),
+    async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { amount, action } = req.body;
@@ -710,7 +712,7 @@ router.post('/:id/credits', checkOwnership, async (req, res) => {
         }
 
         let newCredits;
-        const now = new Date().toISOString();
+        const now = DBHelpers.now();
 
         // Si action = 'set', définir la valeur exacte, sinon ajouter
         if (action === 'set') {
@@ -737,7 +739,10 @@ router.post('/:id/credits', checkOwnership, async (req, res) => {
 });
 
 // POST /api/users/:id/credits/use - Utiliser des crédits
-router.post('/:id/credits/use', checkOwnership, async (req, res) => {
+router.post('/:id/credits/use',
+    checkOwnership,
+    validatePositiveNumber('amount'),
+    async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { amount } = req.body;
@@ -835,7 +840,7 @@ router.post('/:id/attempts', checkOwnership, async (req, res) => {
                 answersStr,
                 success ? 1 : 0,
                 cards_earned || 0,
-                new Date().toISOString()
+                DBHelpers.now()
             ]
         );
 
@@ -857,14 +862,13 @@ router.post('/:id/attempts', checkOwnership, async (req, res) => {
 });
 
 // PUT /api/users/:id/password - Changer le mot de passe
-router.put('/:id/password', checkOwnership, async (req, res) => {
+router.put('/:id/password',
+    checkOwnership,
+    validateRequired(['current_password', 'new_password']),
+    async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { current_password, new_password } = req.body;
-
-        if (!current_password || !new_password) {
-            return res.status(400).json({ error: 'Current and new password are required' });
-        }
 
         if (new_password.length < 8) {
             return res.status(400).json({ error: 'New password must be at least 8 characters' });
@@ -917,19 +921,13 @@ router.get('/:id/themes', checkOwnership, async (req, res) => {
 });
 
 // POST /api/users/:id/themes - Ajouter/remplacer les thèmes d'un utilisateur
-router.post('/:id/themes', checkOwnership, async (req, res) => {
+router.post('/:id/themes',
+    checkOwnership,
+    validateThemes,
+    async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { theme_slugs } = req.body;
-
-        // Validation
-        if (!theme_slugs || !Array.isArray(theme_slugs)) {
-            return res.status(400).json({ error: 'theme_slugs must be an array' });
-        }
-
-        if (theme_slugs.length < 3 || theme_slugs.length > 10) {
-            return res.status(400).json({ error: 'You must select between 3 and 10 themes' });
-        }
 
         // Vérifier que tous les thèmes existent
         const allThemes = await all('SELECT slug FROM card_themes');
@@ -944,9 +942,11 @@ router.post('/:id/themes', checkOwnership, async (req, res) => {
         await run('DELETE FROM user_themes WHERE user_id = ?', [userId]);
 
         // Ajouter les nouveaux thèmes avec batch INSERT
-        const now = new Date().toISOString();
-        const placeholders = theme_slugs.map(() => '(?, ?, ?)').join(',');
-        const values = theme_slugs.flatMap(slug => [userId, slug, now]);
+        const now = DBHelpers.now();
+        const { placeholders, values } = DBHelpers.buildBatchInsert(
+            theme_slugs.map(slug => ({ user_id: userId, theme_slug: slug, created_at: now })),
+            ['user_id', 'theme_slug', 'created_at']
+        );
         await run(
             `INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES ${placeholders}`,
             values
@@ -981,22 +981,13 @@ router.get('/:id/themes/stats', checkOwnership, async (req, res) => {
 });
 
 // PUT /api/users/:id/themes - Mettre à jour les thèmes sélectionnés (remplace tout)
-router.put('/:id/themes', checkOwnership, async (req, res) => {
+router.put('/:id/themes',
+    checkOwnership,
+    validateThemes,
+    async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
         const { theme_slugs } = req.body;
-
-        if (!Array.isArray(theme_slugs)) {
-            return res.status(400).json({ error: 'theme_slugs must be an array' });
-        }
-
-        if (theme_slugs.length < 3) {
-            return res.status(400).json({ error: 'Minimum 3 themes required' });
-        }
-
-        if (theme_slugs.length > 10) {
-            return res.status(400).json({ error: 'Maximum 10 themes allowed' });
-        }
 
         // Vérifier que tous les slugs existent
         const allThemes = await all('SELECT slug FROM card_themes');
@@ -1012,9 +1003,11 @@ router.put('/:id/themes', checkOwnership, async (req, res) => {
         await run('DELETE FROM user_themes WHERE user_id = ?', [userId]);
 
         // Ajouter les nouveaux thèmes avec batch INSERT
-        const now = new Date().toISOString();
-        const placeholders = theme_slugs.map(() => '(?, ?, ?)').join(',');
-        const values = theme_slugs.flatMap(slug => [userId, slug, now]);
+        const now = DBHelpers.now();
+        const { placeholders, values } = DBHelpers.buildBatchInsert(
+            theme_slugs.map(slug => ({ user_id: userId, theme_slug: slug, created_at: now })),
+            ['user_id', 'theme_slug', 'created_at']
+        );
         await run(
             `INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES ${placeholders}`,
             values

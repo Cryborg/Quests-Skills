@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { query, run } = require('../turso-db');
 const { authenticateToken } = require('../middleware/auth');
+const DBHelpers = require('../utils/db-helpers');
 
 // Configuration des limites par type de jeu (cartes gagnables par jour)
 const GAME_LIMITS = {
@@ -24,9 +25,7 @@ router.get('/:userId/sessions/:gameType', authenticateToken, async (req, res) =>
         }
 
         // Récupérer les sessions d'aujourd'hui avec range comparisons (optimisé pour l'index)
-        const today = new Date();
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).toISOString();
+        const { start: todayStart, end: todayEnd } = DBHelpers.getTodayRange();
 
         const sessions = await query(
             `SELECT * FROM game_sessions
@@ -68,9 +67,7 @@ router.post('/:userId/sessions', authenticateToken, async (req, res) => {
         }
 
         // Vérifier les sessions d'aujourd'hui avec range comparisons (optimisé pour l'index)
-        const today = new Date();
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999).toISOString();
+        const { start: todayStart, end: todayEnd } = DBHelpers.getTodayRange();
 
         const sessions = await query(
             `SELECT SUM(cards_earned) as total FROM game_sessions
@@ -93,7 +90,7 @@ router.post('/:userId/sessions', authenticateToken, async (req, res) => {
         }
 
         // Enregistrer la session
-        const now = new Date().toISOString();
+        const now = DBHelpers.now();
         await run(
             `INSERT INTO game_sessions (user_id, game_type, errors, success, cards_earned, created_at)
              VALUES (?, ?, ?, ?, ?, ?)`,
@@ -102,10 +99,7 @@ router.post('/:userId/sessions', authenticateToken, async (req, res) => {
 
         // Si des cartes ont été gagnées, ajouter des crédits
         if (cardsEarned > 0) {
-            await run(
-                `UPDATE users SET credits = credits + ? WHERE id = ?`,
-                [cardsEarned, userId]
-            );
+            await DBHelpers.addCredits(userId, cardsEarned);
         }
 
         res.json({

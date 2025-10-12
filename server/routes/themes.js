@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { get, all, run, query } = require('../turso-db');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { validateRequired } = require('../middleware/validators');
+const DBHelpers = require('../utils/db-helpers');
 
 // GET /api/themes/all - Récupérer tous les thèmes (admin only)
 router.get('/all', authenticateToken, requireAdmin, async (req, res) => {
@@ -30,7 +32,7 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 
     const userThemeSlugs = userThemesResult.rows.map(row => row.theme_slug);
-    const placeholders = userThemeSlugs.map(() => '?').join(',');
+    const placeholders = DBHelpers.buildInClause(userThemeSlugs);
 
     const themesResult = await query(
       `SELECT * FROM card_themes WHERE slug IN (${placeholders}) ORDER BY name ASC`,
@@ -51,7 +53,7 @@ router.get('/with-words', authenticateToken, requireAdmin, async (req, res) => {
 
     // Récupérer TOUS les mots en une seule requête
     const themeSlugs = themes.map(t => t.slug);
-    const placeholders = themeSlugs.map(() => '?').join(',');
+    const placeholders = DBHelpers.buildInClause(themeSlugs);
     const allWordsResult = await query(
       `SELECT * FROM word_search_words
        WHERE theme_slug IN (${placeholders})
@@ -94,13 +96,13 @@ router.get('/with-words', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // POST /api/themes - Créer un nouveau thème (admin only)
-router.post('/', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/',
+  authenticateToken,
+  requireAdmin,
+  validateRequired(['slug', 'name', 'icon']),
+  async (req, res) => {
   try {
     const { slug, name, icon } = req.body;
-
-    if (!slug || !name || !icon) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
 
     // Vérifier que le slug est unique
     const existing = await get('SELECT * FROM card_themes WHERE slug = ?', [slug]);
@@ -108,7 +110,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Theme slug already exists' });
     }
 
-    const now = new Date().toISOString();
+    const now = DBHelpers.now();
     const result = await run(
       'INSERT INTO card_themes (slug, name, icon, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
       [slug, name, icon, now, now]
@@ -123,14 +125,14 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // PUT /api/themes/:id - Mettre à jour un thème (admin only)
-router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.put('/:id',
+  authenticateToken,
+  requireAdmin,
+  validateRequired(['slug', 'name', 'icon']),
+  async (req, res) => {
   try {
     const { id } = req.params;
     const { slug, name, icon } = req.body;
-
-    if (!slug || !name || !icon) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
 
     // Vérifier que le thème existe
     const theme = await get('SELECT * FROM card_themes WHERE id = ?', [id]);
@@ -144,7 +146,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Theme slug already exists' });
     }
 
-    const now = new Date().toISOString();
+    const now = DBHelpers.now();
     await run(
       'UPDATE card_themes SET slug = ?, name = ?, icon = ?, updated_at = ? WHERE id = ?',
       [slug, name, icon, now, id]

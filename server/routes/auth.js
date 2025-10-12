@@ -3,20 +3,21 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { get, run, all } = require('../turso-db');
 const { authenticateToken } = require('../middleware/auth');
+const { validateRequired, validateEmail, validateThemes } = require('../middleware/validators');
 const { logActivity } = require('../utils/activity-logger');
+const DBHelpers = require('../utils/db-helpers');
 
 const router = express.Router();
 
 // POST /api/auth/register - Inscription
-router.post('/register', async (req, res) => {
+router.post('/register',
+    validateRequired(['username', 'password']),
+    validateEmail,
+    async (req, res) => {
     try {
         const { username, email, password, theme_slugs } = req.body;
 
-        // Validation
-        if (!username || !email || !password) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
-
+        // Validation du mot de passe (spécifique)
         if (password.length < 8) {
             return res.status(400).json({ error: 'Password must be at least 8 characters' });
         }
@@ -37,7 +38,7 @@ router.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Créer l'utilisateur avec crédits initiaux
-        const now = new Date().toISOString();
+        const now = DBHelpers.now();
         await run(
             'INSERT INTO users (username, email, password, is_admin, credits, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [username, email, hashedPassword, 0, 10, now, now]
@@ -45,8 +46,12 @@ router.post('/register', async (req, res) => {
 
         const user = await get('SELECT * FROM users WHERE email = ?', [email]);
 
-        // Assigner les thèmes seulement si fournis par l'admin
-        if (theme_slugs && Array.isArray(theme_slugs) && theme_slugs.length >= 3 && theme_slugs.length <= 10) {
+        // Assigner les thèmes seulement si fournis
+        if (theme_slugs && Array.isArray(theme_slugs)) {
+            // Valider le nombre de thèmes
+            if (theme_slugs.length < 3 || theme_slugs.length > 10) {
+                return res.status(400).json({ error: 'You must select between 3 and 10 themes' });
+            }
             // Vérifier que tous les thèmes existent
             const allThemes = await all('SELECT slug FROM card_themes');
             const validSlugs = allThemes.map(t => t.slug);
@@ -54,8 +59,10 @@ router.post('/register', async (req, res) => {
 
             if (validThemeSlugs.length >= 3 && validThemeSlugs.length <= 10) {
                 // Batch INSERT pour tous les thèmes en une seule requête
-                const placeholders = validThemeSlugs.map(() => '(?, ?, ?)').join(',');
-                const values = validThemeSlugs.flatMap(slug => [user.id, slug, now]);
+                const { placeholders, values } = DBHelpers.buildBatchInsert(
+                    validThemeSlugs.map(slug => ({ user_id: user.id, theme_slug: slug, created_at: now })),
+                    ['user_id', 'theme_slug', 'created_at']
+                );
                 await run(
                     `INSERT INTO user_themes (user_id, theme_slug, created_at) VALUES ${placeholders}`,
                     values
@@ -84,14 +91,11 @@ router.post('/register', async (req, res) => {
 });
 
 // POST /api/auth/login - Connexion
-router.post('/login', async (req, res) => {
+router.post('/login',
+    validateRequired(['email', 'password']),
+    async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        // Validation
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password are required' });
-        }
 
         // Récupérer l'utilisateur
         const user = await get('SELECT * FROM users WHERE email = ?', [email]);
@@ -130,17 +134,11 @@ router.post('/login', async (req, res) => {
 // GET /api/auth/me - Récupérer l'utilisateur connecté
 router.get('/me', authenticateToken, async (req, res) => {
     try {
-        const user = await get('SELECT * FROM users WHERE id = ?', [req.user.id]);
-
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
+        const user = await DBHelpers.getUserOrFail(req.user.id);
         const { password, ...userWithoutPassword } = user;
         res.json(userWithoutPassword);
-    } catch (error) {
-        console.error('Error fetching current user:', error);
-        res.status(500).json({ error: 'Failed to fetch user' });
+    } catch (err) {
+        return res.status(err.status || 500).json({ error: err.error || 'Failed to fetch user' });
     }
 });
 

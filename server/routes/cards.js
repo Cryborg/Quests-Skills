@@ -1,6 +1,8 @@
 const express = require('express');
 const { all, get, run } = require('../turso-db');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { validateRequired, validateRarity, validateImage, validateOwnership, validatePositiveNumber } = require('../middleware/validators');
+const DBHelpers = require('../utils/db-helpers');
 
 const router = express.Router();
 
@@ -49,14 +51,15 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/cards - Créer une carte (admin seulement)
-router.post('/', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/',
+    authenticateToken,
+    requireAdmin,
+    validateRequired(['name', 'description', 'category', 'base_rarity', 'image']),
+    validateRarity,
+    validateImage,
+    async (req, res) => {
     try {
         const { name, description, category, base_rarity, image } = req.body;
-
-        // Valider les champs requis
-        if (!name || !description || !category || !base_rarity || !image) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
 
         // Valider le thème (vérifier qu'il existe dans card_themes)
         const theme = await get('SELECT * FROM card_themes WHERE slug = ?', [category]);
@@ -64,14 +67,8 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
             return res.status(400).json({ error: 'Invalid category: theme does not exist' });
         }
 
-        // Valider la rareté
-        const validRarities = ['common', 'rare', 'very_rare', 'epic', 'legendary'];
-        if (!validRarities.includes(base_rarity)) {
-            return res.status(400).json({ error: 'Invalid rarity' });
-        }
-
         // Créer la carte
-        const now = new Date().toISOString();
+        const now = DBHelpers.now();
         const result = await run(
             'INSERT INTO cards (name, description, category, base_rarity, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [name, description, category, base_rarity, image, now, now]
@@ -86,7 +83,11 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // PUT /api/cards/:id - Modifier une carte (admin seulement)
-router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.put('/:id',
+    authenticateToken,
+    requireAdmin,
+    validateRarity,
+    async (req, res) => {
     try {
         const cardId = parseInt(req.params.id);
         const { name, description, category, base_rarity, image } = req.body;
@@ -122,10 +123,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         }
 
         if (base_rarity !== undefined) {
-            const validRarities = ['common', 'rare', 'very_rare', 'epic', 'legendary'];
-            if (!validRarities.includes(base_rarity)) {
-                return res.status(400).json({ error: 'Invalid rarity' });
-            }
+            // La validation de rareté sera faite par le middleware si nécessaire
             updates.push('base_rarity = ?');
             values.push(base_rarity);
         }
@@ -141,7 +139,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
         // Ajouter updated_at
         updates.push('updated_at = ?');
-        values.push(new Date().toISOString());
+        values.push(DBHelpers.now());
 
         values.push(cardId);
         await run(`UPDATE cards SET ${updates.join(', ')} WHERE id = ?`, values);
@@ -176,16 +174,16 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // POST /api/cards/draw/:userId - Piocher des cartes (optimisé)
-router.post('/draw/:userId', authenticateToken, async (req, res) => {
+router.post('/draw/:userId',
+    authenticateToken,
+    validateOwnership,
+    async (req, res) => {
     try {
         const userId = parseInt(req.params.userId);
         const { count = 1 } = req.body;
 
         // Vérifier que l'utilisateur existe et a assez de crédits
-        const user = await get('SELECT * FROM users WHERE id = ?', [userId]);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+        const user = await DBHelpers.getUserOrFail(userId);
 
         if (user.credits < count) {
             return res.status(400).json({
@@ -196,7 +194,7 @@ router.post('/draw/:userId', authenticateToken, async (req, res) => {
         }
 
         // Retirer les crédits AVANT de piocher
-        const now = new Date().toISOString();
+        const now = DBHelpers.now();
         await run(
             'UPDATE users SET credits = credits - ?, updated_at = ? WHERE id = ?',
             [count, now, userId]
@@ -214,7 +212,7 @@ router.post('/draw/:userId', authenticateToken, async (req, res) => {
         if (themesSlugs.length === 0) {
             allCards = await all('SELECT * FROM cards');
         } else {
-            const placeholders = themesSlugs.map(() => '?').join(',');
+            const placeholders = DBHelpers.buildInClause(themesSlugs);
             allCards = await all(
                 `SELECT * FROM cards WHERE category IN (${placeholders})`,
                 themesSlugs
