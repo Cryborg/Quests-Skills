@@ -2,14 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { query, get, run } = require('../turso-db');
 const { ensureDatabaseExists } = require('../../database/initialize');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { requireAdmin } = require('../middleware/auth');
+const { authenticateAndTrack } = require('../middleware/activity-tracker');
 const { validateRequired, validateWord, validateOwnership } = require('../middleware/validators');
 const DBHelpers = require('../utils/db-helpers');
 
 // ========================================
 // GET /word-search/themes - Liste tous les thèmes de cartes avec leurs mots + mots génériques
 // ========================================
-router.get('/themes', authenticateToken, async (req, res) => {
+router.get('/themes', authenticateAndTrack, async (req, res) => {
   try {
     await ensureDatabaseExists();
 
@@ -67,7 +68,7 @@ router.get('/themes', authenticateToken, async (req, res) => {
 // GET /word-search/themes/:userId/available - Liste les thèmes disponibles pour un utilisateur
 // ========================================
 router.get('/themes/:userId/available',
-  authenticateToken,
+  authenticateAndTrack,
   validateOwnership,
   async (req, res) => {
   try {
@@ -151,7 +152,7 @@ router.get('/themes/:userId/available',
 // POST /word-search/words - Créer un nouveau mot (Admin only)
 // ========================================
 router.post('/words',
-  authenticateToken,
+  authenticateAndTrack,
   requireAdmin,
   validateRequired(['theme']),
   validateWord,
@@ -182,7 +183,7 @@ router.post('/words',
 // PUT /word-search/words/:id - Mettre à jour un mot (Admin only)
 // ========================================
 router.put('/words/:id',
-  authenticateToken,
+  authenticateAndTrack,
   requireAdmin,
   validateWord,
   async (req, res) => {
@@ -208,7 +209,7 @@ router.put('/words/:id',
 // ========================================
 // DELETE /word-search/words/:id - Supprimer un mot (Admin only)
 // ========================================
-router.delete('/words/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.delete('/words/:id', authenticateAndTrack, requireAdmin, async (req, res) => {
   try {
     await ensureDatabaseExists();
     const { id } = req.params;

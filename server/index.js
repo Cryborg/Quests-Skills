@@ -10,6 +10,8 @@ dotenv.config();
 // Import database initialization
 const { ensureDatabaseExists } = require('../database/initialize');
 const ensureMigrations = require('./middleware/ensure-migrations');
+const { trackDailyLogin } = require('./middleware/activity-tracker');
+const { authenticateToken } = require('./middleware/auth');
 
 // Import routes
 const cardsRouter = require('./routes/cards');

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { query, run } = require('../turso-db');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateAndTrack } = require('../middleware/activity-tracker');
 const DBHelpers = require('../utils/db-helpers');
 
 // Configuration des limites par type de jeu (cartes gagnables par jour)
@@ -15,7 +15,7 @@ const GAME_LIMITS = {
 };
 
 // Récupérer les sessions d'aujourd'hui pour un utilisateur et un jeu
-router.get('/:userId/sessions/:gameType', authenticateToken, async (req, res) => {
+router.get('/:userId/sessions/:gameType', authenticateAndTrack, async (req, res) => {
     try {
         const { userId, gameType } = req.params;
 
@@ -56,7 +56,7 @@ router.get('/:userId/sessions/:gameType', authenticateToken, async (req, res) =>
 });
 
 // Enregistrer une session de jeu
-router.post('/:userId/sessions', authenticateToken, async (req, res) => {
+router.post('/:userId/sessions', authenticateAndTrack, async (req, res) => {
     try {
         const { userId } = req.params;
         const { gameType, errors, success } = req.body;

@@ -1,10 +1,11 @@
 const express = require('express');
 const { all, get } = require('../turso-db');
+const { authenticateAndTrack } = require('../middleware/activity-tracker');
 
 const router = express.Router();
 
 // GET /api/bonus-operations - Récupérer toutes les opérations bonus
-router.get('/', async (req, res) => {
+router.get('/', authenticateAndTrack, async (req, res) => {
     try {
         const operations = await all(
             'SELECT * FROM bonus_operations WHERE is_active = 1 ORDER BY type ASC'
@@ -18,7 +19,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/bonus-operations/:id - Récupérer une opération
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateAndTrack, async (req, res) => {
     try {
         const operation = await get(
             'SELECT * FROM bonus_operations WHERE id = ?',

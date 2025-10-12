@@ -1,6 +1,7 @@
 const express = require('express');
 const { all, get, run } = require('../turso-db');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { requireAdmin } = require('../middleware/auth');
+const { authenticateAndTrack } = require('../middleware/activity-tracker');
 const { validateRequired, validateRarity, validateImage, validateOwnership, validatePositiveNumber } = require('../middleware/validators');
 const DBHelpers = require('../utils/db-helpers');
 
@@ -52,7 +53,7 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/cards - Créer une carte (admin seulement)
 router.post('/',
-    authenticateToken,
+    authenticateAndTrack,
     requireAdmin,
     validateRequired(['name', 'description', 'category', 'base_rarity', 'image']),
     validateRarity,
@@ -84,7 +85,7 @@ router.post('/',
 
 // PUT /api/cards/:id - Modifier une carte (admin seulement)
 router.put('/:id',
-    authenticateToken,
+    authenticateAndTrack,
     requireAdmin,
     validateRarity,
     async (req, res) => {
@@ -153,7 +154,7 @@ router.put('/:id',
 });
 
 // DELETE /api/cards/:id - Supprimer une carte (admin seulement)
-router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticateAndTrack, requireAdmin, async (req, res) => {
     try {
         const cardId = parseInt(req.params.id);
 
@@ -175,7 +176,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
 // POST /api/cards/draw/:userId - Piocher des cartes (optimisé)
 router.post('/draw/:userId',
-    authenticateToken,
+    authenticateAndTrack,
     validateOwnership,
     async (req, res) => {
     try {

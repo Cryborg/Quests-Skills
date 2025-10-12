@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs').promises;
 const path = require('path');
+const { authenticateAndTrack } = require('../middleware/activity-tracker');
 
 // GET /api/images - Liste toutes les images disponibles dans shared/images
-router.get('/', async (req, res) => {
+router.get('/', authenticateAndTrack, async (req, res) => {
     try {
         const imagesDir = path.join(__dirname, '../../shared/images');
         const files = await fs.readdir(imagesDir);

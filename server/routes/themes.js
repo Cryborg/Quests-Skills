@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { get, all, run, query } = require('../turso-db');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { requireAdmin } = require('../middleware/auth');
+const { authenticateAndTrack } = require('../middleware/activity-tracker');
 const { validateRequired } = require('../middleware/validators');
 const DBHelpers = require('../utils/db-helpers');
 
 // GET /api/themes/all - Récupérer tous les thèmes (admin only)
-router.get('/all', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/all', authenticateAndTrack, requireAdmin, async (req, res) => {
   try {
     const themes = await all('SELECT * FROM card_themes ORDER BY name ASC');
     res.json(themes);
@@ -17,7 +18,7 @@ router.get('/all', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // GET /api/themes - Récupérer les thèmes de l'utilisateur connecté
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateAndTrack, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -47,7 +48,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // GET /api/themes/with-words - Récupérer tous les thèmes avec leurs mots mêlés (admin only)
-router.get('/with-words', authenticateToken, requireAdmin, async (req, res) => {
+router.get('/with-words', authenticateAndTrack, requireAdmin, async (req, res) => {
   try {
     const themes = await all('SELECT * FROM card_themes ORDER BY name ASC');
 
@@ -97,7 +98,7 @@ router.get('/with-words', authenticateToken, requireAdmin, async (req, res) => {
 
 // POST /api/themes - Créer un nouveau thème (admin only)
 router.post('/',
-  authenticateToken,
+  authenticateAndTrack,
   requireAdmin,
   validateRequired(['slug', 'name', 'icon']),
   async (req, res) => {
@@ -126,7 +127,7 @@ router.post('/',
 
 // PUT /api/themes/:id - Mettre à jour un thème (admin only)
 router.put('/:id',
-  authenticateToken,
+  authenticateAndTrack,
   requireAdmin,
   validateRequired(['slug', 'name', 'icon']),
   async (req, res) => {
@@ -161,7 +162,7 @@ router.put('/:id',
 });
 
 // DELETE /api/themes/:id - Supprimer un thème (admin only)
-router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticateAndTrack, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 

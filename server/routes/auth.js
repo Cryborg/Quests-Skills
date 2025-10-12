@@ -2,9 +2,8 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { get, run, all } = require('../turso-db');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateAndTrack } = require('../middleware/activity-tracker');
 const { validateRequired, validateEmail, validateThemes } = require('../middleware/validators');
-const { logActivity } = require('../utils/activity-logger');
 const DBHelpers = require('../utils/db-helpers');
 
 const router = express.Router();
@@ -109,9 +108,6 @@ router.post('/login',
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
-        // Logger la connexion
-        await logActivity(user.id, 'login');
-
         // Créer le token JWT
         const token = jwt.sign(
             { id: user.id, email: user.email, username: user.username, is_admin: user.is_admin },
@@ -132,7 +128,7 @@ router.post('/login',
 });
 
 // GET /api/auth/me - Récupérer l'utilisateur connecté
-router.get('/me', authenticateToken, async (req, res) => {
+router.get('/me', authenticateAndTrack, async (req, res) => {
     try {
         const user = await DBHelpers.getUserOrFail(req.user.id);
         const { password, ...userWithoutPassword } = user;

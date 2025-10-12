@@ -1,14 +1,15 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { all, get, run } = require('../turso-db');
-const { authenticateToken, checkOwnership, requireAdmin } = require('../middleware/auth');
+const { checkOwnership, requireAdmin } = require('../middleware/auth');
+const { authenticateAndTrack } = require('../middleware/activity-tracker');
 const { validateRequired, validateEmail, validateThemes, validatePositiveNumber, validateOwnership } = require('../middleware/validators');
 const DBHelpers = require('../utils/db-helpers');
 
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
-router.use(authenticateToken);
+router.use(authenticateAndTrack);
 
 // GET /api/users - Récupérer tous les utilisateurs (admin seulement)
 router.get('/', requireAdmin, async (req, res) => {
