@@ -15,6 +15,12 @@
         <!-- Header injecté automatiquement par PageHeader.render() -->
 
         <main class="main-content">
+            <!-- Sélecteur de taille -->
+            <div class="difficulty-selector">
+                <button class="difficulty-btn active" data-size="10x10">Standard (10x10)</button>
+                <button class="difficulty-btn" data-size="15x15">Grand Format (15x15)</button>
+            </div>
+
             <div class="game-area">
                 <div id="crossword-grid"></div>
             </div>
@@ -48,11 +54,66 @@
 
     <!-- Initialisation -->
     <script>
+        // Instance globale initialisée selon la taille sélectionnée
+        let crosswordGame;
+
         window.addEventListener('common-scripts-loaded', async () => {
             await initializeApp(async () => {
-                await crosswordGame.init();
+                // Initialiser avec la taille par défaut (10x10)
+                initCrosswordGame('10x10');
+
+                // Gérer le changement de taille
+                document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const size = btn.dataset.size;
+
+                        // Mettre à jour les boutons actifs
+                        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+
+                        // Réinitialiser avec la nouvelle taille
+                        initCrosswordGame(size);
+                    });
+                });
             });
         });
+
+        function initCrosswordGame(size) {
+            const configs = {
+                '10x10': {
+                    gridSize: 10,
+                    minWords: 12,
+                    maxWords: 15,
+                    minWordLength: 3,
+                    maxWordLength: 8,
+                    maxHints: 3,
+                    maxAttemptsPerDay: 3,
+                    baseCredits: 5,
+                    gameType: 'crossword',
+                    title: 'Mots Croisés',
+                    subtitle: 'Grille 10x10 - Remplis la grille avec les bonnes lettres !',
+                    icon: '🔠'
+                },
+                '15x15': {
+                    gridSize: 15,
+                    minWords: 25,
+                    maxWords: 35,
+                    minWordLength: 3,
+                    maxWordLength: 12,
+                    maxHints: 5,
+                    maxAttemptsPerDay: 2,
+                    baseCredits: 10,
+                    gameType: 'crossword-large',
+                    title: 'Mots Croisés',
+                    subtitle: 'Grille 15x15 - Une grille pour les experts !',
+                    icon: '📰'
+                }
+            };
+
+            // Créer une nouvelle instance avec la config appropriée
+            crosswordGame = new CrosswordGame(configs[size]);
+            crosswordGame.init();
+        }
     </script>
 </body>
 </html>

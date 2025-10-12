@@ -391,6 +391,9 @@ class CrosswordGame {
         // Le CSS gère grid-template-columns en responsive
         this.elements.grid.innerHTML = '';
 
+        // Ajouter l'attribut data-size pour le CSS
+        this.elements.grid.dataset.size = `${this.gridSize}x${this.gridSize}`;
+
         for (let row = 0; row < this.gridSize; row++) {
             for (let col = 0; col < this.gridSize; col++) {
                 const cell = this.grid[row][col];
