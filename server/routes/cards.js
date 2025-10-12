@@ -204,10 +204,10 @@ router.post('/draw/:userId', authenticateToken, async (req, res) => {
 
         // Récupérer les thèmes sélectionnés par l'utilisateur
         const userThemes = await all(
-            'SELECT ct.slug FROM user_themes ut JOIN card_themes ct ON ut.theme_id = ct.id WHERE ut.user_id = ?',
+            'SELECT theme_slug FROM user_themes WHERE user_id = ?',
             [userId]
         );
-        const themesSlugs = userThemes.map(t => t.slug);
+        const themesSlugs = userThemes.map(t => t.theme_slug);
 
         // Si aucun thème sélectionné, utiliser tous les thèmes
         let allCards;

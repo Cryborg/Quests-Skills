@@ -12,10 +12,8 @@ router.use(authenticateToken);
 router.get('/', requireAdmin, async (req, res) => {
     try {
         const users = await all(`
-            SELECT u.*,
-                   COALESCE(uc.credits, 0) as credits
+            SELECT u.*
             FROM users u
-            LEFT JOIN user_credits uc ON u.id = uc.user_id
             ORDER BY u.created_at DESC
         `);
 
@@ -50,12 +48,11 @@ router.get('/:id/profile', requireAdmin, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
 
-        // Infos de base de l'utilisateur (avec crédits depuis user_credits)
+        // Infos de base de l'utilisateur (avec crédits depuis users)
         const user = await get(`
             SELECT u.id, u.username, u.email, u.is_admin, u.created_at, u.updated_at,
-                   COALESCE(uc.credits, 0) as credits
+                   COALESCE(u.credits, 0) as credits
             FROM users u
-            LEFT JOIN user_credits uc ON u.id = uc.user_id
             WHERE u.id = ?
         `, [userId]);
 
@@ -185,19 +182,14 @@ router.post('/', requireAdmin, async (req, res) => {
         console.log('📝 Creating user in database...');
         const now = new Date().toISOString();
         const result = await run(
-            'INSERT INTO users (username, email, password, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-            [username, email, hashedPassword, is_admin ? 1 : 0, now, now]
+            'INSERT INTO users (username, email, password, is_admin, credits, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [username, email, hashedPassword, is_admin ? 1 : 0, 10, now, now]
         );
         const userId = Number(result.lastInsertRowid);
         console.log('✅ User created with ID:', userId);
 
-        // Initialiser les crédits à 10 (comme dans register)
-        console.log('💰 Creating user_credits...');
-        await run(
-            'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
-            [userId, 10, now, now]
-        );
-        console.log('✅ Credits initialized to 10');
+        // Initialiser les crédits à 10 (directement dans users)
+        console.log('💰 Credits initialized to 10');
 
         // Assigner 3 thèmes aléatoires par défaut
         console.log('🎨 Adding 3 random themes...');
@@ -530,7 +522,7 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
             // Ajoute les crédits gagnés si nécessaire
             if (creditsEarned > 0) {
                 await run(
-                    'UPDATE user_credits SET credits = credits + ? WHERE user_id = ?',
+                    'UPDATE users SET credits = credits + ? WHERE id = ?',
                     [creditsEarned, userId]
                 );
             }
@@ -575,13 +567,13 @@ router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
 // GET /api/users/:id/credits - Récupérer les crédits d'un user
 router.get('/:id/credits', checkOwnership, async (req, res) => {
     try {
-        const credits = await get(
-            'SELECT * FROM user_credits WHERE user_id = ?',
+        const user = await get(
+            'SELECT id, credits FROM users WHERE id = ?',
             [parseInt(req.params.id)]
         );
 
         // S'assurer que les crédits ne sont jamais négatifs
-        const safeCredits = credits ? { ...credits, credits: Math.max(0, credits.credits) } : { credits: 0 };
+        const safeCredits = user ? { credits: Math.max(0, user.credits || 0) } : { credits: 0 };
 
         // Empêcher le cache pour les crédits
         res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
@@ -602,22 +594,22 @@ router.post('/:id/credits/claim-daily', checkOwnership, async (req, res) => {
         const DAILY_BONUS = 5;
         const MAX_CREDITS = 99;
 
-        const userCredits = await get(
-            'SELECT * FROM user_credits WHERE user_id = ?',
+        const user = await get(
+            'SELECT id, credits, last_daily_claim FROM users WHERE id = ?',
             [userId]
         );
 
-        if (!userCredits) {
-            return res.status(404).json({ error: 'User credits not found' });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
         }
 
         const today = new Date().toISOString().split('T')[0];
-        const lastClaim = userCredits.last_daily_claim;
+        const lastClaim = user.last_daily_claim;
 
         // Si c'est la première connexion, marque aujourd'hui sans donner de crédits
         if (!lastClaim) {
             await run(
-                'UPDATE user_credits SET last_daily_claim = ?, updated_at = ? WHERE user_id = ?',
+                'UPDATE users SET last_daily_claim = ?, updated_at = ? WHERE id = ?',
                 [today, new Date().toISOString(), userId]
             );
             return res.json({
@@ -625,7 +617,7 @@ router.post('/:id/credits/claim-daily', checkOwnership, async (req, res) => {
                 message: 'Première connexion - crédits quotidiens disponibles demain',
                 creditsAdded: 0,
                 daysAwarded: 0,
-                totalCredits: userCredits.credits
+                totalCredits: user.credits
             });
         }
 
@@ -640,17 +632,17 @@ router.post('/:id/credits/claim-daily', checkOwnership, async (req, res) => {
                 message: 'Crédits quotidiens déjà réclamés aujourd\'hui',
                 creditsAdded: 0,
                 daysAwarded: 0,
-                totalCredits: userCredits.credits
+                totalCredits: user.credits
             });
         }
 
         // Calcule les crédits à ajouter
         const creditsToAdd = daysDifference * DAILY_BONUS;
-        const newCredits = Math.min(userCredits.credits + creditsToAdd, MAX_CREDITS);
+        const newCredits = Math.min(user.credits + creditsToAdd, MAX_CREDITS);
 
         // Met à jour les crédits et la date de claim
         await run(
-            'UPDATE user_credits SET credits = ?, last_daily_claim = ?, updated_at = ? WHERE user_id = ?',
+            'UPDATE users SET credits = ?, last_daily_claim = ?, updated_at = ? WHERE id = ?',
             [newCredits, today, new Date().toISOString(), userId]
         );
 
@@ -679,43 +671,36 @@ router.post('/:id/credits', checkOwnership, async (req, res) => {
         const { amount, action } = req.body;
         const MAX_CREDITS = 99; // Maximum de crédits stockables
 
-        const existing = await get(
-            'SELECT * FROM user_credits WHERE user_id = ?',
+        const user = await get(
+            'SELECT id, credits FROM users WHERE id = ?',
             [userId]
         );
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
 
         let newCredits;
         const now = new Date().toISOString();
 
-        if (existing) {
-            // Si action = 'set', définir la valeur exacte, sinon ajouter
-            if (action === 'set') {
-                newCredits = Math.min(amount, MAX_CREDITS);
-                await run(
-                    'UPDATE user_credits SET credits = ?, updated_at = ? WHERE user_id = ?',
-                    [newCredits, now, userId]
-                );
-            } else {
-                newCredits = Math.min(existing.credits + amount, MAX_CREDITS);
-                await run(
-                    'UPDATE user_credits SET credits = ?, updated_at = ? WHERE user_id = ?',
-                    [newCredits, now, userId]
-                );
-            }
-        } else {
+        // Si action = 'set', définir la valeur exacte, sinon ajouter
+        if (action === 'set') {
             newCredits = Math.min(amount, MAX_CREDITS);
-            await run(
-                'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
-                [userId, newCredits, now, now]
-            );
+        } else {
+            newCredits = Math.min(user.credits + amount, MAX_CREDITS);
         }
 
-        const credits = await get(
-            'SELECT * FROM user_credits WHERE user_id = ?',
+        await run(
+            'UPDATE users SET credits = ?, updated_at = ? WHERE id = ?',
+            [newCredits, now, userId]
+        );
+
+        const updatedUser = await get(
+            'SELECT id, credits FROM users WHERE id = ?',
             [userId]
         );
 
-        res.json(credits);
+        res.json({ credits: updatedUser.credits });
     } catch (error) {
         console.error('Error modifying credits:', error);
         res.status(500).json({ error: 'Failed to modify credits' });
@@ -730,34 +715,34 @@ router.post('/:id/credits/use', checkOwnership, async (req, res) => {
 
         console.log('💰 POST /users/:id/credits/use - User:', userId, 'Amount:', amount);
 
-        const currentCredits = await get(
-            'SELECT * FROM user_credits WHERE user_id = ?',
+        const user = await get(
+            'SELECT id, credits FROM users WHERE id = ?',
             [userId]
         );
 
-        console.log('💰 Current credits:', currentCredits ? currentCredits.credits : 'NOT FOUND');
+        console.log('💰 Current credits:', user ? user.credits : 'NOT FOUND');
 
-        if (!currentCredits || currentCredits.credits < amount) {
-            console.error('❌ Insufficient credits:', currentCredits?.credits, '<', amount);
+        if (!user || user.credits < amount) {
+            console.error('❌ Insufficient credits:', user?.credits, '<', amount);
             return res.status(400).json({ error: 'Insufficient credits' });
         }
 
         // Calculer les nouveaux crédits et s'assurer qu'ils ne descendent jamais en dessous de 0
-        const newCredits = Math.max(0, currentCredits.credits - amount);
+        const newCredits = Math.max(0, user.credits - amount);
         console.log('💰 New credits will be:', newCredits);
 
         await run(
-            'UPDATE user_credits SET credits = ? WHERE user_id = ?',
+            'UPDATE users SET credits = ? WHERE id = ?',
             [newCredits, userId]
         );
 
         const updated = await get(
-            'SELECT * FROM user_credits WHERE user_id = ?',
+            'SELECT id, credits FROM users WHERE id = ?',
             [userId]
         );
 
         console.log('✅ Credits updated successfully:', updated.credits);
-        res.json(updated);
+        res.json({ credits: updated.credits });
     } catch (error) {
         console.error('❌ Error using credits:', error);
         res.status(500).json({ error: 'Failed to use credits' });
@@ -1074,16 +1059,11 @@ router.post('/:id/daily-cards', checkOwnership, async (req, res) => {
         const cardsToGive = daysDifference * DAILY_CARDS;
 
         // Récupère les crédits actuels
-        let userCredit = await get('SELECT credits FROM user_credits WHERE user_id = ?', [userId]);
-        const currentCredits = userCredit ? userCredit.credits : 0;
+        const currentCredits = user.credits || 0;
         const newCredits = currentCredits + cardsToGive;
 
         // Met à jour les crédits
-        if (userCredit) {
-            await run('UPDATE user_credits SET credits = ? WHERE user_id = ?', [newCredits, userId]);
-        } else {
-            await run('INSERT INTO user_credits (user_id, credits) VALUES (?, ?)', [userId, newCredits]);
-        }
+        await run('UPDATE users SET credits = ? WHERE id = ?', [newCredits, userId]);
 
         // Met à jour la date de dernière réclamation
         await run('UPDATE users SET last_daily_cards = ? WHERE id = ?', [today, userId]);

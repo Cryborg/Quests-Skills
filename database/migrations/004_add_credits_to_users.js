@@ -12,37 +12,35 @@ const { query, all, run } = require('../../server/turso-db');
 async function up() {
     console.log('📝 Adding credits column to users table...');
 
+    // Étape 1 : Ajouter la colonne si elle n'existe pas
     try {
-        // Ajouter la colonne credits à la table users
         await query(`
             ALTER TABLE users
             ADD COLUMN credits INTEGER NOT NULL DEFAULT 5
         `);
-
         console.log('✅ Credits column added to users');
-
-        // Migrer les crédits existants depuis user_credits vers users
-        console.log('🔄 Migrating existing credits from user_credits to users...');
-
-        const userCredits = await all('SELECT user_id, credits FROM user_credits');
-
-        for (const uc of userCredits) {
-            await run(
-                'UPDATE users SET credits = ? WHERE id = ?',
-                [uc.credits, uc.user_id]
-            );
-        }
-
-        console.log(`✅ Migrated credits for ${userCredits.length} users`);
-
     } catch (error) {
-        // Si la colonne existe déjà, ignorer l'erreur
         if (error.message.includes('duplicate column name')) {
             console.log('⚠️  Credits column already exists');
         } else {
             throw error;
         }
     }
+
+    // Étape 2 : Migrer les crédits existants depuis user_credits vers users
+    // Cette étape s'exécute TOUJOURS, même si la colonne existait déjà
+    console.log('🔄 Migrating existing credits from user_credits to users...');
+
+    const userCredits = await all('SELECT user_id, credits FROM user_credits');
+
+    for (const uc of userCredits) {
+        await run(
+            'UPDATE users SET credits = ? WHERE id = ?',
+            [uc.credits, uc.user_id]
+        );
+    }
+
+    console.log(`✅ Migrated credits for ${userCredits.length} users`);
 }
 
 async function down() {

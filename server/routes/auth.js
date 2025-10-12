@@ -36,20 +36,14 @@ router.post('/register', async (req, res) => {
         // Hasher le mot de passe
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Créer l'utilisateur
+        // Créer l'utilisateur avec crédits initiaux
         const now = new Date().toISOString();
         await run(
-            'INSERT INTO users (username, email, password, is_admin, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-            [username, email, hashedPassword, 0, now, now]
+            'INSERT INTO users (username, email, password, is_admin, credits, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [username, email, hashedPassword, 0, 10, now, now]
         );
 
         const user = await get('SELECT * FROM users WHERE email = ?', [email]);
-
-        // Créer les crédits initiaux
-        await run(
-            'INSERT INTO user_credits (user_id, credits, created_at, updated_at) VALUES (?, ?, ?, ?)',
-            [user.id, 10, now, now]
-        );
 
         // Assigner les thèmes seulement si fournis par l'admin
         if (theme_slugs && Array.isArray(theme_slugs) && theme_slugs.length >= 3 && theme_slugs.length <= 10) {

@@ -95,7 +95,7 @@ router.post('/:userId/sessions', authenticateToken, async (req, res) => {
         // Si des cartes ont été gagnées, ajouter des crédits
         if (cardsEarned > 0) {
             await run(
-                `UPDATE user_credits SET credits = credits + ? WHERE user_id = ?`,
+                `UPDATE users SET credits = credits + ? WHERE id = ?`,
                 [cardsEarned, userId]
             );
         }
