@@ -287,27 +287,17 @@ router.post('/draw/:userId', authenticateToken, async (req, res) => {
             }
         }
 
-        // Mettre à jour la collection en batch (INSERT ou UPDATE)
+        // Mettre à jour la collection en batch avec UPSERT (compatible SQLite et Turso)
         // Réutilise le 'now' déclaré plus haut (ligne 199)
         for (const [cardId, quantityToAdd] of Object.entries(cardsToUpdate)) {
-            const existingCard = await get(
-                'SELECT * FROM user_cards WHERE user_id = ? AND card_id = ?',
-                [userId, cardId]
-            );
-
-            if (existingCard) {
-                // UPDATE
-                await run(
-                    'UPDATE user_cards SET quantity = quantity + ?, updated_at = ? WHERE user_id = ? AND card_id = ?',
-                    [quantityToAdd, now, userId, cardId]
-                );
-            } else {
-                // INSERT
-                await run(
-                    'INSERT INTO user_cards (user_id, card_id, quantity, current_rarity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
-                    [userId, cardId, quantityToAdd, 'common', now, now]
-                );
-            }
+            await run(`
+                INSERT INTO user_cards (user_id, card_id, quantity, current_rarity, created_at, updated_at)
+                VALUES (?, ?, ?, 'common', ?, ?)
+                ON CONFLICT(user_id, card_id)
+                DO UPDATE SET
+                    quantity = quantity + excluded.quantity,
+                    updated_at = excluded.updated_at
+            `, [userId, cardId, quantityToAdd, now, now]);
         }
 
         // Transformer les cartes pour inclure les chemins d'images absolus
