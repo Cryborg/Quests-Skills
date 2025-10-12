@@ -440,6 +440,38 @@ async function seedWords() {
             ['WESTMINSTER', 'Abbaye de Londres'],
             ['PANTHEON', 'Temple romain'],
             ['REICHSTAG', 'Parlement allemand']
+        ],
+        'jeux-videos': [
+            ['MARIO', 'Plombier moustachu héros de Nintendo'],
+            ['LINK', 'Héros de la légende de Zelda'],
+            ['SONIC', 'Hérisson bleu ultra rapide de Sega'],
+            ['LARA', 'Aventurière de Tomb Raider'],
+            ['NATHAN', 'Chasseur de trésors d\'Uncharted'],
+            ['KRATOS', 'Dieu de la guerre spartiate'],
+            ['SAMUS', 'Chasseuse de primes de Metroid'],
+            ['CLOUD', 'Mercenaire de Final Fantasy VII'],
+            ['GERALT', 'Sorceleur chasseur de monstres'],
+            ['EZIO', 'Assassin italien de la Renaissance'],
+            ['CHIEF', 'Spartan Master Chief de Halo'],
+            ['GORDON', 'Scientifique de Half-Life'],
+            ['SLAYER', 'Tueur de démons de DOOM'],
+            ['SNAKE', 'Agent infiltré de Metal Gear'],
+            ['MARCUS', 'Soldat de Gears of War'],
+            ['SHEPARD', 'Commandant de Mass Effect'],
+            ['PIKACHU', 'Souris électrique Pokémon'],
+            ['SORA', 'Porteur de Keyblade de Kingdom Hearts'],
+            ['AERITH', 'Fleuriste de Final Fantasy VII'],
+            ['ALOY', 'Chasseuse de Horizon Zero Dawn'],
+            ['ELLIE', 'Survivante de The Last of Us'],
+            ['ARTHUR', 'Hors-la-loi de Red Dead Redemption'],
+            ['RYU', 'Maître karatéka de Street Fighter'],
+            ['SCORPION', 'Ninja vengeur de Mortal Kombat'],
+            ['KAZUYA', 'Combattant démoniaque de Tekken'],
+            ['KIRBY', 'Boule rose qui aspire tout'],
+            ['PACMAN', 'Légende jaune mangeuse de pac-gommes'],
+            ['MEGAMAN', 'Robot bleu combattant le Dr Wily'],
+            ['CRASH', 'Bandicoot tournoyant orange'],
+            ['SPYRO', 'Petit dragon violet cracheur de feu']
         ]
     };
 

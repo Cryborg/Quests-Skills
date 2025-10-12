@@ -179,6 +179,218 @@ async function seedCards() {
             category: 'dinosaurs',
             base_rarity: 'epic',
             description: 'Lien évolutif entre dinosaures et oiseaux.'
+        },
+
+        // JEUX VIDÉO (8 cartes)
+        {
+            name: 'Mario',
+            image: 'images/mario.webp',
+            category: 'jeux-videos',
+            base_rarity: 'legendary',
+            description: 'Le plombier le plus célèbre du monde.'
+        },
+        {
+            name: 'Link',
+            image: 'images/link.webp',
+            category: 'jeux-videos',
+            base_rarity: 'epic',
+            description: 'Héros légendaire de Hyrule.'
+        },
+        {
+            name: 'Pikachu',
+            image: 'images/pikachu.webp',
+            category: 'jeux-videos',
+            base_rarity: 'very_rare',
+            description: 'La souris électrique la plus mignonne.'
+        },
+        {
+            name: 'Sonic',
+            image: 'images/sonic.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Le hérisson bleu plus rapide que le son.'
+        },
+        {
+            name: 'Master Chief',
+            image: 'images/master_chief.webp',
+            category: 'jeux-videos',
+            base_rarity: 'epic',
+            description: 'Spartan légendaire de Halo.'
+        },
+        {
+            name: 'Pac-Man',
+            image: 'images/pacman.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'La légende jaune des salles d\'arcade.'
+        },
+        {
+            name: 'Lara Croft',
+            image: 'images/lara_croft.webp',
+            category: 'jeux-videos',
+            base_rarity: 'common',
+            description: 'Aventurière intrépide et chasseuse de trésors.'
+        },
+        {
+            name: 'Kratos',
+            image: 'images/kratos.webp',
+            category: 'jeux-videos',
+            base_rarity: 'common',
+            description: 'Le Dieu de la Guerre spartiate.'
+        },
+        {
+            name: 'Samus Aran',
+            image: 'images/samus_aran.webp',
+            category: 'jeux-videos',
+            base_rarity: 'epic',
+            description: 'Chasseuse de primes intergalactique.'
+        },
+        {
+            name: 'Cloud Strife',
+            image: 'images/cloud_strife.webp',
+            category: 'jeux-videos',
+            base_rarity: 'very_rare',
+            description: 'Mercenaire à l\'épée démesurée.'
+        },
+        {
+            name: 'Geralt',
+            image: 'images/geralt.webp',
+            category: 'jeux-videos',
+            base_rarity: 'epic',
+            description: 'Sorceleur chasseur de monstres.'
+        },
+        {
+            name: 'Ezio Auditore',
+            image: 'images/ezio.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Maître assassin de la Renaissance.'
+        },
+        {
+            name: 'Gordon Freeman',
+            image: 'images/gordon_freeman.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Scientifique devenu héros malgré lui.'
+        },
+        {
+            name: 'Doom Slayer',
+            image: 'images/doom_slayer.webp',
+            category: 'jeux-videos',
+            base_rarity: 'legendary',
+            description: 'Tueur de démons implacable.'
+        },
+        {
+            name: 'Solid Snake',
+            image: 'images/solid_snake.webp',
+            category: 'jeux-videos',
+            base_rarity: 'very_rare',
+            description: 'Agent infiltré légendaire.'
+        },
+        {
+            name: 'Marcus Fenix',
+            image: 'images/marcus_fenix.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Soldat emblématique de Gears of War.'
+        },
+        {
+            name: 'Commander Shepard',
+            image: 'images/commander_shepard.webp',
+            category: 'jeux-videos',
+            base_rarity: 'epic',
+            description: 'Sauveur de la galaxie.'
+        },
+        {
+            name: 'Sora',
+            image: 'images/sora.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Porteur de la Keyblade.'
+        },
+        {
+            name: 'Aerith',
+            image: 'images/aerith.webp',
+            category: 'jeux-videos',
+            base_rarity: 'very_rare',
+            description: 'Ancienne au destin tragique.'
+        },
+        {
+            name: 'Aloy',
+            image: 'images/aloy.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Chasseuse dans un monde post-apocalyptique.'
+        },
+        {
+            name: 'Ellie',
+            image: 'images/ellie.webp',
+            category: 'jeux-videos',
+            base_rarity: 'very_rare',
+            description: 'Survivante courageuse de The Last of Us.'
+        },
+        {
+            name: 'Arthur Morgan',
+            image: 'images/arthur_morgan.webp',
+            category: 'jeux-videos',
+            base_rarity: 'epic',
+            description: 'Hors-la-loi au grand cœur.'
+        },
+        {
+            name: 'Ryu',
+            image: 'images/ryu.webp',
+            category: 'jeux-videos',
+            base_rarity: 'common',
+            description: 'Maître du Hadouken.'
+        },
+        {
+            name: 'Scorpion',
+            image: 'images/scorpion.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Ninja vengeur aux enfers.'
+        },
+        {
+            name: 'Kazuya Mishima',
+            image: 'images/kazuya.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Combattant possédé par le démon.'
+        },
+        {
+            name: 'Kirby',
+            image: 'images/kirby.webp',
+            category: 'jeux-videos',
+            base_rarity: 'common',
+            description: 'Boule rose adorable et redoutable.'
+        },
+        {
+            name: 'Mega Man',
+            image: 'images/mega_man.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Robot combattant le mal.'
+        },
+        {
+            name: 'Crash Bandicoot',
+            image: 'images/crash.webp',
+            category: 'jeux-videos',
+            base_rarity: 'common',
+            description: 'Bandicoot tournoyant déjanté.'
+        },
+        {
+            name: 'Spyro',
+            image: 'images/spyro.webp',
+            category: 'jeux-videos',
+            base_rarity: 'common',
+            description: 'Petit dragon violet intrépide.'
+        },
+        {
+            name: 'Nathan Drake',
+            image: 'images/nathan_drake.webp',
+            category: 'jeux-videos',
+            base_rarity: 'rare',
+            description: 'Aventurier et chasseur de trésors.'
         }
     ];
 
