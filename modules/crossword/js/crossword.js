@@ -782,6 +782,3 @@ class CrosswordGame {
         return shuffled;
     }
 }
-
-// Instance globale
-const crosswordGame = new CrosswordGame();
