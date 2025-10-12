@@ -29,7 +29,14 @@ class GridNavigationGame {
             icon: '🧭',
             title: 'Déplacement sur Quadrillage',
             subtitle: 'Programme le chemin pour atteindre la case cible !',
-            actions: [],
+            actions: [
+                {
+                    icon: '⭐',
+                    text: 'Noter ce jeu',
+                    id: 'rate-game-btn-grid-navigation',
+                    className: 'page-header-btn-secondary'
+                }
+            ],
             stats: [
                 { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '3' },
                 { label: 'Score', id: 'score', value: '0' },
@@ -49,6 +56,13 @@ class GridNavigationGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton de notation
+        setTimeout(() => {
+            if (typeof GameRatingModal !== 'undefined') {
+                GameRatingModal.initHeaderButton('grid-navigation');
+            }
+        }, 100);
 
         this.cacheElements();
         this.attachEvents();

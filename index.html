@@ -236,6 +236,11 @@
                 <input type="email" id="register-email" required autocomplete="email">
             </div>
             <div class="form-group">
+                <label for="register-birth-date">Date de naissance</label>
+                <input type="date" id="register-birth-date" required autocomplete="bday">
+                <small>Utilisée pour les statistiques et recommandations</small>
+            </div>
+            <div class="form-group">
                 <label for="register-password">Mot de passe</label>
                 <input type="password" id="register-password" required minlength="8" autocomplete="new-password">
                 <small>Au moins 8 caractères</small>
@@ -307,6 +312,7 @@
             e.preventDefault();
             const username = document.getElementById('register-username').value;
             const email = document.getElementById('register-email').value;
+            const birthDate = document.getElementById('register-birth-date').value;
             const password = document.getElementById('register-password').value;
             const passwordConfirm = document.getElementById('register-password-confirm').value;
             const errorEl = document.getElementById('register-error');
@@ -319,7 +325,7 @@
                     throw new Error('Les mots de passe ne correspondent pas');
                 }
 
-                await authService.register(username, email, password);
+                await authService.register(username, email, password, birthDate);
                 // Rediriger vers l'application
                 window.location.href = '/modules/cards/index.html';
             } catch (error) {

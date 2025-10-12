@@ -36,7 +36,14 @@ class CrosswordGame {
             icon: this.config.icon,
             title: this.config.title,
             subtitle: this.config.subtitle,
-            actions: [],
+            actions: [
+                {
+                    icon: '⭐',
+                    text: 'Noter ce jeu',
+                    id: 'rate-game-btn-crossword',
+                    className: 'page-header-btn-secondary'
+                }
+            ],
             stats: [
                 { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '...' },
                 { label: 'Mots trouvés', id: 'words-found', value: '0/0' },
@@ -53,6 +60,13 @@ class CrosswordGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton de notation
+        setTimeout(() => {
+            if (typeof GameRatingModal !== 'undefined') {
+                GameRatingModal.initHeaderButton('crossword');
+            }
+        }, 100);
 
         // Charger les mots depuis la base de données
         await this.loadWords();

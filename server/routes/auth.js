@@ -14,7 +14,7 @@ router.post('/register',
     validateEmail,
     async (req, res) => {
     try {
-        const { username, email, password, theme_slugs } = req.body;
+        const { username, email, password, birth_date, theme_slugs } = req.body;
 
         // Validation du mot de passe (spécifique)
         if (password.length < 8) {
@@ -39,8 +39,8 @@ router.post('/register',
         // Créer l'utilisateur avec crédits initiaux
         const now = DBHelpers.now();
         await run(
-            'INSERT INTO users (username, email, password, is_admin, credits, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [username, email, hashedPassword, 0, 10, now, now]
+            'INSERT INTO users (username, email, password, birth_date, is_admin, credits, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [username, email, hashedPassword, birth_date || null, 0, 10, now, now]
         );
 
         const user = await get('SELECT * FROM users WHERE email = ?', [email]);

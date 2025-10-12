@@ -21,6 +21,7 @@
             <button class="admin-tab-btn" data-tab="themes">🎨 Thèmes</button>
             <button class="admin-tab-btn" data-tab="cards">🃏 Cartes</button>
             <button class="admin-tab-btn" data-tab="word-search">🔍 Mots Mêlés</button>
+            <button class="admin-tab-btn" data-tab="ratings">📊 Notations</button>
         </nav>
 
         <main class="admin-content">
@@ -91,6 +92,19 @@
                     <!-- Thèmes et leurs mots chargés dynamiquement -->
                 </div>
             </section>
+
+            <!-- Section Notations -->
+            <section id="ratings-section" class="admin-section">
+                <div class="section-header">
+                    <h2>📊 Statistiques de Notation</h2>
+                    <p style="color: #8a8aa8;">Analyse de l'intérêt et de la difficulté des jeux par tranche d'âge</p>
+                </div>
+
+                <div id="ratings-stats-container">
+                    <!-- Statistiques chargées dynamiquement -->
+                    <div class="loading">Chargement des statistiques...</div>
+                </div>
+            </section>
         </main>
 
         <!-- Modal pour créer/éditer un utilisateur -->
@@ -109,6 +123,12 @@
                     <div class="form-group">
                         <label for="user-email">Email :</label>
                         <input type="email" id="user-email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="user-birth-date">Date de naissance :</label>
+                        <input type="date" id="user-birth-date">
+                        <small>Utilisée pour les statistiques (optionnel)</small>
                     </div>
 
                     <div class="form-group" id="user-password-group">
@@ -289,6 +309,7 @@
     <script src="js/admin-themes.js"></script>
     <script src="js/admin-cards.js"></script>
     <script src="js/admin-word-search.js"></script>
+    <script src="js/admin-ratings.js"></script>
     <script src="js/admin-app.js"></script>
 
     <!-- Auth initialization -->

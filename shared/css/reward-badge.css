@@ -44,11 +44,6 @@
     }
 }
 
-.reward-badge:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
-}
-
 .reward-badge__icon {
     font-size: 1.4rem;
     filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));

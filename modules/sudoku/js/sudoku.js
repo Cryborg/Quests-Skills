@@ -21,7 +21,14 @@ class SudokuGame {
             icon: '🧩',
             title: 'Sudoku Simple',
             subtitle: 'Remplis la grille avec les bons chiffres !',
-            actions: [],
+            actions: [
+                {
+                    icon: '⭐',
+                    text: 'Noter ce jeu',
+                    id: 'rate-game-btn-sudoku',
+                    className: 'page-header-btn-secondary'
+                }
+            ],
             stats: [
                 { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '3' },
                 { label: 'Réussis', id: 'completed-count', value: '0' },
@@ -41,6 +48,13 @@ class SudokuGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton de notation
+        setTimeout(() => {
+            if (typeof GameRatingModal !== 'undefined') {
+                GameRatingModal.initHeaderButton('sudoku');
+            }
+        }, 100);
 
         this.cacheElements();
         this.attachEvents();

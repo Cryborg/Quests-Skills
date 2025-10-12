@@ -256,7 +256,7 @@ router.post('/',
 router.put('/:id', checkOwnership, async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
-        const { username, email, password, is_admin } = req.body;
+        const { username, email, password, birth_date, is_admin } = req.body;
 
         // Vérifier que l'utilisateur existe
         const user = await get('SELECT * FROM users WHERE id = ?', [userId]);
@@ -284,6 +284,11 @@ router.put('/:id', checkOwnership, async (req, res) => {
         if (email !== undefined) {
             updates.push('email = ?');
             values.push(email);
+        }
+
+        if (birth_date !== undefined) {
+            updates.push('birth_date = ?');
+            values.push(birth_date || null);
         }
 
         if (password) {

@@ -15,7 +15,14 @@ class ClockReadingGame {
             icon: '🕐',
             title: 'Apprendre l\'Heure',
             subtitle: 'Apprends à lire et à placer les aiguilles !',
-            actions: [],
+            actions: [
+                {
+                    icon: '⭐',
+                    text: 'Noter ce jeu',
+                    id: 'rate-game-btn-clock-reading',
+                    className: 'page-header-btn-secondary'
+                }
+            ],
             stats: [
                 { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '3' },
                 { label: 'Score', id: 'score', value: '0' },
@@ -32,6 +39,13 @@ class ClockReadingGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton de notation
+        setTimeout(() => {
+            if (typeof GameRatingModal !== 'undefined') {
+                GameRatingModal.initHeaderButton('clock-reading');
+            }
+        }, 100);
 
         this.cacheElements();
         this.attachEvents();

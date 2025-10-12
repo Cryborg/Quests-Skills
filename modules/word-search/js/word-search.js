@@ -23,7 +23,14 @@ class WordSearchGame {
             icon: '🔍',
             title: 'Mots Mêlés',
             subtitle: 'Trouve tous les mots cachés dans la grille !',
-            actions: [],
+            actions: [
+                {
+                    icon: '⭐',
+                    text: 'Noter ce jeu',
+                    id: 'rate-game-btn-word-search',
+                    className: 'page-header-btn-secondary'
+                }
+            ],
             stats: [
                 { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '...' },
                 { label: 'Mots trouvés', id: 'words-found', value: '0/0' },
@@ -35,6 +42,13 @@ class WordSearchGame {
                 bonusText: '+ bonus temps'
             }
         });
+
+        // Initialiser le bouton de notation
+        setTimeout(() => {
+            if (typeof GameRatingModal !== 'undefined') {
+                GameRatingModal.initHeaderButton('word-search');
+            }
+        }, 100);
 
         // Initialiser le compteur d'essais
         const remaining = await GameAttempts.initHeaderDisplay('word-search', 3);

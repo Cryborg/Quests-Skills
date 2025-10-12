@@ -37,6 +37,12 @@ async function initializeBonus() {
         title: 'Bonus Mathématiques',
         subtitle: 'Résous des opérations pour gagner des cartes bonus !',
         actions: [
+            {
+                icon: '⭐',
+                text: 'Noter ce jeu',
+                id: 'rate-game-btn-math-exercises',
+                className: 'page-header-btn-secondary'
+            },
             { icon: '📊', text: 'Historique', id: 'history-btn' }
         ],
         reward: {
@@ -44,6 +50,13 @@ async function initializeBonus() {
             bonusText: 'à 5 par opération'
         }
     });
+
+    // Initialiser le bouton de notation
+    setTimeout(() => {
+        if (typeof GameRatingModal !== 'undefined') {
+            GameRatingModal.initHeaderButton('math-exercises');
+        }
+    }, 100);
 
     // Configurer les événements
     setupEventListeners();

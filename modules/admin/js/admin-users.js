@@ -187,6 +187,7 @@ class AdminUsers {
         const userId = document.getElementById('user-id');
         const username = document.getElementById('user-username');
         const email = document.getElementById('user-email');
+        const birthDate = document.getElementById('user-birth-date');
         const password = document.getElementById('user-password');
         const isAdmin = document.getElementById('user-is-admin');
         const passwordGroup = document.getElementById('user-password-group');
@@ -199,6 +200,7 @@ class AdminUsers {
             userId.value = user.id;
             username.value = user.username;
             email.value = user.email;
+            birthDate.value = user.birth_date || '';
             password.value = '';
             password.required = false;
             isAdmin.checked = user.is_admin;
@@ -214,6 +216,7 @@ class AdminUsers {
             userId.value = '';
             username.value = '';
             email.value = '';
+            birthDate.value = '';
             password.value = '';
             password.required = true;
             isAdmin.checked = false;
@@ -234,6 +237,7 @@ class AdminUsers {
         const userId = document.getElementById('user-id').value;
         const username = document.getElementById('user-username').value;
         const email = document.getElementById('user-email').value;
+        const birthDate = document.getElementById('user-birth-date').value;
         const password = document.getElementById('user-password').value;
         const isAdmin = document.getElementById('user-is-admin').checked;
 
@@ -253,6 +257,11 @@ class AdminUsers {
             email,
             is_admin: isAdmin
         };
+
+        // Ajouter la date de naissance si fournie
+        if (birthDate) {
+            userData.birth_date = birthDate;
+        }
 
         // Ajouter le mot de passe seulement s'il est fourni
         if (password) {

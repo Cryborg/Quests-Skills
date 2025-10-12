@@ -14,7 +14,14 @@ class NumberSequenceGame {
             icon: '🔢',
             title: 'Suites Logiques',
             subtitle: 'Trouve le nombre qui complète la suite !',
-            actions: [],
+            actions: [
+                {
+                    icon: '⭐',
+                    text: 'Noter ce jeu',
+                    id: 'rate-game-btn-number-sequence',
+                    className: 'page-header-btn-secondary'
+                }
+            ],
             stats: [
                 { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '3' },
                 { label: 'Score', id: 'score', value: '0' },
@@ -34,6 +41,13 @@ class NumberSequenceGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton de notation
+        setTimeout(() => {
+            if (typeof GameRatingModal !== 'undefined') {
+                GameRatingModal.initHeaderButton('number-sequence');
+            }
+        }, 100);
 
         this.cacheElements();
         this.attachEvents();

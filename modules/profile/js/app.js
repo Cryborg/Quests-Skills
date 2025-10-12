@@ -37,6 +37,7 @@ class ProfileManager {
             profileForm: document.getElementById('profile-form'),
             usernameInput: document.getElementById('username'),
             emailInput: document.getElementById('email'),
+            birthDateInput: document.getElementById('birth-date'),
             profileError: document.getElementById('profile-error'),
             profileSuccess: document.getElementById('profile-success'),
 
@@ -73,6 +74,7 @@ class ProfileManager {
             // Remplir le formulaire
             this.elements.usernameInput.value = userData.username;
             this.elements.emailInput.value = userData.email;
+            this.elements.birthDateInput.value = userData.birth_date || '';
 
         } catch (error) {
             console.error('Failed to load user data:', error);
@@ -88,6 +90,7 @@ class ProfileManager {
 
         const username = this.elements.usernameInput.value.trim();
         const email = this.elements.emailInput.value.trim();
+        const birthDate = this.elements.birthDateInput.value;
 
         // Validation
         if (username.length < 3) {
@@ -104,9 +107,14 @@ class ProfileManager {
         const spinner = ButtonSpinner.start(submitBtn);
 
         try {
+            const body = { username, email };
+            if (birthDate) {
+                body.birth_date = birthDate;
+            }
+
             const response = await authService.fetchAPI(`/users/${this.currentUser.id}`, {
                 method: 'PUT',
-                body: JSON.stringify({ username, email })
+                body: JSON.stringify(body)
             });
 
             if (!response.ok) {
@@ -119,6 +127,7 @@ class ProfileManager {
             // Mettre à jour l'utilisateur dans le localStorage
             this.currentUser.username = updatedUser.username;
             this.currentUser.email = updatedUser.email;
+            this.currentUser.birth_date = updatedUser.birth_date;
             localStorage.setItem('current_user', JSON.stringify(this.currentUser));
 
             this.showProfileSuccess('Profil mis à jour avec succès !');

@@ -54,7 +54,14 @@ class CipherGame {
             icon: '🔐',
             title: 'Codage et Décodage',
             subtitle: 'Apprends les techniques de cryptographie !',
-            actions: [],
+            actions: [
+                {
+                    icon: '⭐',
+                    text: 'Noter ce jeu',
+                    id: 'rate-game-btn-cipher',
+                    className: 'page-header-btn-secondary'
+                }
+            ],
             stats: [
                 { label: 'Essais aujourd\'hui', id: 'attempts-remaining', value: '3' },
                 { label: 'Score', id: 'score', value: '0' },
@@ -72,6 +79,13 @@ class CipherGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton de notation
+        setTimeout(() => {
+            if (typeof GameRatingModal !== 'undefined') {
+                GameRatingModal.initHeaderButton('cipher');
+            }
+        }, 100);
 
         this.cacheElements();
         this.attachEvents();
