@@ -129,8 +129,8 @@ class AdminCards {
                             '<p style="text-align: center; color: #999; grid-column: 1 / -1; padding: 20px;">Aucune carte dans ce thème</p>' :
                             themeCards.map(card => {
                                 const rarityIcon = adminUI.getRarityIcon(card.base_rarity);
-                                // L'API ajoute déjà /shared/ devant les chemins relatifs
-                                const imageUrl = card.image;
+                                // Construire le chemin complet de l'image : /shared/images/{category}/{filename}
+                                const imageUrl = `/shared/images/${card.category}/${card.image}`;
 
                                 return `
                                     <div class="admin-card" data-card-id="${card.id}">
@@ -260,6 +260,7 @@ class AdminCards {
             description.value = card.description;
             theme.value = card.category;
             rarity.value = card.base_rarity;
+            // Le backend retourne maintenant juste le nom de fichier (ex: "comete.jpg")
             image.value = card.image;
             this.updateImagePreview(card.image);
         } else {
@@ -311,15 +312,31 @@ class AdminCards {
     }
 
     // Mettre à jour l'aperçu de l'image
-    updateImagePreview(url) {
+    updateImagePreview(filename) {
         const preview = document.getElementById('card-preview-img');
-        if (url) {
-            // Vérifier si l'image existe dans notre liste avant de l'afficher (évite les 404)
-            const imageExists = url.startsWith('http') || this.availableImages.includes(url);
+        if (!filename) {
+            preview.style.display = 'none';
+            return;
+        }
 
-            if (imageExists) {
-                // Convertir le chemin relatif en chemin absolu pour l'aperçu (images dans shared/)
-                const imageUrl = url.startsWith('http') ? url : `/shared/${url}`;
+        // Si c'est une URL HTTP, on l'utilise directement
+        if (filename.startsWith('http://') || filename.startsWith('https://')) {
+            preview.src = filename;
+            preview.style.display = 'block';
+            return;
+        }
+
+        // Vérifier si l'image existe dans notre liste
+        const imageExists = this.availableImages.includes(filename);
+
+        if (imageExists) {
+            // Récupérer la catégorie sélectionnée dans le formulaire
+            const categorySelect = document.getElementById('card-theme');
+            const category = categorySelect ? categorySelect.value : '';
+
+            if (category) {
+                // Construire le chemin complet : /shared/images/{category}/{filename}
+                const imageUrl = `/shared/images/${category}/${filename}`;
                 preview.src = imageUrl;
                 preview.style.display = 'block';
             } else {
@@ -349,6 +366,16 @@ class AdminCards {
             return;
         }
 
+        // Récupérer la catégorie sélectionnée
+        const categorySelect = document.getElementById('card-theme');
+        const category = categorySelect ? categorySelect.value : '';
+
+        if (!category) {
+            // Pas de catégorie sélectionnée, on ne peut pas afficher les images
+            this.hideImageAutocomplete();
+            return;
+        }
+
         // Créer ou récupérer le conteneur d'autocomplétion
         let autocompleteDiv = document.getElementById('image-autocomplete');
         if (!autocompleteDiv) {
@@ -361,10 +388,10 @@ class AdminCards {
             imageInput.parentElement.appendChild(autocompleteDiv);
         }
 
-        // Afficher les suggestions
+        // Afficher les suggestions avec le bon chemin d'image
         autocompleteDiv.innerHTML = matches.map(img => `
             <div class="autocomplete-item" data-value="${img}">
-                <img src="/shared/${img}" alt="${img}" class="autocomplete-img">
+                <img src="/shared/images/${category}/${img}" alt="${img}" class="autocomplete-img">
                 <span>${img}</span>
             </div>
         `).join('');
