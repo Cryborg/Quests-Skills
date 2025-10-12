@@ -155,6 +155,11 @@ class DrawAnimationManager {
         // Utilise l'image si disponible, sinon l'emoji
         if (card.image) {
             cardEmoji.innerHTML = `<img src="${card.image}" alt="${card.name}" class="animated-card-image-content">`;
+            // Applique la détection d'orientation après l'insertion
+            setTimeout(() => {
+                const img = cardEmoji.querySelector('img');
+                if (img) UTILS.handleImageLoad(img);
+            }, 50);
         } else {
             cardEmoji.textContent = card.emoji;
         }
@@ -275,6 +280,12 @@ class DrawAnimationManager {
                 // Pas besoin de code JavaScript supplémentaire
             }, index * 100);
         });
+
+        // Applique la détection d'orientation aux images de l'animation
+        setTimeout(() => {
+            const animationImages = this.overlay.querySelectorAll('.card-visual-image');
+            animationImages.forEach(img => UTILS.handleImageLoad(img));
+        }, 100);
 
         // Joue un son pour l'animation multiple
         this.playDrawSound('multiple');

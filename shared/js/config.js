@@ -183,8 +183,19 @@ const UTILS = {
 
     // Détermine si une image est en paysage et ajoute la classe appropriée
     handleImageLoad(img) {
-        if (img.naturalWidth > img.naturalHeight) {
-            img.classList.add('landscape');
+        // Vérifier immédiatement si l'image est déjà chargée (cas du cache)
+        const checkOrientation = () => {
+            if (img.naturalWidth > img.naturalHeight) {
+                img.classList.add('landscape');
+            }
+        };
+
+        // Si l'image est déjà chargée (en cache), appliquer immédiatement
+        if (img.complete && img.naturalWidth > 0) {
+            checkOrientation();
+        } else {
+            // Sinon, attendre le chargement
+            img.addEventListener('load', checkOrientation);
         }
     }
 };

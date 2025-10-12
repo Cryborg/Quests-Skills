@@ -255,8 +255,13 @@ class UIManager {
             this.elements.collectionGrid.appendChild(cardElement);
         });
 
-        // Active le scroll pour les descriptions trop longues après un court délai
-        setTimeout(() => this.checkScrollableDescriptions(), 100);
+        // Applique la détection d'orientation aux images (pour le scroll adaptatif)
+        setTimeout(() => {
+            document.querySelectorAll('.card-visual-image').forEach(img => {
+                UTILS.handleImageLoad(img);
+            });
+            this.checkScrollableDescriptions();
+        }, 100);
     }
 
     // Vérifie quelles descriptions ont besoin de scroll
@@ -387,6 +392,12 @@ class UIManager {
 
         this.elements.modal.style.display = 'block';
         this.currentModal = card;
+
+        // Applique la détection d'orientation aux images de la modal
+        setTimeout(() => {
+            const modalImages = this.elements.modal.querySelectorAll('.card-visual-image');
+            modalImages.forEach(img => UTILS.handleImageLoad(img));
+        }, 50);
     }
 
     // Ferme la modal
