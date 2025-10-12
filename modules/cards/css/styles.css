@@ -498,7 +498,8 @@
 
 /* Images en paysage (plus larges que hautes) : scroll horizontal */
 .card-visual-image.landscape {
-    width: auto;
+    width: 150%; /* Force l'image à être plus large pour qu'on voie le scroll */
+    min-width: 150%;
     height: 100%;
     max-width: none;
     object-fit: cover;
@@ -552,6 +553,11 @@
 
 /* Animation horizontale pour les grandes images en paysage dans la modal */
 .modal-visual.card-visual-image.large.landscape {
+    width: 150%; /* Force l'image à être plus large pour qu'on voie le scroll */
+    min-width: 150%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
     object-position: left center;
     animation: pan-horizontal-modal 16s ease-in-out infinite;
 }
@@ -1515,7 +1521,8 @@
     position: relative;
     animation-delay: 0s !important;
     animation-play-state: running !important;
-    width: auto;
+    width: 150%; /* Force l'image à être plus large pour qu'on voie le scroll */
+    min-width: 150%;
     height: 100%;
     max-width: none;
 }
