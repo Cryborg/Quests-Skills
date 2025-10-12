@@ -399,8 +399,8 @@ class DatabaseManager {
             const result = await response.json();
             console.log('✅ Cards added successfully:', result.added);
 
-            // Force le rechargement de la collection pour mettre à jour le cache
-            await this.getCollection();
+            // NE PAS recharger la collection ici pour optimiser les performances
+            // La collection sera rechargée uniquement quand nécessaire (ex: après animation)
 
             return { success: true, collection: result.collection };
         } catch (error) {
@@ -504,7 +504,8 @@ class DatabaseManager {
 
             const result = await response.json();
 
-            // Recharge immédiatement pour mettre à jour l'affichage
+            // Recharge pour mettre à jour le cache local
+            // Note: On garde celui-ci car c'est un cas rare (upgrade manuel)
             await this.getCollection();
 
             return {

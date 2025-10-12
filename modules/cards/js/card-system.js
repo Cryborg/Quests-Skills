@@ -8,82 +8,96 @@ class CardSystem {
         };
     }
 
-    // Pioche plusieurs cartes d'un coup
+    // Pioche plusieurs cartes d'un coup (OPTIMISÉ - utilise la route serveur)
     async drawMultipleCards(count = 1) {
-        // UN SEUL appel API pour utiliser tous les crédits d'un coup
-        // useCredits() vérifie déjà les crédits disponibles et retourne le nombre réel utilisé
-        const creditResult = await DB.useCredits(count);
-
-        if (!creditResult.success || creditResult.used === 0) {
+        const user = authService.getCurrentUser();
+        if (!user) {
             return {
                 success: false,
                 results: [],
                 groupedCards: {},
                 totalDrawn: 0,
                 creditsUsed: 0,
-                creditsRemaining: creditResult.remaining,
-                message: 'Aucun crédit de pioche disponible'
+                message: 'Utilisateur non connecté'
             };
         }
 
-        const results = [];
-        const drawnCards = {};
-        const cardsToAdd = []; // Collecte les cards_id pour le batch
+        try {
+            console.log(`🎰 Drawing ${count} cards via optimized server route...`);
 
-        console.log(`🎰 Drawing ${creditResult.used} cards...`);
+            // UN SEUL appel API qui fait TOUT : vérification des crédits, retrait, pioche ET ajout
+            const response = await authService.fetchAPI(`/cards/draw/${user.id}`, {
+                method: 'POST',
+                body: JSON.stringify({ count })
+            });
 
-        // Maintenant on pioche les cartes (sans appels API supplémentaires)
-        for (let i = 0; i < creditResult.used; i++) {
-            const result = this.drawSingleCardLocal();
-            if (result.success) {
-                results.push(result);
-                cardsToAdd.push({ card_id: result.card.id, count: 1 });
-
-                // Groupe les cartes identiques
-                const cardId = result.card.id;
-                if (!drawnCards[cardId]) {
-                    drawnCards[cardId] = {
-                        card: result.card,
-                        count: 0,
-                        wasNew: !result.isDuplicate && i === results.findIndex(r => r.card.id === cardId)
-                    };
-                }
-                drawnCards[cardId].count++;
-            } else {
-                console.error('❌ Failed to draw card:', result.message);
-            }
-        }
-
-        console.log(`📦 Successfully drew ${results.length} cards, preparing to add:`, cardsToAdd);
-
-        // UN SEUL appel API pour ajouter toutes les cartes à la collection
-        if (cardsToAdd.length > 0) {
-            const addResult = await DB.addCardsToCollection(cardsToAdd);
-            if (!addResult.success) {
-                console.error('Failed to add cards:', addResult.error);
+            if (!response.ok) {
+                const error = await response.json();
                 return {
                     success: false,
-                    error: addResult.error || 'Erreur lors de l\'ajout des cartes',
                     results: [],
                     groupedCards: {},
                     totalDrawn: 0,
                     creditsUsed: 0,
-                    creditsRemaining: creditResult.remaining
+                    message: error.error || 'Erreur lors de la pioche'
                 };
             }
+
+            const data = await response.json();
+            const drawnCards = data.cards;
+
+            console.log(`✅ ${drawnCards.length} cartes piochées depuis le serveur`);
+
+            // Grouper les cartes identiques pour l'animation
+            const groupedCards = {};
+            const currentCollection = DB.getCollectionSync();
+
+            for (const card of drawnCards) {
+                const cardId = card.id;
+                if (!groupedCards[cardId]) {
+                    // Vérifier si c'était une nouvelle carte (pas dans la collection avant)
+                    const wasNew = !currentCollection[cardId] || currentCollection[cardId].count === 0;
+
+                    groupedCards[cardId] = {
+                        card: card,
+                        count: 0,
+                        wasNew: wasNew
+                    };
+                }
+                groupedCards[cardId].count++;
+            }
+
+            // Recharger la collection pour avoir les données à jour
+            await DB.getCollection();
+
+            // Mettre à jour les crédits locaux (la route a déjà retiré les crédits côté serveur)
+            if (typeof CreditsManager !== 'undefined') {
+                CreditsManager.currentCredits = Math.max(0, CreditsManager.currentCredits - count);
+                CreditsManager.emitCreditsUpdate();
+            }
+
+            // Sauvegarde l'heure de pioche
+            DB.saveLastDrawTime();
+
+            return {
+                success: true,
+                results: drawnCards.map(card => ({ success: true, card })),
+                groupedCards: groupedCards,
+                totalDrawn: drawnCards.length,
+                creditsUsed: count,
+                creditsRemaining: 0
+            };
+        } catch (error) {
+            console.error('❌ Failed to draw cards:', error);
+            return {
+                success: false,
+                results: [],
+                groupedCards: {},
+                totalDrawn: 0,
+                creditsUsed: 0,
+                message: 'Erreur lors de la pioche'
+            };
         }
-
-        // Sauvegarde l'heure de pioche
-        DB.saveLastDrawTime();
-
-        return {
-            success: results.length > 0,
-            results: results,
-            groupedCards: drawnCards,
-            totalDrawn: results.length,
-            creditsUsed: creditResult.used,
-            creditsRemaining: creditResult.remaining
-        };
     }
 
     // Pioche des cartes (interface publique)

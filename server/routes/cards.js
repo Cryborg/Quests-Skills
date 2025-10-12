@@ -175,4 +175,158 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     }
 });
 
+// POST /api/cards/draw/:userId - Piocher des cartes (optimisé)
+router.post('/draw/:userId', authenticateToken, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId);
+        const { count = 1 } = req.body;
+
+        // Vérifier que l'utilisateur existe et a assez de crédits
+        const user = await get('SELECT * FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (user.credits < count) {
+            return res.status(400).json({
+                error: 'Insufficient credits',
+                required: count,
+                available: user.credits
+            });
+        }
+
+        // Retirer les crédits AVANT de piocher
+        const now = new Date().toISOString();
+        await run(
+            'UPDATE users SET credits = credits - ?, updated_at = ? WHERE id = ?',
+            [count, now, userId]
+        );
+
+        // Récupérer les thèmes sélectionnés par l'utilisateur
+        const userThemes = await all(
+            'SELECT ct.slug FROM user_themes ut JOIN card_themes ct ON ut.theme_id = ct.id WHERE ut.user_id = ?',
+            [userId]
+        );
+        const themesSlugs = userThemes.map(t => t.slug);
+
+        // Si aucun thème sélectionné, utiliser tous les thèmes
+        let allCards;
+        if (themesSlugs.length === 0) {
+            allCards = await all('SELECT * FROM cards');
+        } else {
+            const placeholders = themesSlugs.map(() => '?').join(',');
+            allCards = await all(
+                `SELECT * FROM cards WHERE category IN (${placeholders})`,
+                themesSlugs
+            );
+        }
+
+        if (allCards.length === 0) {
+            return res.status(400).json({ error: 'No cards available for selected themes' });
+        }
+
+        // Récupérer la collection actuelle de l'utilisateur
+        const userCards = await all(
+            'SELECT card_id, quantity, current_rarity FROM user_cards WHERE user_id = ?',
+            [userId]
+        );
+        const collection = {};
+        for (const uc of userCards) {
+            collection[uc.card_id] = {
+                quantity: uc.quantity,
+                currentRarity: uc.current_rarity || 'common'
+            };
+        }
+
+        // Fonction de génération de rareté aléatoire (probabilités identiques au front)
+        const getRandomRarity = () => {
+            const random = Math.random();
+            if (random <= 0.60) return 'common';      // 60%
+            if (random <= 0.85) return 'rare';        // 25%
+            if (random <= 0.95) return 'very_rare';   // 10%
+            if (random <= 0.99) return 'epic';        // 4%
+            return 'legendary';                        // 1%
+        };
+
+        // Piocher les cartes
+        const drawnCards = [];
+        const cardsToUpdate = {}; // { card_id: quantity_to_add }
+
+        for (let i = 0; i < count; i++) {
+            // Générer une rareté aléatoire
+            const targetRarity = getRandomRarity();
+
+            // Filtrer les cartes : même baseRarity ET pas encore légendaires
+            const availableCards = allCards.filter(card => {
+                if (card.base_rarity !== targetRarity) return false;
+
+                // Vérifier si la carte a déjà atteint la rareté légendaire
+                const userCard = collection[card.id];
+                if (userCard && userCard.currentRarity === 'legendary') return false;
+
+                return true;
+            });
+
+            if (availableCards.length === 0) {
+                // Fallback: prendre n'importe quelle carte non-légendaire
+                const fallbackCards = allCards.filter(card => {
+                    const userCard = collection[card.id];
+                    return !userCard || userCard.currentRarity !== 'legendary';
+                });
+
+                if (fallbackCards.length === 0) continue; // Toutes les cartes sont légendaires
+
+                const randomCard = fallbackCards[Math.floor(Math.random() * fallbackCards.length)];
+                drawnCards.push(randomCard);
+                cardsToUpdate[randomCard.id] = (cardsToUpdate[randomCard.id] || 0) + 1;
+            } else {
+                // Sélectionner une carte aléatoire parmi les cartes disponibles
+                const randomCard = availableCards[Math.floor(Math.random() * availableCards.length)];
+                drawnCards.push(randomCard);
+                cardsToUpdate[randomCard.id] = (cardsToUpdate[randomCard.id] || 0) + 1;
+            }
+        }
+
+        // Mettre à jour la collection en batch (INSERT ou UPDATE)
+        const now = new Date().toISOString();
+        for (const [cardId, quantityToAdd] of Object.entries(cardsToUpdate)) {
+            const existingCard = await get(
+                'SELECT * FROM user_cards WHERE user_id = ? AND card_id = ?',
+                [userId, cardId]
+            );
+
+            if (existingCard) {
+                // UPDATE
+                await run(
+                    'UPDATE user_cards SET quantity = quantity + ?, updated_at = ? WHERE user_id = ? AND card_id = ?',
+                    [quantityToAdd, now, userId, cardId]
+                );
+            } else {
+                // INSERT
+                await run(
+                    'INSERT INTO user_cards (user_id, card_id, quantity, current_rarity, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+                    [userId, cardId, quantityToAdd, 'common', now, now]
+                );
+            }
+        }
+
+        // Transformer les cartes pour inclure les chemins d'images absolus
+        const cardsWithFullPaths = drawnCards.map(card => ({
+            ...card,
+            image: card.image.startsWith('images/')
+                ? `/shared/${card.image}`
+                : card.image
+        }));
+
+        res.json({
+            success: true,
+            cards: cardsWithFullPaths,
+            totalDrawn: drawnCards.length
+        });
+    } catch (error) {
+        console.error('Error drawing cards:', error);
+        res.status(500).json({ error: 'Failed to draw cards' });
+    }
+});
+
 module.exports = router;

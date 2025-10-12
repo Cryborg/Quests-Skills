@@ -80,6 +80,7 @@ const CreditsManager = {
 
     /**
      * Tirer des cartes (utilise des crédits)
+     * Note: La route /cards/draw gère automatiquement le retrait des crédits
      */
     async drawCards(count = 1) {
         const user = authService.getCurrentUser();
@@ -91,13 +92,7 @@ const CreditsManager = {
         }
 
         try {
-            // Retirer les crédits
-            const creditsRemoved = await this.removeCredits(count, `Tirage de ${count} carte(s)`);
-            if (!creditsRemoved) {
-                return { success: false, cards: [] };
-            }
-
-            // Tirer les cartes
+            // Appel API qui retire les crédits ET pioche les cartes (tout en un seul appel)
             const response = await authService.fetchAPI(`/cards/draw/${user.id}`, {
                 method: 'POST',
                 body: JSON.stringify({ count })
@@ -105,8 +100,13 @@ const CreditsManager = {
 
             if (response.ok) {
                 const data = await response.json();
+
+                // Mettre à jour les crédits locaux (la route a déjà retiré les crédits côté serveur)
+                this.currentCredits -= count;
+                this.emitCreditsUpdate();
+
                 this.emitCardsDrawn(data.cards);
-                console.log(`✅ ${data.cards.length} carte(s) tirée(s)`);
+                console.log(`✅ ${data.cards.length} carte(s) tirée(s) (${count} crédits utilisés)`);
                 return { success: true, cards: data.cards };
             }
 
