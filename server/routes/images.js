@@ -24,15 +24,15 @@ router.get('/', authenticateAndTrack, async (req, res) => {
                 for (const file of categoryFiles) {
                     const ext = path.extname(file).toLowerCase();
                     if (imageExtensions.includes(ext)) {
-                        // Format: images/category/filename.ext
-                        imageFiles.push(`images/${entry.name}/${file}`);
+                        // Retourner uniquement le nom de fichier (ce qui est stocké en DB)
+                        imageFiles.push(file);
                     }
                 }
             } else {
                 // C'est un fichier directement dans images/ (ancien format - rétrocompatibilité)
                 const ext = path.extname(entry.name).toLowerCase();
                 if (imageExtensions.includes(ext)) {
-                    imageFiles.push(`images/${entry.name}`);
+                    imageFiles.push(entry.name);
                 }
             }
         }
