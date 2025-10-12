@@ -4,6 +4,7 @@ class UIManager {
         this.elements = {};
         this.currentModal = null;
         this.updateInterval = null;
+        this.upgradeTimeouts = []; // Stocke les IDs de setTimeout pour l'animation d'upgrade
     }
 
     // Fonction utilitaire pour générer le HTML d'une image/emoji de carte
@@ -390,6 +391,10 @@ class UIManager {
 
     // Ferme la modal
     closeModal() {
+        // Annule tous les timeouts d'animation en cours
+        this.upgradeTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+        this.upgradeTimeouts = [];
+
         this.elements.modal.style.display = 'none';
         this.currentModal = null;
     }
@@ -520,32 +525,50 @@ class UIManager {
         cardElement.classList.add('upgrading');
 
         // Phase 2: Explosion de particules après 0.5s
-        setTimeout(() => {
-            this.createUpgradeParticles(cardElement, newRarity);
+        const timeout1 = setTimeout(() => {
+            if (this.currentModal) { // Vérifie que la modal est toujours ouverte
+                this.createUpgradeParticles(cardElement, newRarity);
+            }
         }, 500);
+        this.upgradeTimeouts.push(timeout1);
 
         // Phase 3: Transformation de la carte après 1s
-        setTimeout(() => {
-            cardElement.className = `physical-card ${newRarity}`;
+        const timeout2 = setTimeout(() => {
+            if (this.currentModal) { // Vérifie que la modal est toujours ouverte
+                cardElement.className = `physical-card ${newRarity}`;
 
-            // Met à jour les informations visuelles
-            const rarityBadge = cardElement.querySelector('.card-rarity-badge');
-            if (rarityBadge) {
-                rarityBadge.innerHTML = `${newRarityConfig.emoji} ${newRarityConfig.name}`;
-                rarityBadge.style.color = newRarityConfig.color;
+                // Met à jour les informations visuelles
+                const rarityBadge = cardElement.querySelector('.card-rarity-badge');
+                if (rarityBadge) {
+                    rarityBadge.innerHTML = `${newRarityConfig.emoji} ${newRarityConfig.name}`;
+                    rarityBadge.style.color = newRarityConfig.color;
+                }
+
+                // Effet de brillance finale
+                cardElement.classList.add('upgrade-complete');
+
+                // Nettoie les classes d'animation après 2s
+                const timeout3 = setTimeout(() => {
+                    if (this.currentModal && cardElement) {
+                        cardElement.classList.remove('upgrading', 'upgrade-complete');
+                    }
+                }, 2000);
+                this.upgradeTimeouts.push(timeout3);
             }
-
-            // Effet de brillance finale
-            cardElement.classList.add('upgrade-complete');
-
-            // Nettoie les classes d'animation après 2s
-            setTimeout(() => {
-                cardElement.classList.remove('upgrading', 'upgrade-complete');
-            }, 2000);
         }, 1000);
+        this.upgradeTimeouts.push(timeout2);
 
         // Retourne une promesse qui se résout après l'animation complète
-        return new Promise(resolve => setTimeout(resolve, 2500));
+        return new Promise(resolve => {
+            const timeout4 = setTimeout(() => {
+                // Nettoie les timeouts de la liste
+                this.upgradeTimeouts = this.upgradeTimeouts.filter(t =>
+                    t !== timeout1 && t !== timeout2 && t !== timeout4
+                );
+                resolve();
+            }, 2500);
+            this.upgradeTimeouts.push(timeout4);
+        });
     }
 
     // Crée des particules d'amélioration
