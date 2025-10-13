@@ -28,15 +28,10 @@ class PageHeader {
 
         headerHTML += '</div>'; // Ferme page-header-left
 
-        // Partie droite : badge de récompense ou actions
+        // Partie droite : actions puis badge de récompense
         headerHTML += '<div class="page-header-right">';
 
-        // Ajouter le badge de récompense si présent
-        if (reward) {
-            headerHTML += '<div class="page-header-reward" id="page-header-reward"></div>';
-        }
-
-        // Ajouter les boutons d'action si présents
+        // Ajouter les boutons d'action si présents (EN PREMIER)
         if (actions.length > 0) {
             headerHTML += '<div class="page-header-actions">';
             actions.forEach(action => {
@@ -51,6 +46,11 @@ class PageHeader {
                 `;
             });
             headerHTML += '</div>';
+        }
+
+        // Ajouter le badge de récompense si présent (EN SECOND, donc en dessous)
+        if (reward) {
+            headerHTML += '<div class="page-header-reward" id="page-header-reward"></div>';
         }
 
         headerHTML += '</div>'; // Ferme page-header-right
@@ -75,6 +75,12 @@ class PageHeader {
         // Injecter dans le container
         const container = document.querySelector('.container');
         if (container) {
+            // Supprimer l'ancien header s'il existe
+            const existingHeader = container.querySelector('.page-header');
+            if (existingHeader) {
+                existingHeader.remove();
+            }
+
             container.insertAdjacentHTML('afterbegin', headerHTML);
 
             // Injecter le badge de récompense si présent (nécessite RewardBadge)

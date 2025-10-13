@@ -821,6 +821,8 @@ class GridNavigationGame {
             this.programmedMoves = [];
             this.currentPosition = { ...this.startPosition };
             this.visitedPositions = []; // Effacer le trail
+            this.repeatedPositions = []; // Effacer les étoiles de répétition
+            this.hasRepeatedCell = false;
             this.renderInstructions();
             this.drawGrid();
 

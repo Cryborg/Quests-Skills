@@ -164,6 +164,10 @@
     .page-header-right {
         flex-shrink: 0;
         gap: 6px;
+        flex-wrap: wrap; /* Permet au badge de passer à la ligne */
+        max-width: 33%;
+        display: flex;
+        flex-direction: column;
     }
 
     .page-header-title {
@@ -184,6 +188,47 @@
         display: none;
     }
 
+    .page-header-actions {
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
+    }
+
+    /* Badge de récompense : positionné sous les boutons */
+    .page-header-reward {
+        width: 100%; /* Prend toute la largeur de page-header-right */
+        display: flex;
+        justify-content: stretch;
+    }
+
+    .page-header-reward .reward-badge {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
+        gap: 0.35rem;
+        white-space: nowrap;
+        width: 100%; /* Étire le badge sur toute la largeur disponible */
+        justify-content: center;
+    }
+
+    .page-header-reward .reward-badge__icon {
+        font-size: 1rem;
+    }
+
+    .page-header-reward .reward-badge__amount {
+        font-size: 0.95rem;
+    }
+
+    /* Texte du badge en version courte : "5+" au lieu de "5 crédits + bonus perf" */
+    .page-header-reward .reward-badge__label {
+        font-size: 0;
+    }
+
+    .page-header-reward .reward-badge__label::before {
+        content: '+';
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
     .page-header-stats {
         gap: 12px;
         margin-top: 10px;
@@ -201,26 +246,5 @@
 
     .page-header-stat .stat-value {
         font-size: 1rem;
-    }
-
-    /* Badge de récompense dans le header - plus compact */
-    .page-header-reward .reward-badge {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.85rem;
-        gap: 0.35rem;
-        max-width: none;
-        white-space: nowrap;
-    }
-
-    .page-header-reward .reward-badge__icon {
-        font-size: 1rem;
-    }
-
-    .page-header-reward .reward-badge__amount {
-        font-size: 0.95rem;
-    }
-
-    .page-header-reward .reward-badge__label {
-        font-size: 0.7rem;
     }
 }
