@@ -63,7 +63,9 @@ class WordSearchGame {
 
         this.cacheElements();
         this.attachEvents();
-        this.startNewGame();
+
+        // Vérifier s'il y a une partie sauvegardée
+        await this.checkForSavedGame();
     }
 
     async loadWordLists() {
@@ -107,7 +109,7 @@ class WordSearchGame {
     }
 
     attachEvents() {
-        this.elements.newGameBtn.addEventListener('click', () => this.startNewGame());
+        this.elements.newGameBtn.addEventListener('click', () => this.confirmNewGame());
         this.elements.hintBtn.addEventListener('click', () => this.useHint());
 
         // Events souris
@@ -119,6 +121,105 @@ class WordSearchGame {
         this.elements.grid.addEventListener('touchstart', (e) => this.onTouchStart(e));
         this.elements.grid.addEventListener('touchmove', (e) => this.onTouchMove(e));
         this.elements.grid.addEventListener('touchend', () => this.onMouseUp());
+    }
+
+    async checkForSavedGame() {
+        const user = authService.getCurrentUser();
+        if (!user) return;
+
+        try {
+            const response = await authService.fetchAPI(`/word-search/games/${user.id}/current`);
+            const data = await response.json();
+
+            if (data.game) {
+                // Afficher une modal pour demander si l'utilisateur veut reprendre
+                const resume = await confirm('Partie en cours détectée ! Voulez-vous reprendre votre partie ou commencer une nouvelle ?');
+
+                if (resume) {
+                    await this.loadSavedGame(data.game);
+                } else {
+                    await this.deleteSavedGame();
+                    this.startNewGame();
+                }
+            } else {
+                this.startNewGame();
+            }
+        } catch (error) {
+            console.error('Failed to check for saved game:', error);
+            this.startNewGame();
+        }
+    }
+
+    async loadSavedGame(game) {
+        // Charger l'état de la partie
+        this.grid = game.grid;
+        this.words = game.words;
+        this.foundWords = new Set(game.foundWords);
+        this.timer = game.timer;
+        this.hintsUsed = game.hints_used;
+
+        // Rendre l'interface
+        this.renderGrid();
+        this.renderWordsList();
+        this.updateStats();
+        this.startTimer();
+
+        // Marquer les mots trouvés visuellement
+        this.foundWords.forEach(wordId => {
+            this.markWordAsFound(wordId);
+        });
+
+        this.elements.hintBtn.disabled = this.hintsUsed >= this.maxHints;
+        this.elements.hintBtn.textContent = `💡 Indice (${this.maxHints - this.hintsUsed})`;
+
+        Toast.info('Partie reprise !');
+    }
+
+    async confirmNewGame() {
+        // Si une partie est en cours, demander confirmation
+        if (this.foundWords.size > 0 && this.foundWords.size < this.words.length) {
+            const confirmed = await confirm('Êtes-vous sûr de vouloir abandonner la partie en cours ?');
+            if (!confirmed) return;
+        }
+
+        await this.deleteSavedGame();
+        this.startNewGame();
+    }
+
+    async saveGame() {
+        const user = authService.getCurrentUser();
+        if (!user) return;
+
+        // Ne pas sauvegarder si la partie est terminée
+        if (this.foundWords.size === this.words.length) return;
+
+        try {
+            await authService.fetchAPI(`/word-search/games/${user.id}/save`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    grid: this.grid,
+                    words: this.words,
+                    foundWords: Array.from(this.foundWords),
+                    timer: this.timer,
+                    hintsUsed: this.hintsUsed
+                })
+            });
+        } catch (error) {
+            console.error('Failed to save game:', error);
+        }
+    }
+
+    async deleteSavedGame() {
+        const user = authService.getCurrentUser();
+        if (!user) return;
+
+        try {
+            await authService.fetchAPI(`/word-search/games/${user.id}/current`, {
+                method: 'DELETE'
+            });
+        } catch (error) {
+            console.error('Failed to delete saved game:', error);
+        }
     }
 
     startNewGame() {
@@ -135,6 +236,7 @@ class WordSearchGame {
         this.hintsUsed = 0;
         this.selectedCells = [];
         this.selecting = false;
+        this.timer = 0;
 
         this.initializeGrid();
         this.placeWords();
@@ -355,6 +457,9 @@ class WordSearchGame {
                 this.renderWordsList();
                 this.updateStats();
 
+                // Sauvegarder la progression
+                this.saveGame();
+
                 if (this.foundWords.size === this.words.length) {
                     this.gameWon();
                 }
@@ -399,11 +504,15 @@ class WordSearchGame {
                         cellEl.style.borderColor = '#f59e0b';
                     }
                     this.hintsUsed++;
+                    this.updateStats();
                     this.elements.hintBtn.textContent = `💡 Indice (${this.maxHints - this.hintsUsed})`;
                     Toast.hint(`Regarde le mot "${word}" - une lettre est mise en évidence !`);
                     if (this.hintsUsed >= this.maxHints) {
                         this.elements.hintBtn.disabled = true;
                     }
+
+                    // Sauvegarder la progression
+                    this.saveGame();
                     return;
                 }
             }
@@ -412,6 +521,9 @@ class WordSearchGame {
 
     async gameWon() {
         this.stopTimer();
+
+        // Supprimer la sauvegarde car la partie est terminée
+        await this.deleteSavedGame();
 
         const timeBonus = Math.max(0, 300 - this.timer); // Bonus si < 5min
         const hintPenalty = this.hintsUsed * 1;
@@ -440,7 +552,13 @@ class WordSearchGame {
 
     startTimer() {
         this.stopTimer();
-        this.timer = 0;
+
+        // Afficher le timer initial
+        const timerElement = document.getElementById('timer');
+        if (timerElement) {
+            timerElement.textContent = this.formatTime(this.timer);
+        }
+
         this.timerInterval = setInterval(() => {
             this.timer++;
             const timerElement = document.getElementById('timer');

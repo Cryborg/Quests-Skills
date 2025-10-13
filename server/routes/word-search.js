@@ -232,4 +232,120 @@ router.delete('/words/:id', authenticateAndTrack, requireAdmin, async (req, res)
   }
 });
 
+// ========================================
+// POST /word-search/games/:userId/save - Sauvegarder une partie en cours
+// ========================================
+router.post('/games/:userId/save',
+  authenticateAndTrack,
+  validateOwnership,
+  async (req, res) => {
+  try {
+    await ensureDatabaseExists();
+    const { userId } = req.params;
+    const { grid, words, foundWords, timer, hintsUsed } = req.body;
+
+    // S'assurer que foundWords est un tableau
+    const foundWordsArray = Array.isArray(foundWords) ? foundWords : [];
+
+    const now = DBHelpers.now();
+
+    // Vérifier si une partie existe déjà pour cet utilisateur
+    const existingGame = await get(
+      'SELECT id FROM word_search_games WHERE user_id = ?',
+      [userId]
+    );
+
+    if (existingGame) {
+      // Mettre à jour la partie existante
+      await run(
+        `UPDATE word_search_games
+         SET grid = ?, words = ?, found_words = ?, timer = ?, hints_used = ?, updated_at = ?
+         WHERE user_id = ?`,
+        [
+          JSON.stringify(grid || []),
+          JSON.stringify(words || []),
+          JSON.stringify(foundWordsArray),
+          timer || 0,
+          hintsUsed || 0,
+          now,
+          userId
+        ]
+      );
+    } else {
+      // Créer une nouvelle partie
+      await run(
+        `INSERT INTO word_search_games (user_id, grid, words, found_words, timer, hints_used, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userId,
+          JSON.stringify(grid || []),
+          JSON.stringify(words || []),
+          JSON.stringify(foundWordsArray),
+          timer || 0,
+          hintsUsed || 0,
+          now,
+          now
+        ]
+      );
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error saving word search game:', error);
+    res.status(500).json({ error: 'Failed to save game' });
+  }
+});
+
+// ========================================
+// GET /word-search/games/:userId/current - Récupérer la partie en cours
+// ========================================
+router.get('/games/:userId/current',
+  authenticateAndTrack,
+  validateOwnership,
+  async (req, res) => {
+  try {
+    await ensureDatabaseExists();
+    const { userId } = req.params;
+
+    const game = await get(
+      'SELECT * FROM word_search_games WHERE user_id = ?',
+      [userId]
+    );
+
+    if (!game) {
+      return res.json({ game: null });
+    }
+
+    // Parser les données JSON avec gestion des valeurs null/undefined
+    game.grid = game.grid ? JSON.parse(game.grid) : [];
+    game.words = game.words ? JSON.parse(game.words) : [];
+    game.foundWords = game.found_words ? JSON.parse(game.found_words) : [];
+
+    res.json({ game });
+  } catch (error) {
+    console.error('Error fetching word search game:', error);
+    res.status(500).json({ error: 'Failed to fetch game' });
+  }
+});
+
+// ========================================
+// DELETE /word-search/games/:userId/current - Supprimer la partie en cours
+// ========================================
+router.delete('/games/:userId/current',
+  authenticateAndTrack,
+  validateOwnership,
+  async (req, res) => {
+  try {
+    await ensureDatabaseExists();
+    const { userId } = req.params;
+
+    await run('DELETE FROM word_search_games WHERE user_id = ?', [userId]);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting word search game:', error);
+    res.status(500).json({ error: 'Failed to delete game' });
+  }
+});
+
 module.exports = router;
