@@ -262,12 +262,16 @@ class NavigationUI {
             });
         });
 
-        // Fermer le menu mobile lors du clic sur un lien
+        // Fermer le menu mobile lors du clic sur un lien ET gérer l'historique
         document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', () => {
+            link.addEventListener('click', (e) => {
+                // Fermer le menu mobile si nécessaire
                 if (window.innerWidth <= 768) {
                     this.closeMobileMenu();
                 }
+
+                // Gérer l'historique de navigation pour permettre le retour arrière
+                this.handleNavigationClick(e, link);
             });
         });
 
@@ -324,6 +328,31 @@ class NavigationUI {
                 }
             }
         });
+    }
+
+    // Gérer la navigation avec historique
+    handleNavigationClick(event, link) {
+        // Ne rien faire si c'est un clic avec modificateur (Ctrl, Cmd, etc.)
+        if (event.ctrlKey || event.metaKey || event.shiftKey) {
+            return; // Laisser le navigateur gérer normalement
+        }
+
+        // Ajouter la page actuelle à l'historique avant de naviguer
+        // Cela permet au bouton "retour" de fonctionner correctement
+        const currentState = {
+            url: window.location.href,
+            title: document.title
+        };
+
+        // Ne pas ajouter à l'historique si on est déjà sur la même page
+        const targetUrl = link.href;
+        if (targetUrl !== window.location.href) {
+            // Ajouter l'état actuel AVANT de naviguer
+            // Ainsi, le bouton retour ramènera ici
+            history.replaceState(currentState, '', window.location.href);
+        }
+
+        // Laisser le navigateur continuer normalement avec le href du lien
     }
 
     // Gérer la déconnexion
