@@ -60,6 +60,11 @@ class UIManager {
                         ${theme.icon} ${theme.name}
                     </button>
                 `).join('');
+
+                // Initialise le thème actuel avec le premier thème disponible
+                if (themes.length > 0) {
+                    CARD_SYSTEM.setCurrentTheme(themes[0].slug);
+                }
             }
         } catch (error) {
             console.error('Failed to load themes:', error);
