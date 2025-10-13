@@ -202,4 +202,25 @@
     .page-header-stat .stat-value {
         font-size: 1rem;
     }
+
+    /* Badge de récompense dans le header - plus compact */
+    .page-header-reward .reward-badge {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
+        gap: 0.35rem;
+        max-width: none;
+        white-space: nowrap;
+    }
+
+    .page-header-reward .reward-badge__icon {
+        font-size: 1rem;
+    }
+
+    .page-header-reward .reward-badge__amount {
+        font-size: 0.95rem;
+    }
+
+    .page-header-reward .reward-badge__label {
+        font-size: 0.7rem;
+    }
 }
