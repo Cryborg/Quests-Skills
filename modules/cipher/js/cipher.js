@@ -10,7 +10,6 @@ class CipherGame {
         this.currentAnswer = '';
         this.hintUsed = false;
         this.caesarShift = 0;
-        this.substitutionMap = {};
 
         // Messages de différents niveaux
         this.messages = {
@@ -38,12 +37,6 @@ class CipherGame {
                 description: 'A devient Z, B devient Y, C devient X, etc.',
                 encode: (text) => this.atbashCipher(text),
                 decode: (text) => this.atbashCipher(text)
-            },
-            substitution: {
-                name: 'Substitution',
-                description: 'Chaque lettre est remplacée par une autre lettre aléatoire',
-                encode: (text) => this.substitutionCipher(text, this.substitutionMap),
-                decode: (text) => this.substitutionCipher(text, this.reverseMap(this.substitutionMap))
             }
         };
     }
@@ -96,8 +89,7 @@ class CipherGame {
                     rules: [
                         { title: 'Chiffre de César', description: 'Chaque lettre est décalée d\'un certain nombre de positions dans l\'alphabet. Le décalage peut être vers la droite ou la gauche.' },
                         { title: 'Inversé', description: 'Le texte est simplement inversé de droite à gauche. BONJOUR devient RUOJNOB.' },
-                        { title: 'Atbash', description: 'Chaque lettre est remplacée par sa symétrique dans l\'alphabet. A devient Z, B devient Y, etc.' },
-                        { title: 'Substitution', description: 'Chaque lettre est remplacée par une autre lettre selon une table de correspondance aléatoire.' }
+                        { title: 'Atbash', description: 'Chaque lettre est remplacée par sa symétrique dans l\'alphabet. A devient Z, B devient Y, etc.' }
                     ],
                     controls: {
                         desktop: [
@@ -216,8 +208,6 @@ class CipherGame {
             const shift = Math.floor(Math.random() * 6) + 1;
             this.caesarShift = Math.random() < 0.5 ? shift : -shift;
             this.caesarDirection = this.caesarShift > 0 ? 'DROITE' : 'GAUCHE';
-        } else if (this.currentCipher === 'substitution') {
-            this.substitutionMap = this.generateSubstitutionMap();
         }
 
         // Toujours en mode décodage (sauf pour les ciphers simples)
@@ -260,29 +250,6 @@ class CipherGame {
             }
             return char;
         }).join('');
-    }
-
-    generateSubstitutionMap() {
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-        const shuffled = [...alphabet].sort(() => Math.random() - 0.5);
-
-        const map = {};
-        for (let i = 0; i < alphabet.length; i++) {
-            map[alphabet[i]] = shuffled[i];
-        }
-        return map;
-    }
-
-    substitutionCipher(text, map) {
-        return text.split('').map(char => map[char] || char).join('');
-    }
-
-    reverseMap(map) {
-        const reversed = {};
-        for (const [key, value] of Object.entries(map)) {
-            reversed[value] = key;
-        }
-        return reversed;
     }
 
     validateAnswer() {
@@ -360,8 +327,6 @@ class CipherGame {
             this.showCaesarHint();
         } else if (this.currentCipher === 'atbash') {
             this.showAtbashHint();
-        } else if (this.currentCipher === 'substitution') {
-            this.showSubstitutionHint();
         } else if (this.currentCipher === 'reverse') {
             Toast.hint('Lis le message de droite à gauche !');
             this.elements.cipherHint.style.display = 'none';
@@ -401,26 +366,6 @@ class CipherGame {
                 <div class="alphabet-row">
                     <span class="alphabet-label">Codé :</span>
                     <span class="alphabet-letters">${atbash.split('').join(' ')}</span>
-                </div>
-            </div>
-        `;
-    }
-
-    showSubstitutionHint() {
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const map = this.mode === 'encode' ? this.substitutionMap : this.reverseMap(this.substitutionMap);
-        const substituted = alphabet.split('').map(c => map[c]).join(' ');
-
-        this.elements.cipherHint.innerHTML = `
-            <h4 class="hint-title">Table de correspondance :</h4>
-            <div class="alphabet-display">
-                <div class="alphabet-row">
-                    <span class="alphabet-label">Original :</span>
-                    <span class="alphabet-letters">${alphabet.split('').join(' ')}</span>
-                </div>
-                <div class="alphabet-row">
-                    <span class="alphabet-label">Codé :</span>
-                    <span class="alphabet-letters">${substituted}</span>
                 </div>
             </div>
         `;
