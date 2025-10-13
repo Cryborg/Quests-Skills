@@ -23,6 +23,12 @@ class SudokuGame {
             subtitle: 'Remplis la grille avec les bons chiffres !',
             actions: [
                 {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-sudoku',
+                    className: 'page-header-btn-secondary'
+                },
+                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-sudoku',
@@ -48,6 +54,67 @@ class SudokuGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton d'aide
+        setTimeout(() => {
+            if (typeof GameHelpModal !== 'undefined') {
+                GameHelpModal.initHeaderButton('help-btn-sudoku', {
+                    title: 'Sudoku Simple',
+                    icon: '🧩',
+                    objective: 'Remplis la grille de sudoku en plaçant les chiffres de manière à ce que chaque ligne, colonne et bloc contienne tous les chiffres sans répétition. Le sudoku simplifié propose deux niveaux : 4x4 (facile) et 6x6 (moyen).',
+                    rules: [
+                        {
+                            title: 'Chiffres uniques par ligne',
+                            description: 'Chaque ligne doit contenir tous les chiffres de 1 à 4 (ou 1 à 6) une seule fois.'
+                        },
+                        {
+                            title: 'Chiffres uniques par colonne',
+                            description: 'Chaque colonne doit contenir tous les chiffres de 1 à 4 (ou 1 à 6) une seule fois.'
+                        },
+                        {
+                            title: 'Chiffres uniques par bloc',
+                            description: 'Chaque bloc (région entourée en gras) doit contenir tous les chiffres une seule fois. En 4x4 les blocs sont 2x2, en 6x6 ils sont 2x3.'
+                        },
+                        {
+                            title: 'Cellules fixes',
+                            description: 'Les cellules grises sont pré-remplies et ne peuvent pas être modifiées. Utilise-les comme indices pour compléter la grille.'
+                        }
+                    ],
+                    controls: {
+                        desktop: [
+                            'Clic sur une case vide : sélectionner',
+                            'Clavier (1-4 ou 1-6) : placer un chiffre',
+                            'Backspace/Delete : effacer une case',
+                            'Boutons numériques : placer un chiffre',
+                            'Bouton ✖ : effacer la case sélectionnée'
+                        ],
+                        mobile: [
+                            'Toucher une case vide : sélectionner',
+                            'Utiliser les boutons numériques pour placer un chiffre',
+                            'Bouton ✖ : effacer la case sélectionnée'
+                        ]
+                    },
+                    scoring: {
+                        base: '5 crédits',
+                        bonuses: [
+                            '+2 crédits si 0 erreur',
+                            '+1 crédit par sudoku supplémentaire réussi dans la même session'
+                        ],
+                        penalties: [
+                            'Tentative ratée : 1 essai consommé (3 essais par jour)'
+                        ]
+                    },
+                    tips: [
+                        'Commence par analyser les lignes, colonnes et blocs déjà bien remplis',
+                        'Cherche les cases où il ne reste qu\'une seule possibilité',
+                        'Utilise le processus d\'élimination : note mentalement les chiffres impossibles',
+                        'Le bouton "Vérifier" te montre tes erreurs en rouge et les bonnes réponses en vert',
+                        'Tu peux jouer plusieurs parties d\'affilée dans la même session pour gagner plus de crédits',
+                        'Utilise un indice si tu es vraiment bloqué, il révélera une case aléatoire'
+                    ]
+                });
+            }
+        }, 100);
 
         // Initialiser le bouton de notation
         setTimeout(() => {

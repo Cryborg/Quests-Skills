@@ -16,6 +16,12 @@ class NumberSequenceGame {
             subtitle: 'Trouve le nombre qui complète la suite !',
             actions: [
                 {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-number-sequence',
+                    className: 'page-header-btn-secondary'
+                },
+                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-number-sequence',
@@ -41,6 +47,60 @@ class NumberSequenceGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton d'aide
+        setTimeout(() => {
+            if (typeof GameHelpModal !== 'undefined') {
+                GameHelpModal.initHeaderButton('help-btn-number-sequence', {
+                    title: 'Suites Logiques',
+                    icon: '🔢',
+                    objective: 'Identifie la logique mathématique qui relie les nombres et trouve le nombre suivant dans la suite. La difficulté augmente progressivement avec les niveaux !',
+                    rules: [
+                        { title: 'Niveaux 1-2 : Addition', description: 'Suites arithmétiques simples. Les nombres augmentent d\'un pas constant (de +2 à +5).' },
+                        { title: 'Niveaux 3-4 : Soustraction', description: 'Suites arithmétiques décroissantes. Les nombres diminuent d\'un pas constant (de -1 à -3).' },
+                        { title: 'Niveaux 5-6 : Multiplication simple', description: 'Suites géométriques. Chaque nombre est multiplié par 2 ou 3 pour obtenir le suivant.' },
+                        { title: 'Niveaux 7-8 : Multiplication complexe', description: 'Suites géométriques difficiles. Les nombres sont multipliés par 3, 4 ou 5, avec des résultats jusqu\'à 1000.' }
+                    ],
+                    controls: {
+                        desktop: [
+                            'Observe la suite de nombres affichée',
+                            'Tape ta réponse dans le champ',
+                            'Appuie sur Entrée ou clique sur Valider',
+                            'Bouton Passer : sauter la question (perd la série)'
+                        ],
+                        mobile: [
+                            'Observe la suite affichée',
+                            'Tape ta réponse avec le clavier numérique',
+                            'Valide avec le bouton ✓',
+                            'Bouton Passer : sauter si tu es bloqué'
+                        ]
+                    },
+                    scoring: {
+                        base: '5 crédits de base',
+                        bonuses: [
+                            '+10 points par bonne réponse',
+                            '+2 crédits tous les 3 bonnes réponses consécutives',
+                            '+10 crédits si tu termines tous les niveaux (8 niveaux)',
+                            'Série (streak) : compte les bonnes réponses d\'affilée',
+                            'Niveau augmente tous les 2 bonnes réponses consécutives'
+                        ],
+                        penalties: [
+                            'Une mauvaise réponse utilise un essai quotidien',
+                            '3 essais maximum par jour',
+                            'Passer une question : réinitialise la série à 0 (pas de bonus)'
+                        ]
+                    },
+                    tips: [
+                        'Cherche d\'abord si les nombres augmentent ou diminuent',
+                        'Pour les additions/soustractions : calcule la différence entre deux nombres consécutifs',
+                        'Pour les multiplications : divise un nombre par le précédent',
+                        'Niveaux 1-4 : additions et soustractions simples',
+                        'Niveaux 5-8 : multiplications (2x, 3x, 4x, 5x)',
+                        'Une série de bonnes réponses te fait progresser plus vite !'
+                    ]
+                });
+            }
+        }, 100);
 
         // Initialiser le bouton de notation
         setTimeout(() => {

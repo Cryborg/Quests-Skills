@@ -38,6 +38,12 @@ async function initializeBonus() {
         subtitle: 'Résous des opérations pour gagner des cartes bonus !',
         actions: [
             {
+                icon: '❓',
+                text: 'Aide',
+                id: 'help-btn-math-exercises',
+                className: 'page-header-btn-secondary'
+            },
+            {
                 icon: '⭐',
                 text: 'Noter ce jeu',
                 id: 'rate-game-btn-math-exercises',
@@ -50,6 +56,58 @@ async function initializeBonus() {
             bonusText: 'à 5 par opération'
         }
     });
+
+    // Initialiser le bouton d'aide
+    setTimeout(() => {
+        if (typeof GameHelpModal !== 'undefined') {
+            GameHelpModal.initHeaderButton('help-btn-math-exercises', {
+                title: 'Bonus Mathématiques',
+                icon: '🎓',
+                objective: 'Résous des opérations mathématiques posées pour gagner des cartes bonus ! Plus l\'opération est complexe, plus la récompense est grande.',
+                rules: [
+                    { title: 'Types d\'opérations', description: 'Trois types d\'opérations sont disponibles : Addition (+), Soustraction (-) et Multiplication (×). Chacune a 3 essais par jour.' },
+                    { title: 'Opérations posées', description: 'Les opérations sont présentées en format posé (vertical) comme à l\'école. Tu dois remplir tous les champs pour compléter l\'opération.' },
+                    { title: 'Navigation', description: 'Commence par saisir le dernier chiffre (à droite) puis remonte vers la gauche. La navigation se fait automatiquement.' },
+                    { title: 'Retenues', description: 'Pour les additions et soustractions, des cases de retenues sont disponibles au-dessus de l\'opération. Tu peux les utiliser pour t\'aider.' }
+                ],
+                controls: {
+                    desktop: [
+                        'Tape les chiffres au clavier (navigation automatique de droite à gauche)',
+                        'Tab : passer au champ suivant',
+                        'Shift+Tab : revenir au champ précédent',
+                        'Flèches : naviguer entre les champs',
+                        'Entrée : valider la réponse',
+                        'Bouton Effacer : vider tous les champs'
+                    ],
+                    mobile: [
+                        'Touche un champ pour faire apparaître le clavier numérique',
+                        'La navigation se fait automatiquement après chaque saisie',
+                        'Utilise le bouton Vérifier pour valider'
+                    ]
+                },
+                scoring: {
+                    base: 'Récompenses par type d\'opération',
+                    bonuses: [
+                        'Addition : 1 carte par opération réussie',
+                        'Soustraction : 2 cartes par opération réussie',
+                        'Multiplication : 5 cartes par opération réussie',
+                        '3 essais par jour et par type d\'opération'
+                    ],
+                    penalties: [
+                        'Une mauvaise réponse utilise un essai',
+                        'Pas de crédits en cas d\'erreur'
+                    ]
+                },
+                tips: [
+                    'Commence par les additions si tu veux t\'entraîner',
+                    'Les multiplications rapportent le plus de cartes mais sont plus difficiles',
+                    'Utilise les cases de retenues pour ne rien oublier',
+                    'Pour les multiplications à 2 chiffres, n\'oublie pas les étapes intermédiaires',
+                    'Vérifie bien chaque ligne avant de valider'
+                ]
+            });
+        }
+    }, 100);
 
     // Initialiser le bouton de notation
     setTimeout(() => {

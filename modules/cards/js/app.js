@@ -37,7 +37,55 @@ class App {
             const currentUser = authService.getCurrentUser();
             PageHeader.render({
                 icon: '🃏',
-                title: currentUser ? `Album de ${currentUser.username}` : 'Album de cartes'
+                title: currentUser ? `Album de ${currentUser.username}` : 'Album de cartes',
+                actions: [
+                    { icon: '❓', text: 'Aide', id: 'help-btn-cards' }
+                ]
+            });
+
+            // Initialise l'aide du module
+            GameHelpModal.initHeaderButton('help-btn-cards', {
+                title: 'Collection de Cartes',
+                icon: '🃏',
+                objective: 'Collectionne des cartes sur différents thèmes et améliore-les pour obtenir des raretés supérieures !',
+                rules: [
+                    { title: 'Pioche de cartes', description: 'Utilise tes crédits pour piocher des cartes. Chaque crédit te permet de piocher une carte.' },
+                    { title: 'Système de raretés', description: 'Chaque carte possède une rareté : Commune (blanc), Rare (bleu), Très Rare (vert), Épique (jaune) ou Légendaire (rouge).' },
+                    { title: 'Amélioration des cartes', description: 'Accumule des doublons pour améliorer tes cartes vers des raretés supérieures. Plus la rareté est haute, plus il faut de doublons.' },
+                    { title: 'Thèmes à compléter', description: 'Les cartes sont regroupées par thèmes (Minecraft, Astronomie, Dinosaures...). Complete chaque thème pour débloquer des bonus.' },
+                    { title: 'Cartes légendaires', description: 'Atteindre le niveau légendaire avec une carte te donne un bonus de crédits permanent.' }
+                ],
+                controls: {
+                    desktop: [
+                        'Clic gauche : voir les détails d\'une carte',
+                        'Espace ou P : piocher rapidement',
+                        'Esc : fermer la fenêtre de détails',
+                        'Filtres : trier par rareté ou alphabétiquement'
+                    ],
+                    mobile: [
+                        'Toucher une carte : voir les détails',
+                        'Swipe : faire défiler les cartes',
+                        'Utiliser les filtres pour trier la collection'
+                    ]
+                },
+                scoring: {
+                    base: 'Les crédits se gagnent en jouant aux différents jeux',
+                    bonuses: [
+                        '1 crédit = 1 carte piochée',
+                        'Amélioration Rare : 3 cartes communes identiques',
+                        'Amélioration Très Rare : 5 cartes rares identiques',
+                        'Amélioration Épique : 10 cartes très rares identiques',
+                        'Amélioration Légendaire : 25 cartes épiques identiques + bonus crédits permanents'
+                    ],
+                    penalties: []
+                },
+                tips: [
+                    'Focus sur un thème à la fois pour compléter ta collection plus rapidement',
+                    'Les cartes améliorées conservent leur count, tu ne perds rien !',
+                    'Les cartes légendaires donnent un bonus de crédits permanent',
+                    'Utilise les filtres pour trouver rapidement les cartes à améliorer',
+                    'Le symbole 🔺 indique qu\'une carte peut être améliorée'
+                ]
             });
 
             // Initialise l'interface utilisateur

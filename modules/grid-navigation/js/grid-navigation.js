@@ -31,6 +31,12 @@ class GridNavigationGame {
             subtitle: 'Programme le chemin pour atteindre la case cible !',
             actions: [
                 {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-grid-navigation',
+                    className: 'page-header-btn-secondary'
+                },
+                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-grid-navigation',
@@ -56,6 +62,58 @@ class GridNavigationGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton d'aide
+        setTimeout(() => {
+            if (typeof GameHelpModal !== 'undefined') {
+                GameHelpModal.initHeaderButton('help-btn-grid-navigation', {
+                    title: 'Déplacement sur Quadrillage',
+                    icon: '🧭',
+                    objective: 'Programme une séquence de déplacements pour atteindre la case cible tout en évitant les obstacles. Visite un maximum de cases sans repasser deux fois sur la même case pour obtenir le meilleur score !',
+                    rules: [
+                        { title: 'Objectif du jeu', description: 'Déplace ton personnage jusqu\'à la case cible (avec le 🎯) en évitant les obstacles (croix rouges). Plus tu visites de cases uniques, plus tu gagnes de points !' },
+                        { title: 'Programmation', description: 'Clique sur les flèches pour programmer une séquence de mouvements. Les mouvements s\'affichent au-dessus de la grille. Clique sur "Exécuter" pour lancer la séquence.' },
+                        { title: 'Scoring maximal', description: 'Le score maximal est indiqué en haut ("Score à atteindre"). Pour l\'obtenir, visite toutes les cases accessibles sans jamais repasser sur la même !' },
+                        { title: 'Répétitions', description: 'Si tu repasses sur une case, tu es pénalisé. Tu peux quand même arriver à destination, mais tu ne gagneras qu\'1 point au lieu du score optimal.' }
+                    ],
+                    controls: {
+                        desktop: [
+                            'Clique sur les flèches pour ajouter des mouvements',
+                            'Flèches du clavier : ajouter des mouvements rapides',
+                            'Bouton Recommencer : efface le programme',
+                            'Bouton Indice : indique la direction générale',
+                            'Entrée : exécute le programme'
+                        ],
+                        mobile: [
+                            'Touche les flèches pour ajouter des mouvements',
+                            'Recommencer : efface le programme',
+                            'Indice : affiche l\'aide directionnelle'
+                        ]
+                    },
+                    scoring: {
+                        base: '4 crédits de base',
+                        bonuses: [
+                            '+1 point par case unique visitée',
+                            'Score maximal = toutes les cases visitées sans répétition',
+                            '+2 crédits tous les 3 niveaux réussis',
+                            'Difficulté progressive : plus d\'obstacles à chaque niveau'
+                        ],
+                        penalties: [
+                            '1 point seulement si tu repasses sur une case',
+                            'Une mauvaise réponse utilise un essai quotidien',
+                            '3 essais maximum par jour'
+                        ]
+                    },
+                    tips: [
+                        'Planifie mentalement ton chemin avant de programmer les mouvements',
+                        'Commence par trouver un chemin simple vers la cible, puis optimise',
+                        'Les obstacles obligent à faire des détours : utilise-les pour visiter plus de cases',
+                        'Si tu rates, le niveau recommence automatiquement après 2 secondes',
+                        'Le niveau augmente progressivement le nombre d\'obstacles'
+                    ]
+                });
+            }
+        }, 100);
 
         // Initialiser le bouton de notation
         setTimeout(() => {

@@ -101,11 +101,11 @@ class CrosswordGame {
                             'Clavier : taper les lettres',
                             'Flèches : naviguer entre les cases',
                             'Backspace : effacer et revenir en arrière',
-                            'Clic sur une définition : sélectionner le mot entier'
+                            'Clic sur une définition : sélectionner le mot dans la grille'
                         ],
                         mobile: [
                             'Toucher une case : sélectionner et afficher le clavier',
-                            'Toucher une définition : sélectionner le mot entier',
+                            'Toucher une définition : sélectionner le mot dans la grille',
                             'Le scroll automatique centre le mot sélectionné'
                         ]
                     },

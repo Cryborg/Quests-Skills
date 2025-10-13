@@ -17,6 +17,12 @@ class ClockReadingGame {
             subtitle: 'Apprends à lire et à placer les aiguilles !',
             actions: [
                 {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-clock-reading',
+                    className: 'page-header-btn-secondary'
+                },
+                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-clock-reading',
@@ -39,6 +45,54 @@ class ClockReadingGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton d'aide
+        setTimeout(() => {
+            if (typeof GameHelpModal !== 'undefined') {
+                GameHelpModal.initHeaderButton('help-btn-clock-reading', {
+                    title: 'Apprendre l\'Heure',
+                    icon: '🕐',
+                    objective: 'Apprends à lire l\'heure sur une horloge analogique et à placer correctement les aiguilles. Maîtrise les heures, demi-heures et quarts d\'heure !',
+                    rules: [
+                        { title: 'Mode Lecture', description: 'Observe l\'horloge et choisis la bonne heure parmi les 4 propositions. La petite aiguille indique les heures, la grande indique les minutes.' },
+                        { title: 'Mode Placement', description: 'Place les aiguilles pour afficher l\'heure demandée. Clique et glisse les aiguilles (ou utilise ton doigt sur mobile) pour les tourner.' },
+                        { title: 'Format 24h', description: 'Les heures sont affichées au format 24h (00h00 à 23h59). L\'après-midi, ajoute 12 aux heures (13h00 = 1h de l\'après-midi).' },
+                        { title: 'Aiguilles', description: 'La petite aiguille bleue indique les heures. La grande aiguille violette indique les minutes. Attention, l\'aiguille des heures bouge légèrement entre deux heures !' }
+                    ],
+                    controls: {
+                        desktop: [
+                            'Mode Lecture : clique sur la bonne réponse',
+                            'Mode Placement : clique et glisse les aiguilles pour les tourner',
+                            'Clique sur les onglets pour changer de mode',
+                            'Bouton Suivant : passe à la question suivante'
+                        ],
+                        mobile: [
+                            'Mode Lecture : touche la bonne réponse',
+                            'Mode Placement : glisse ton doigt sur les aiguilles pour les tourner',
+                            'Touche les onglets pour changer de mode'
+                        ]
+                    },
+                    scoring: {
+                        base: '3 crédits de base',
+                        bonuses: [
+                            '+10 points par bonne réponse',
+                            '+2 crédits tous les 3 bonnes réponses consécutives'
+                        ],
+                        penalties: [
+                            'Une mauvaise réponse utilise un essai quotidien',
+                            '3 essais maximum par jour'
+                        ]
+                    },
+                    tips: [
+                        'Commence par le mode Lecture pour t\'habituer à lire l\'heure',
+                        'Pour les quarts d\'heure : 15min = quart, 30min = demie, 45min = trois quarts',
+                        'L\'aiguille des heures se déplace progressivement entre deux heures',
+                        'En mode Placement, commence par placer l\'aiguille des minutes, puis celle des heures',
+                        'La tolérance est de ±30 degrés, soit environ 1 heure ou 5 minutes'
+                    ]
+                });
+            }
+        }, 100);
 
         // Initialiser le bouton de notation
         setTimeout(() => {

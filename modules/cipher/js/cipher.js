@@ -56,6 +56,12 @@ class CipherGame {
             subtitle: 'Apprends les techniques de cryptographie !',
             actions: [
                 {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-cipher',
+                    className: 'page-header-btn-secondary'
+                },
+                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-cipher',
@@ -79,6 +85,58 @@ class CipherGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton d'aide
+        setTimeout(() => {
+            if (typeof GameHelpModal !== 'undefined') {
+                GameHelpModal.initHeaderButton('help-btn-cipher', {
+                    title: 'Codage et Décodage',
+                    icon: '🔐',
+                    objective: 'Apprends les différentes techniques de cryptographie en codant et décodant des messages secrets. Maîtrise les ciphers classiques utilisés depuis l\'Antiquité !',
+                    rules: [
+                        { title: 'Chiffre de César', description: 'Chaque lettre est décalée d\'un certain nombre de positions dans l\'alphabet. Le décalage peut être vers la droite ou la gauche.' },
+                        { title: 'Inversé', description: 'Le texte est simplement inversé de droite à gauche. BONJOUR devient RUOJNOB.' },
+                        { title: 'Atbash', description: 'Chaque lettre est remplacée par sa symétrique dans l\'alphabet. A devient Z, B devient Y, etc.' },
+                        { title: 'Substitution', description: 'Chaque lettre est remplacée par une autre lettre selon une table de correspondance aléatoire.' }
+                    ],
+                    controls: {
+                        desktop: [
+                            'Clique sur un type de cipher pour le sélectionner',
+                            'Tape ta réponse en MAJUSCULES dans le champ',
+                            'Appuie sur Entrée ou clique sur Valider',
+                            'Utilise le bouton Indice pour afficher la table de correspondance'
+                        ],
+                        mobile: [
+                            'Touche un type de cipher pour le sélectionner',
+                            'Tape ta réponse en MAJUSCULES',
+                            'Valide avec le bouton ✓',
+                            'Demande un indice si nécessaire'
+                        ]
+                    },
+                    scoring: {
+                        base: '4 crédits de base',
+                        bonuses: [
+                            '+10 points par bonne réponse (sans indice)',
+                            '+5 points par bonne réponse (avec indice)',
+                            '+2 crédits tous les 3 messages décodés correctement',
+                            '+1 crédit si tu as utilisé un indice',
+                            'Niveau augmente tous les 5 messages décodés'
+                        ],
+                        penalties: [
+                            'Une mauvaise réponse utilise un essai quotidien',
+                            '3 essais maximum par jour'
+                        ]
+                    },
+                    tips: [
+                        'Commence par le chiffre de César, c\'est le plus simple',
+                        'N\'hésite pas à utiliser l\'indice pour comprendre la logique',
+                        'Le cipher Atbash est symétrique : encoder ou décoder donne le même résultat',
+                        'Pour le César, note le sens du décalage (DROITE ou GAUCHE)',
+                        'Le niveau augmente progressivement la difficulté des mots'
+                    ]
+                });
+            }
+        }, 100);
 
         // Initialiser le bouton de notation
         setTimeout(() => {
