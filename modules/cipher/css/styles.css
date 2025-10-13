@@ -301,9 +301,19 @@
         letter-spacing: 2px;
     }
 
+    .answer-section {
+        flex-direction: column;
+        max-width: 100%;
+    }
+
     #answer-input {
         font-size: 1.2rem;
         padding: 14px 18px;
+        width: 100%;
+    }
+
+    #validate-btn {
+        width: 100%;
     }
 
     .stat-value {

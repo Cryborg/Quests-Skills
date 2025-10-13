@@ -241,6 +241,11 @@ button {
     .game-actions button {
         width: 100%;
     }
+
+    /* Bouton Indice toujours en dernier en mode responsive */
+    .game-actions #hint-btn {
+        order: 999;
+    }
 }
 
 @media (max-width: 480px) {
