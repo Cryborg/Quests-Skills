@@ -40,9 +40,13 @@ class PageHeader {
         if (actions.length > 0) {
             headerHTML += '<div class="page-header-actions">';
             actions.forEach(action => {
+                // Pour les boutons Aide et Noter, afficher uniquement l'icône
+                const isIconOnly = action.id?.includes('help-btn') || action.id?.includes('rate-game-btn');
+                const buttonContent = isIconOnly ? action.icon : `${action.icon} ${action.text}`;
+
                 headerHTML += `
                     <button id="${action.id}" class="page-header-btn ${action.className || ''}" title="${action.text}">
-                        ${action.icon} ${action.text}
+                        ${buttonContent}
                     </button>
                 `;
             });

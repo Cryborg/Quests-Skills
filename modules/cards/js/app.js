@@ -39,6 +39,7 @@ class App {
                 icon: '🃏',
                 title: currentUser ? `Album de ${currentUser.username}` : 'Album de cartes',
                 actions: [
+                    { icon: '⭐', text: 'Noter ce jeu', id: 'rate-game-btn-cards' },
                     { icon: '❓', text: 'Aide', id: 'help-btn-cards' }
                 ]
             });
@@ -87,6 +88,13 @@ class App {
                     'Le symbole 🔺 indique qu\'une carte peut être améliorée'
                 ]
             });
+
+            // Initialiser le bouton de notation
+            setTimeout(() => {
+                if (typeof GameRatingModal !== 'undefined') {
+                    GameRatingModal.initHeaderButton('cards');
+                }
+            }, 100);
 
             // Initialise l'interface utilisateur
             console.log('🎨 Initialisation de l\'interface...');

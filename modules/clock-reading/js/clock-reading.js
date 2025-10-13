@@ -17,15 +17,15 @@ class ClockReadingGame {
             subtitle: 'Apprends à lire et à placer les aiguilles !',
             actions: [
                 {
-                    icon: '❓',
-                    text: 'Aide',
-                    id: 'help-btn-clock-reading',
-                    className: 'page-header-btn-secondary'
-                },
-                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-clock-reading',
+                    className: 'page-header-btn-secondary'
+                },
+                {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-clock-reading',
                     className: 'page-header-btn-secondary'
                 }
             ],

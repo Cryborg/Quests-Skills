@@ -31,15 +31,15 @@ class GridNavigationGame {
             subtitle: 'Programme le chemin pour atteindre la case cible !',
             actions: [
                 {
-                    icon: '❓',
-                    text: 'Aide',
-                    id: 'help-btn-grid-navigation',
-                    className: 'page-header-btn-secondary'
-                },
-                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-grid-navigation',
+                    className: 'page-header-btn-secondary'
+                },
+                {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-grid-navigation',
                     className: 'page-header-btn-secondary'
                 }
             ],

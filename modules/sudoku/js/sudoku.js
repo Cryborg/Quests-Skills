@@ -23,15 +23,15 @@ class SudokuGame {
             subtitle: 'Remplis la grille avec les bons chiffres !',
             actions: [
                 {
-                    icon: '❓',
-                    text: 'Aide',
-                    id: 'help-btn-sudoku',
-                    className: 'page-header-btn-secondary'
-                },
-                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-sudoku',
+                    className: 'page-header-btn-secondary'
+                },
+                {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-sudoku',
                     className: 'page-header-btn-secondary'
                 }
             ],

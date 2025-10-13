@@ -37,19 +37,19 @@ async function initializeBonus() {
         title: 'Bonus Mathématiques',
         subtitle: 'Résous des opérations pour gagner des cartes bonus !',
         actions: [
-            {
-                icon: '❓',
-                text: 'Aide',
-                id: 'help-btn-math-exercises',
-                className: 'page-header-btn-secondary'
-            },
+            { icon: '📊', text: 'Historique', id: 'history-btn' },
             {
                 icon: '⭐',
                 text: 'Noter ce jeu',
                 id: 'rate-game-btn-math-exercises',
                 className: 'page-header-btn-secondary'
             },
-            { icon: '📊', text: 'Historique', id: 'history-btn' }
+            {
+                icon: '❓',
+                text: 'Aide',
+                id: 'help-btn-math-exercises',
+                className: 'page-header-btn-secondary'
+            }
         ],
         reward: {
             baseCredits: 1,

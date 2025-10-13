@@ -56,15 +56,15 @@ class CipherGame {
             subtitle: 'Apprends les techniques de cryptographie !',
             actions: [
                 {
-                    icon: '❓',
-                    text: 'Aide',
-                    id: 'help-btn-cipher',
-                    className: 'page-header-btn-secondary'
-                },
-                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-cipher',
+                    className: 'page-header-btn-secondary'
+                },
+                {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-cipher',
                     className: 'page-header-btn-secondary'
                 }
             ],

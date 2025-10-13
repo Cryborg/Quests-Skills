@@ -16,15 +16,15 @@ class NumberSequenceGame {
             subtitle: 'Trouve le nombre qui complète la suite !',
             actions: [
                 {
-                    icon: '❓',
-                    text: 'Aide',
-                    id: 'help-btn-number-sequence',
-                    className: 'page-header-btn-secondary'
-                },
-                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-number-sequence',
+                    className: 'page-header-btn-secondary'
+                },
+                {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-number-sequence',
                     className: 'page-header-btn-secondary'
                 }
             ],

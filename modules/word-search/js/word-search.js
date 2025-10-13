@@ -25,15 +25,15 @@ class WordSearchGame {
             subtitle: 'Trouve tous les mots cachés dans la grille !',
             actions: [
                 {
-                    icon: '❓',
-                    text: 'Aide',
-                    id: 'help-btn-word-search',
-                    className: 'page-header-btn-secondary'
-                },
-                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-word-search',
+                    className: 'page-header-btn-secondary'
+                },
+                {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-word-search',
                     className: 'page-header-btn-secondary'
                 }
             ],

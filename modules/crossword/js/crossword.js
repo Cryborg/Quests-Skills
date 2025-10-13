@@ -38,15 +38,15 @@ class CrosswordGame {
             subtitle: this.config.subtitle,
             actions: [
                 {
-                    icon: '❓',
-                    text: 'Aide',
-                    id: 'help-btn-crossword',
-                    className: 'page-header-btn-secondary'
-                },
-                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-crossword',
+                    className: 'page-header-btn-secondary'
+                },
+                {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-crossword',
                     className: 'page-header-btn-secondary'
                 }
             ],
