@@ -1,0 +1,274 @@
+/* Modal d'aide pour les jeux */
+.game-help-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: none;
+}
+
+.game-help-modal.show {
+    display: block;
+}
+
+.game-help-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.game-help-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.game-help-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: var(--bg-card);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.game-help-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.game-help-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.game-help-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.game-help-body {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Sections */
+.help-section {
+    margin-bottom: 2rem;
+}
+
+.help-section:last-child {
+    margin-bottom: 0;
+}
+
+.help-section h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin: 0 0 1rem 0;
+}
+
+.help-section p {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Règles du jeu */
+.help-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.help-rule {
+    display: flex;
+    gap: 1rem;
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.help-rule-number {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.help-rule-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.help-rule-content p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Contrôles */
+.help-controls {
+    margin-bottom: 1rem;
+}
+
+.help-controls:last-child {
+    margin-bottom: 0;
+}
+
+.help-controls h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.help-controls ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.help-controls ul li {
+    padding: 0.5rem 0;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.help-controls ul li:last-child {
+    border-bottom: none;
+}
+
+/* Système de scoring */
+.help-scoring-base {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+.help-scoring-items {
+    margin-bottom: 1rem;
+}
+
+.help-scoring-items:last-child {
+    margin-bottom: 0;
+}
+
+.help-scoring-items h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.help-scoring-items ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.help-scoring-items ul li {
+    padding: 0.4rem 0;
+    color: var(--text-secondary);
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.help-scoring-items ul li::before {
+    content: "•";
+    position: absolute;
+    left: 0.5rem;
+    color: var(--accent-primary);
+}
+
+/* Astuces */
+.help-tips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.help-tips li {
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #f59e0b;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .game-help-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .game-help-header {
+        padding: 1rem 1.5rem;
+    }
+
+    .game-help-title {
+        font-size: 1.2rem;
+    }
+
+    .game-help-body {
+        padding: 1.5rem;
+    }
+
+    .help-section h3 {
+        font-size: 1.1rem;
+    }
+
+    .help-rule {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .help-rule-number {
+        align-self: flex-start;
+    }
+}

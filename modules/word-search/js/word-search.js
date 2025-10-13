@@ -25,6 +25,12 @@ class WordSearchGame {
             subtitle: 'Trouve tous les mots cachés dans la grille !',
             actions: [
                 {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-word-search',
+                    className: 'page-header-btn-secondary'
+                },
+                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-word-search',
@@ -42,6 +48,61 @@ class WordSearchGame {
                 bonusText: '+ bonus temps'
             }
         });
+
+        // Initialiser le bouton d'aide
+        setTimeout(() => {
+            if (typeof GameHelpModal !== 'undefined') {
+                GameHelpModal.initHeaderButton('help-btn-word-search', {
+                    title: 'Mots Mêlés',
+                    icon: '🔍',
+                    objective: 'Trouve tous les mots cachés dans la grille avant que le temps ne s\'écoule trop. Les mots peuvent être placés horizontalement, verticalement ou en diagonale, dans n\'importe quel sens.',
+                    rules: [
+                        {
+                            title: 'Sélection des mots',
+                            description: 'Clique (ou touche) sur la première lettre d\'un mot et glisse jusqu\'à la dernière lettre. Les mots peuvent être horizontaux, verticaux ou diagonaux.'
+                        },
+                        {
+                            title: 'Validation',
+                            description: 'Relâche pour valider ta sélection. Si le mot est correct, il sera marqué en vert et rayé de la liste.'
+                        },
+                        {
+                            title: 'Indices limités',
+                            description: 'Tu disposes de 3 indices maximum. Utilise-les avec parcimonie car chaque indice utilisé réduit ta récompense finale.'
+                        },
+                        {
+                            title: 'Grille thématique',
+                            description: 'Les mots de la grille proviennent d\'un thème aléatoire parmi ceux que tu as débloqués en collectionnant des cartes.'
+                        }
+                    ],
+                    controls: {
+                        desktop: [
+                            'Clic gauche maintenu + glisser : sélectionner un mot',
+                            'Relâcher : valider la sélection'
+                        ],
+                        mobile: [
+                            'Toucher + glisser : sélectionner un mot',
+                            'Relâcher : valider la sélection'
+                        ]
+                    },
+                    scoring: {
+                        base: '3 crédits',
+                        bonuses: [
+                            '+1 crédit par minute gagnée (si tu termines en moins de 5 minutes)'
+                        ],
+                        penalties: [
+                            '-1 crédit par indice utilisé'
+                        ]
+                    },
+                    tips: [
+                        'Commence par chercher les mots les plus longs, ils sont plus faciles à repérer',
+                        'Scanne la grille méthodiquement ligne par ligne ou colonne par colonne',
+                        'Les diagonales sont souvent les plus difficiles à voir, concentre-toi dessus en dernier',
+                        'N\'oublie pas que les mots peuvent être écrits dans n\'importe quel sens (gauche-droite, droite-gauche, haut-bas, bas-haut, et toutes les diagonales)',
+                        'Utilise un indice si tu es vraiment bloqué, mais essaie de terminer sans pour maximiser tes crédits'
+                    ]
+                });
+            }
+        }, 100);
 
         // Initialiser le bouton de notation
         setTimeout(() => {

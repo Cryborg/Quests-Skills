@@ -38,6 +38,12 @@ class CrosswordGame {
             subtitle: this.config.subtitle,
             actions: [
                 {
+                    icon: '❓',
+                    text: 'Aide',
+                    id: 'help-btn-crossword',
+                    className: 'page-header-btn-secondary'
+                },
+                {
                     icon: '⭐',
                     text: 'Noter ce jeu',
                     id: 'rate-game-btn-crossword',
@@ -60,6 +66,68 @@ class CrosswordGame {
             Toast.warning('Plus d\'essais pour aujourd\'hui ! Reviens demain.');
             return;
         }
+
+        // Initialiser le bouton d'aide
+        setTimeout(() => {
+            if (typeof GameHelpModal !== 'undefined') {
+                const sizeText = this.gridSize === 10 ? '10x10' : '15x15';
+                const difficultyText = this.gridSize === 10 ? 'standard' : 'grand format';
+
+                GameHelpModal.initHeaderButton('help-btn-crossword', {
+                    title: `Mots Croisés ${sizeText}`,
+                    icon: this.config.icon,
+                    objective: `Remplis la grille de mots croisés en ${difficultyText}. Chaque mot doit s'entrecroise avec les autres pour former une grille cohérente. Utilise les définitions pour trouver les bons mots.`,
+                    rules: [
+                        {
+                            title: 'Lecture des définitions',
+                            description: 'Les définitions sont séparées en deux listes : horizontales et verticales. Chaque définition correspond à un numéro sur la grille.'
+                        },
+                        {
+                            title: 'Remplissage des cases',
+                            description: 'Clique sur une case blanche pour la sélectionner, puis tape la lettre. La grille passe automatiquement à la case suivante dans la direction choisie.'
+                        },
+                        {
+                            title: 'Navigation',
+                            description: 'Utilise les flèches du clavier pour te déplacer entre les cases, ou clique directement sur une définition pour sélectionner le mot entier.'
+                        },
+                        {
+                            title: 'Validation en temps réel',
+                            description: 'Les lettres correctes sont marquées en vert, les incorrectes en rouge. La grille est complète quand tous les mots sont corrects.'
+                        }
+                    ],
+                    controls: {
+                        desktop: [
+                            'Clic sur une case : sélectionner',
+                            'Clavier : taper les lettres',
+                            'Flèches : naviguer entre les cases',
+                            'Backspace : effacer et revenir en arrière',
+                            'Clic sur une définition : sélectionner le mot entier'
+                        ],
+                        mobile: [
+                            'Toucher une case : sélectionner et afficher le clavier',
+                            'Toucher une définition : sélectionner le mot entier',
+                            'Le scroll automatique centre le mot sélectionné'
+                        ]
+                    },
+                    scoring: {
+                        base: `${this.config.baseCredits} crédits`,
+                        bonuses: [
+                            '+1 crédit par 2 minutes gagnées (si tu termines en moins de 10 minutes)'
+                        ],
+                        penalties: [
+                            `-2 crédits par indice utilisé (${this.config.maxHints} indices disponibles)`
+                        ]
+                    },
+                    tips: [
+                        'Commence par les mots les plus courts ou ceux dont tu es sûr de la réponse',
+                        'Les lettres communes aux intersections t\'aideront à deviner les autres mots',
+                        'Si tu es bloqué, utilise un indice pour révéler une lettre stratégique',
+                        'Clique sur une définition pour mettre en surbrillance le mot correspondant',
+                        'Les mots complétés ont leur définition rayée automatiquement'
+                    ]
+                });
+            }
+        }, 100);
 
         // Initialiser le bouton de notation
         setTimeout(() => {
