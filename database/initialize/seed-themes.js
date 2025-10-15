@@ -7,10 +7,11 @@ async function seedThemes() {
     console.log('🎨 Seeding card themes...');
 
     const themes = [
-        { slug: 'minecraft', name: 'Minecraft', icon: '🟫' },
+        { slug: 'minecraft', name: 'Minecraft', icon: '💎' },
         { slug: 'space', name: 'Astronomie', icon: '🌌' },
         { slug: 'dinosaurs', name: 'Dinosaures', icon: '🦕' },
         { slug: 'monuments', name: 'Monuments', icon: '🏛️' },
+        { slug: 'chateaux', name: 'Châteaux', icon: '🏰' },
         { slug: 'jeux-videos', name: 'Jeux Vidéo', icon: '🎮' }
     ];
 

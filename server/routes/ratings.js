@@ -61,6 +61,89 @@ router.post('/',
     }
 });
 
+// GET /api/ratings/stats/all/games - Statistiques pour tous les jeux (admin seulement)
+// IMPORTANT: Cette route doit être définie AVANT /:game_type pour éviter le conflit de routing
+router.get('/stats/all/games', requireAdmin, async (req, res) => {
+    try {
+        // Récupérer toutes les notations avec les dates de naissance
+        const ratings = await all(
+            `SELECT gr.*, u.birth_date
+             FROM game_ratings gr
+             JOIN users u ON gr.user_id = u.id`
+        );
+
+        // Grouper par type de jeu
+        const gameStats = {};
+        const today = new Date();
+
+        ratings.forEach(rating => {
+            if (!gameStats[rating.game_type]) {
+                gameStats[rating.game_type] = {
+                    game_type: rating.game_type,
+                    totalRatings: 0,
+                    totalInterest: 0,
+                    totalDifficulty: 0,
+                    ageGroups: {}
+                };
+            }
+
+            const stats = gameStats[rating.game_type];
+            stats.totalRatings++;
+            stats.totalInterest += rating.interest_rating;
+            stats.totalDifficulty += rating.difficulty_rating;
+
+            // Calculer l'âge et grouper
+            if (rating.birth_date) {
+                const birthDate = new Date(rating.birth_date);
+                const age = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24 * 365.25));
+
+                let ageGroup;
+                if (age < 8) ageGroup = '0-7';
+                else if (age < 11) ageGroup = '8-10';
+                else if (age < 14) ageGroup = '11-13';
+                else if (age < 18) ageGroup = '14-17';
+                else ageGroup = '18+';
+
+                if (!stats.ageGroups[ageGroup]) {
+                    stats.ageGroups[ageGroup] = {
+                        count: 0,
+                        totalInterest: 0,
+                        totalDifficulty: 0
+                    };
+                }
+
+                stats.ageGroups[ageGroup].count++;
+                stats.ageGroups[ageGroup].totalInterest += rating.interest_rating;
+                stats.ageGroups[ageGroup].totalDifficulty += rating.difficulty_rating;
+            }
+        });
+
+        // Formater les résultats
+        const results = Object.values(gameStats).map(stats => {
+            const ageStats = Object.keys(stats.ageGroups).map(ageGroup => ({
+                ageGroup,
+                count: stats.ageGroups[ageGroup].count,
+                avgInterest: (stats.ageGroups[ageGroup].totalInterest / stats.ageGroups[ageGroup].count).toFixed(2),
+                avgDifficulty: (stats.ageGroups[ageGroup].totalDifficulty / stats.ageGroups[ageGroup].count).toFixed(2)
+            }));
+
+            return {
+                game_type: stats.game_type,
+                totalRatings: stats.totalRatings,
+                avgInterest: (stats.totalInterest / stats.totalRatings).toFixed(2),
+                avgDifficulty: (stats.totalDifficulty / stats.totalRatings).toFixed(2),
+                ageStats
+            };
+        });
+
+        // Retourner un tableau vide si pas de notations (200 OK, pas 404)
+        res.json(results);
+    } catch (error) {
+        console.error('Error fetching all rating stats:', error);
+        res.status(500).json({ error: 'Failed to fetch rating stats' });
+    }
+});
+
 // GET /api/ratings/:game_type - Récupérer la notation d'un utilisateur pour un jeu
 router.get('/:game_type', async (req, res) => {
     try {
@@ -146,88 +229,6 @@ router.get('/stats/:game_type', requireAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching rating stats:', error);
-        res.status(500).json({ error: 'Failed to fetch rating stats' });
-    }
-});
-
-// GET /api/ratings/stats/all - Statistiques pour tous les jeux (admin seulement)
-router.get('/stats/all/games', requireAdmin, async (req, res) => {
-    try {
-        // Récupérer toutes les notations avec les dates de naissance
-        const ratings = await all(
-            `SELECT gr.*, u.birth_date
-             FROM game_ratings gr
-             JOIN users u ON gr.user_id = u.id`
-        );
-
-        // Grouper par type de jeu
-        const gameStats = {};
-        const today = new Date();
-
-        ratings.forEach(rating => {
-            if (!gameStats[rating.game_type]) {
-                gameStats[rating.game_type] = {
-                    game_type: rating.game_type,
-                    totalRatings: 0,
-                    totalInterest: 0,
-                    totalDifficulty: 0,
-                    ageGroups: {}
-                };
-            }
-
-            const stats = gameStats[rating.game_type];
-            stats.totalRatings++;
-            stats.totalInterest += rating.interest_rating;
-            stats.totalDifficulty += rating.difficulty_rating;
-
-            // Calculer l'âge et grouper
-            if (rating.birth_date) {
-                const birthDate = new Date(rating.birth_date);
-                const age = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24 * 365.25));
-
-                let ageGroup;
-                if (age < 8) ageGroup = '0-7';
-                else if (age < 11) ageGroup = '8-10';
-                else if (age < 14) ageGroup = '11-13';
-                else if (age < 18) ageGroup = '14-17';
-                else ageGroup = '18+';
-
-                if (!stats.ageGroups[ageGroup]) {
-                    stats.ageGroups[ageGroup] = {
-                        count: 0,
-                        totalInterest: 0,
-                        totalDifficulty: 0
-                    };
-                }
-
-                stats.ageGroups[ageGroup].count++;
-                stats.ageGroups[ageGroup].totalInterest += rating.interest_rating;
-                stats.ageGroups[ageGroup].totalDifficulty += rating.difficulty_rating;
-            }
-        });
-
-        // Formater les résultats
-        const results = Object.values(gameStats).map(stats => {
-            const ageStats = Object.keys(stats.ageGroups).map(ageGroup => ({
-                ageGroup,
-                count: stats.ageGroups[ageGroup].count,
-                avgInterest: (stats.ageGroups[ageGroup].totalInterest / stats.ageGroups[ageGroup].count).toFixed(2),
-                avgDifficulty: (stats.ageGroups[ageGroup].totalDifficulty / stats.ageGroups[ageGroup].count).toFixed(2)
-            }));
-
-            return {
-                game_type: stats.game_type,
-                totalRatings: stats.totalRatings,
-                avgInterest: (stats.totalInterest / stats.totalRatings).toFixed(2),
-                avgDifficulty: (stats.totalDifficulty / stats.totalRatings).toFixed(2),
-                ageStats
-            };
-        });
-
-        // Retourner un tableau vide si pas de notations (200 OK, pas 404)
-        res.json(results);
-    } catch (error) {
-        console.error('Error fetching all rating stats:', error);
         res.status(500).json({ error: 'Failed to fetch rating stats' });
     }
 });
