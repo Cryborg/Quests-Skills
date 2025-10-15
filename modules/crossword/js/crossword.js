@@ -28,6 +28,39 @@ class CrosswordGame {
         this.maxHints = this.config.maxHints;
         this.timer = 0;
         this.timerInterval = null;
+
+        // Thèmes disponibles
+        this.availableThemes = [];
+        this.selectedThemes = [];
+
+        // Charger les thèmes depuis localStorage
+        this.loadThemesConfig();
+    }
+
+    // Charger la configuration des thèmes depuis localStorage
+    loadThemesConfig() {
+        try {
+            const saved = localStorage.getItem('crosswordThemesConfig');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.selectedThemes && Array.isArray(parsed.selectedThemes)) {
+                    this.selectedThemes = parsed.selectedThemes;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load themes config:', error);
+        }
+    }
+
+    // Sauvegarder la configuration des thèmes dans localStorage
+    saveThemesConfig() {
+        try {
+            localStorage.setItem('crosswordThemesConfig', JSON.stringify({
+                selectedThemes: this.selectedThemes
+            }));
+        } catch (error) {
+            console.error('Failed to save themes config:', error);
+        }
     }
 
     async init() {
@@ -56,6 +89,10 @@ class CrosswordGame {
                 { label: 'Temps', id: 'timer', value: '00:00' },
                 { label: 'Indices', id: 'hints-used', value: `0/${this.config.maxHints}` }
             ],
+            rightButton: {
+                icon: '⚙️',
+                id: 'config-btn'
+            },
             reward: this.config.reward
         });
 
@@ -155,23 +192,60 @@ class CrosswordGame {
             const response = await authService.fetchAPI(`/word-search/themes/${user.id}/available`);
             const data = await response.json();
 
-            // Récupérer tous les mots avec leurs définitions (dédupliquer par mot)
-            const wordsMap = new Map();
+            // Stocker les thèmes disponibles avec leurs mots
+            this.wordsByTheme = {};
+            this.availableThemes = [];
+
             data.themes.forEach(theme => {
                 if (theme.words && theme.words.length > 0) {
-                    theme.words.forEach(w => {
-                        if (w.definition && !wordsMap.has(w.word)) {
-                            wordsMap.set(w.word, {
-                                word: w.word,
-                                definition: w.definition
-                            });
-                        }
-                    });
+                    const themeKey = theme.slug || 'generic';
+
+                    // Filtrer les mots avec définition
+                    const wordsWithDefinitions = theme.words.filter(w => w.definition);
+
+                    if (wordsWithDefinitions.length > 0) {
+                        this.wordsByTheme[themeKey] = wordsWithDefinitions.map(w => ({
+                            word: w.word,
+                            definition: w.definition
+                        }));
+
+                        this.availableThemes.push({
+                            slug: themeKey,
+                            name: theme.name || 'Mots génériques',
+                            wordCount: wordsWithDefinitions.length
+                        });
+                    }
                 }
             });
 
+            console.log('📚 Loaded themes:', this.availableThemes);
+            console.log('📖 Words by theme:', Object.keys(this.wordsByTheme).map(k => `${k}: ${this.wordsByTheme[k].length}`));
+
+            // Si aucun thème n'est sélectionné, sélectionner tous les thèmes disponibles
+            if (this.selectedThemes.length === 0 && this.availableThemes.length > 0) {
+                this.selectedThemes = this.availableThemes.map(t => t.slug);
+                this.saveThemesConfig();
+                console.log('🎯 Premier lancement : tous les thèmes sélectionnés par défaut');
+            }
+
+            // Récupérer tous les mots avec leurs définitions depuis les thèmes sélectionnés
+            this.allWords = [];
+            this.selectedThemes.forEach(themeSlug => {
+                if (this.wordsByTheme[themeSlug]) {
+                    this.allWords = this.allWords.concat(this.wordsByTheme[themeSlug]);
+                }
+            });
+
+            // Dédupliquer les mots
+            const wordsMap = new Map();
+            this.allWords.forEach(w => {
+                if (!wordsMap.has(w.word)) {
+                    wordsMap.set(w.word, w);
+                }
+            });
             this.allWords = Array.from(wordsMap.values());
-            console.log('📚 Loaded words with definitions:', this.allWords.length);
+
+            console.log('✅ Total words available:', this.allWords.length);
         } catch (error) {
             console.error('Failed to load words:', error);
             Toast.error('Erreur lors du chargement des mots');
@@ -184,13 +258,29 @@ class CrosswordGame {
             horizontalClues: document.getElementById('horizontal-clues'),
             verticalClues: document.getElementById('vertical-clues'),
             newGameBtn: document.getElementById('new-game-btn'),
-            hintBtn: document.getElementById('hint-btn')
+            hintBtn: document.getElementById('hint-btn'),
+            configBtn: document.getElementById('config-btn'),
+            configModal: document.getElementById('config-modal'),
+            gridSizeOptions: document.getElementById('grid-size-options'),
+            themesList: document.getElementById('themes-list'),
+            configSaveBtn: document.getElementById('config-save-btn'),
+            configCancelBtn: document.getElementById('config-cancel-btn')
         };
     }
 
     attachEvents() {
         this.elements.newGameBtn.addEventListener('click', () => this.startNewGame());
         this.elements.hintBtn.addEventListener('click', () => this.useHint());
+
+        // Events modale de configuration
+        this.elements.configBtn.addEventListener('click', () => this.openConfigModal());
+        this.elements.configCancelBtn.addEventListener('click', () => this.closeConfigModal());
+        this.elements.configSaveBtn.addEventListener('click', () => this.saveConfigModal());
+        this.elements.configModal.addEventListener('click', (e) => {
+            if (e.target === this.elements.configModal) {
+                this.closeConfigModal();
+            }
+        });
     }
 
     startNewGame() {
@@ -857,6 +947,114 @@ class CrosswordGame {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Ouvrir la modale de configuration
+    openConfigModal() {
+        // Pas de sélection de taille de grille pour les mots croisés (pour l'instant)
+        // On masque la section de taille de grille
+        const gridSizeSection = this.elements.gridSizeOptions.closest('.config-section');
+        if (gridSizeSection) {
+            gridSizeSection.style.display = 'none';
+        }
+
+        // Générer la liste des thèmes
+        const themesHTML = this.availableThemes.map(theme => {
+            // Emoji spécial pour le thème générique
+            const emoji = theme.slug === 'generic' ? '🎲 ' : '';
+            return `
+                <div class="theme-option ${this.selectedThemes.includes(theme.slug) ? 'selected' : ''}" data-theme="${theme.slug}">
+                    <div class="theme-checkbox"></div>
+                    <div class="theme-info">
+                        <div class="theme-name">${emoji}${theme.name}</div>
+                        <div class="theme-words-count">${theme.wordCount} mots disponibles</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        this.elements.themesList.innerHTML = themesHTML;
+
+        // Attacher les événements sur les thèmes
+        this.elements.themesList.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', () => {
+                // Toggle ce thème
+                option.classList.toggle('selected');
+
+                // Toujours garder au moins un thème sélectionné
+                const hasSelection = Array.from(this.elements.themesList.querySelectorAll('.theme-option')).some(o => o.classList.contains('selected'));
+                if (!hasSelection) {
+                    // Re-sélectionner celui qu'on vient de désélectionner
+                    option.classList.add('selected');
+                    Toast.warning('Tu dois sélectionner au moins un thème !');
+                }
+            });
+        });
+
+        // Afficher la modale
+        this.elements.configModal.classList.add('show');
+    }
+
+    // Fermer la modale de configuration
+    closeConfigModal() {
+        this.elements.configModal.classList.remove('show');
+    }
+
+    // Sauvegarder la configuration
+    async saveConfigModal() {
+        // Récupérer les thèmes sélectionnés
+        const selectedThemeOptions = Array.from(this.elements.themesList.querySelectorAll('.theme-option.selected'));
+        const newSelectedThemes = selectedThemeOptions.map(option => option.dataset.theme);
+
+        // Vérifier qu'au moins un thème est sélectionné
+        if (newSelectedThemes.length === 0) {
+            Toast.error('Tu dois sélectionner au moins un thème !');
+            return;
+        }
+
+        // Vérifier si la configuration a changé
+        const configChanged = JSON.stringify(newSelectedThemes.sort()) !== JSON.stringify(this.selectedThemes.sort());
+
+        // Mettre à jour la config
+        this.selectedThemes = newSelectedThemes;
+
+        // Sauvegarder dans localStorage
+        this.saveThemesConfig();
+
+        // Fermer la modale
+        this.closeConfigModal();
+
+        // Si la config a changé, recharger les mots et redémarrer
+        if (configChanged) {
+            // Récupérer tous les mots depuis les thèmes sélectionnés
+            this.allWords = [];
+            this.selectedThemes.forEach(themeSlug => {
+                if (this.wordsByTheme[themeSlug]) {
+                    this.allWords = this.allWords.concat(this.wordsByTheme[themeSlug]);
+                }
+            });
+
+            // Dédupliquer les mots
+            const wordsMap = new Map();
+            this.allWords.forEach(w => {
+                if (!wordsMap.has(w.word)) {
+                    wordsMap.set(w.word, w);
+                }
+            });
+            this.allWords = Array.from(wordsMap.values());
+
+            console.log('✅ Configuration mise à jour, total words:', this.allWords.length);
+
+            Toast.success('Configuration sauvegardée !');
+
+            // Demander si on veut recommencer
+            const restart = await confirm('Voulez-vous redémarrer une nouvelle partie avec les nouveaux réglages ?');
+            if (restart) {
+                this.startNewGame();
+            }
+        } else {
+            Toast.success('Configuration sauvegardée !');
+        }
     }
 
     shuffleArray(array) {
