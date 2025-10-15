@@ -67,6 +67,7 @@
 
 /* Grille */
 .grid-container {
+    position: relative; /* Pour positionner l'overlay de victoire */
     display: flex;
     justify-content: center;
     background: var(--bg-card);
@@ -75,6 +76,7 @@
     padding: 30px;
     width: 100%;
     box-sizing: border-box;
+    overflow: hidden; /* Pour contenir les confettis */
 }
 
 .word-grid {

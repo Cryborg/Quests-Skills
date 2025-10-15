@@ -777,11 +777,14 @@ class CrosswordGame {
         const hintPenalty = this.hintsUsed * 2;
         const totalCredits = this.config.baseCredits + Math.floor(timeBonus / 120) - hintPenalty;
 
+        // Afficher l'animation de victoire
+        VictoryAnimation.show();
+
         await CreditsManager.addCredits(totalCredits, `Mots croisés complétés en ${this.formatTime(this.timer)}`);
 
         setTimeout(() => {
             Toast.success(`Bravo ! Grille complétée en ${this.formatTime(this.timer)} ! Récompense : +${totalCredits} crédits`);
-        }, 500);
+        }, 3000); // Afficher le toast après l'animation
     }
 
     useHint() {
@@ -865,3 +868,12 @@ class CrosswordGame {
         return shuffled;
     }
 }
+
+// Commande de debug pour tester l'animation
+if (!window.DEBUG) {
+    window.DEBUG = {};
+}
+window.DEBUG.showVictory = () => {
+    VictoryAnimation.show();
+    console.log('🎉 Animation de victoire déclenchée !');
+};

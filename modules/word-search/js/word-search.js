@@ -815,12 +815,15 @@ class WordSearchGame {
         const hintPenalty = this.hintsUsed * 1;
         const totalCredits = 3 + Math.floor(timeBonus / 60) - hintPenalty;
 
+        // Afficher l'animation de victoire
+        VictoryAnimation.show();
+
         // Ajouter les crédits via le gestionnaire centralisé
         await CreditsManager.addCredits(totalCredits, `Mots mêlés complétés en ${this.formatTime(this.timer)}`);
 
         setTimeout(() => {
             Toast.success(`Bravo ! Tous les mots trouvés en ${this.formatTime(this.timer)} ! Récompense : +${totalCredits} crédits`);
-        }, 500);
+        }, 3000); // Afficher le toast après l'animation
     }
 
     updateStats() {
@@ -879,3 +882,11 @@ class WordSearchGame {
 
 // Instance globale
 const wordSearchGame = new WordSearchGame();
+
+// Commande de debug pour tester l'animation
+window.DEBUG = {
+    showVictory: () => {
+        VictoryAnimation.show();
+        console.log('🎉 Animation de victoire déclenchée !');
+    }
+};

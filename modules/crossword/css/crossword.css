@@ -32,6 +32,7 @@
 }
 
 .game-area {
+    position: relative; /* Pour positionner l'overlay de victoire */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -40,6 +41,7 @@
     padding: 2rem 1rem;
     width: 100%;
     box-sizing: border-box;
+    overflow: hidden; /* Pour contenir les confettis */
 }
 
 #crossword-grid {

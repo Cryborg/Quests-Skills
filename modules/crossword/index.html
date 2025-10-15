@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="../../shared/css/navigation.css">
     <link rel="stylesheet" href="../../shared/css/page-header.css">
     <link rel="stylesheet" href="../../shared/css/reward-badge.css">
+    <link rel="stylesheet" href="../../shared/css/victory-animation.css">
     <link rel="stylesheet" href="css/crossword.css">
 </head>
 <body>
@@ -27,6 +28,14 @@
 
             <div class="game-area">
                 <div id="crossword-grid"></div>
+
+                <!-- Animation de victoire -->
+                <div id="victory-overlay" class="victory-overlay">
+                    <div class="victory-content">
+                        <div class="victory-message">GAGNÉ !</div>
+                        <div class="confetti-container" id="confetti-container"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="clues-container">
@@ -56,6 +65,7 @@
     <script src="../../shared/js/game-rating.js"></script>
     <script src="../../shared/js/game-rating-modal.js"></script>
     <script src="../../shared/js/game-help-modal.js"></script>
+    <script src="../../shared/js/victory-animation.js"></script>
 
     <!-- Script du module -->
     <script src="js/crossword.js"></script>
