@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../../shared/css/game-rating.css">
     <link rel="stylesheet" href="../../shared/css/game-help-modal.css">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/config-modal.css">
 </head>
 <body>
     <div class="container">
@@ -39,6 +40,48 @@
 
             <div id="toast" class="toast"></div>
         </main>
+    </div>
+
+    <!-- Modale de configuration -->
+    <div id="config-modal" class="config-modal-overlay">
+        <div class="config-modal">
+            <div class="config-modal-header">
+                <span class="config-modal-icon">⚙️</span>
+                <h2 class="config-modal-title">Configuration</h2>
+            </div>
+
+            <!-- Taille de la grille -->
+            <div class="config-section">
+                <h3 class="config-section-title">
+                    📐 Taille de la grille
+                </h3>
+                <p class="config-section-description">
+                    Choisis la taille de la grille. Plus elle est grande, plus il y aura de mots à trouver.
+                </p>
+                <div class="grid-size-options" id="grid-size-options">
+                    <!-- Généré dynamiquement -->
+                </div>
+            </div>
+
+            <!-- Sélection des thèmes -->
+            <div class="config-section">
+                <h3 class="config-section-title">
+                    🎨 Thèmes des mots
+                </h3>
+                <p class="config-section-description">
+                    Sélectionne les thèmes dont tu veux que les mots soient tirés. Tu peux en sélectionner plusieurs. Les mots seront tirés aléatoirement parmi les thèmes choisis.
+                </p>
+                <div class="themes-list" id="themes-list">
+                    <!-- Généré dynamiquement -->
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="config-modal-actions">
+                <button id="config-cancel-btn" class="btn-secondary">Annuler</button>
+                <button id="config-save-btn" class="btn-primary">Sauvegarder</button>
+            </div>
+        </div>
     </div>
 
     <script src="../../shared/js/common.js"></script>

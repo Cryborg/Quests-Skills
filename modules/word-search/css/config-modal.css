@@ -1,0 +1,230 @@
+/* Modale de configuration */
+.config-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.config-modal-overlay.show {
+    display: flex;
+}
+
+.config-modal {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.config-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.config-modal-icon {
+    font-size: 32px;
+}
+
+.config-modal-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.config-section {
+    margin-bottom: 24px;
+}
+
+.config-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.config-section-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+/* Sélecteur de taille de grille */
+.grid-size-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 10px;
+}
+
+.grid-size-option {
+    padding: 12px 16px;
+    background: var(--bg-tertiary);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.grid-size-option:hover {
+    background: var(--bg-hover);
+    transform: translateY(-2px);
+}
+
+.grid-size-option.selected {
+    border-color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary-color);
+}
+
+.grid-size-label {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.grid-size-words {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* Sélecteur de thèmes */
+.themes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 2px;
+}
+
+.theme-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.theme-option:hover {
+    background: var(--bg-hover);
+}
+
+.theme-option.selected {
+    border-color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.theme-checkbox {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.theme-option.selected .theme-checkbox {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.theme-checkbox::after {
+    content: '✓';
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.theme-option.selected .theme-checkbox::after {
+    opacity: 1;
+}
+
+.theme-info {
+    flex: 1;
+}
+
+.theme-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.theme-words-count {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+
+/* Actions de la modale */
+.config-modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.config-modal-actions .btn-secondary,
+.config-modal-actions .btn-primary {
+    flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .config-modal {
+        padding: 20px;
+        max-height: 85vh;
+    }
+
+    .config-modal-header {
+        margin-bottom: 20px;
+    }
+
+    .config-modal-title {
+        font-size: 20px;
+    }
+
+    .grid-size-options {
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    }
+
+    .config-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .config-modal-actions .btn-secondary,
+    .config-modal-actions .btn-primary {
+        width: 100%;
+    }
+}

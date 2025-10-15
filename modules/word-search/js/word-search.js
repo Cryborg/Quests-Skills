@@ -15,9 +15,65 @@ class WordSearchGame {
 
         // Listes de mots par thème (chargées depuis la BDD)
         this.wordLists = {};
+        this.availableThemes = [];
+
+        // Configuration (chargée depuis localStorage)
+        this.config = this.loadConfig();
+    }
+
+    // Charger la configuration depuis localStorage
+    loadConfig() {
+        const defaultConfig = {
+            gridSize: 12,
+            selectedThemes: [] // Vide = tous les thèmes seront sélectionnés au premier lancement
+        };
+
+        try {
+            const saved = localStorage.getItem('wordSearchConfig');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Valider la taille de grille
+                if (parsed.gridSize && [8, 10, 12, 15, 20, 30].includes(parsed.gridSize)) {
+                    defaultConfig.gridSize = parsed.gridSize;
+                }
+                // Valider les thèmes sélectionnés
+                if (parsed.selectedThemes && Array.isArray(parsed.selectedThemes)) {
+                    defaultConfig.selectedThemes = parsed.selectedThemes;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load config:', error);
+        }
+
+        return defaultConfig;
+    }
+
+    // Sauvegarder la configuration dans localStorage
+    saveConfig() {
+        try {
+            localStorage.setItem('wordSearchConfig', JSON.stringify(this.config));
+        } catch (error) {
+            console.error('Failed to save config:', error);
+        }
+    }
+
+    // Obtenir le nombre de mots en fonction de la taille de la grille
+    getWordCountForGridSize(size) {
+        const wordCounts = {
+            8: 6,
+            10: 8,
+            12: 12,
+            15: 15,
+            20: 20,
+            30: 30
+        };
+        return wordCounts[size] || 10;
     }
 
     async init() {
+        // Appliquer la taille de grille depuis la config
+        this.gridSize = this.config.gridSize;
+
         // Créer le header avec les stats
         PageHeader.render({
             icon: '🔍',
@@ -43,6 +99,10 @@ class WordSearchGame {
                 { label: 'Temps', id: 'timer', value: '00:00' },
                 { label: 'Indices', id: 'hints-used', value: '0/3' }
             ],
+            rightButton: {
+                icon: '⚙️',
+                id: 'config-btn'
+            },
             reward: {
                 baseCredits: 3,
                 bonusText: '+ bonus temps'
@@ -122,6 +182,13 @@ class WordSearchGame {
         // Charger les listes de mots depuis la base de données
         await this.loadWordLists();
 
+        // Si aucun thème n'est sélectionné, sélectionner tous les thèmes disponibles
+        if (this.config.selectedThemes.length === 0 && this.availableThemes.length > 0) {
+            this.config.selectedThemes = this.availableThemes.map(t => t.slug);
+            this.saveConfig();
+            console.log('🎯 Premier lancement : tous les thèmes sélectionnés par défaut');
+        }
+
         this.cacheElements();
         this.attachEvents();
 
@@ -140,15 +207,25 @@ class WordSearchGame {
             const response = await authService.fetchAPI(`/word-search/themes/${user.id}/available`);
             const data = await response.json();
 
-            // Transformer les thèmes en wordLists
+            // Transformer les thèmes en wordLists et stocker les thèmes disponibles
             this.wordLists = {};
+            this.availableThemes = [];
+
             data.themes.forEach(theme => {
                 if (theme.words && theme.words.length > 0) {
-                    this.wordLists[theme.slug] = theme.words.map(w => w.word);
+                    // Si theme.slug est null, c'est le thème "generic" (mots sans thème)
+                    const themeKey = theme.slug || 'generic';
+                    this.wordLists[themeKey] = theme.words.map(w => w.word);
+                    this.availableThemes.push({
+                        slug: themeKey,
+                        name: theme.name || 'Mots génériques',
+                        wordCount: theme.words.length
+                    });
                 }
             });
 
             console.log('📚 Loaded word lists:', this.wordLists);
+            console.log('🎨 Available themes:', this.availableThemes);
 
             // Vérifier qu'on a au moins un thème
             if (Object.keys(this.wordLists).length === 0) {
@@ -165,7 +242,13 @@ class WordSearchGame {
             grid: document.getElementById('word-grid'),
             wordsList: document.getElementById('words-list'),
             newGameBtn: document.getElementById('new-game-btn'),
-            hintBtn: document.getElementById('hint-btn')
+            hintBtn: document.getElementById('hint-btn'),
+            configBtn: document.getElementById('config-btn'),
+            configModal: document.getElementById('config-modal'),
+            gridSizeOptions: document.getElementById('grid-size-options'),
+            themesList: document.getElementById('themes-list'),
+            configSaveBtn: document.getElementById('config-save-btn'),
+            configCancelBtn: document.getElementById('config-cancel-btn')
         };
     }
 
@@ -182,6 +265,16 @@ class WordSearchGame {
         this.elements.grid.addEventListener('touchstart', (e) => this.onTouchStart(e));
         this.elements.grid.addEventListener('touchmove', (e) => this.onTouchMove(e));
         this.elements.grid.addEventListener('touchend', () => this.onMouseUp());
+
+        // Events modale de configuration
+        this.elements.configBtn.addEventListener('click', () => this.openConfigModal());
+        this.elements.configCancelBtn.addEventListener('click', () => this.closeConfigModal());
+        this.elements.configSaveBtn.addEventListener('click', () => this.saveConfigModal());
+        this.elements.configModal.addEventListener('click', (e) => {
+            if (e.target === this.elements.configModal) {
+                this.closeConfigModal();
+            }
+        });
     }
 
     async checkForSavedGame() {
@@ -283,15 +376,147 @@ class WordSearchGame {
         }
     }
 
-    startNewGame() {
-        // Choisir un thème aléatoire
-        const themes = Object.keys(this.wordLists);
-        const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+    // Ouvrir la modale de configuration
+    openConfigModal() {
+        // Générer les options de taille de grille
+        const gridSizes = [
+            { size: 8, words: 6 },
+            { size: 10, words: 8 },
+            { size: 12, words: 12 },
+            { size: 15, words: 15 },
+            { size: 20, words: 20 },
+            { size: 30, words: 30 }
+        ];
 
-        // Sélectionner jusqu'à 10 mots du thème
-        const themeWords = [...this.wordLists[randomTheme]];
-        const numWords = Math.min(10, themeWords.length); // Jusqu'à 10 mots (ou moins si pas assez de mots)
-        this.words = this.shuffleArray(themeWords).slice(0, numWords);
+        this.elements.gridSizeOptions.innerHTML = gridSizes.map(({ size, words }) => `
+            <div class="grid-size-option ${this.config.gridSize === size ? 'selected' : ''}" data-size="${size}">
+                <div class="grid-size-label">${size}×${size}</div>
+                <div class="grid-size-words">${words} mots</div>
+            </div>
+        `).join('');
+
+        // Générer la liste des thèmes (le thème "generic" s'affichera avec les autres)
+        const themesHTML = this.availableThemes.map(theme => {
+            // Emoji spécial pour le thème générique
+            const emoji = theme.slug === 'generic' ? '🎲 ' : '';
+            return `
+                <div class="theme-option ${this.config.selectedThemes.includes(theme.slug) ? 'selected' : ''}" data-theme="${theme.slug}">
+                    <div class="theme-checkbox"></div>
+                    <div class="theme-info">
+                        <div class="theme-name">${emoji}${theme.name}</div>
+                        <div class="theme-words-count">${theme.wordCount} mots disponibles</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        this.elements.themesList.innerHTML = themesHTML;
+
+        // Attacher les événements
+        this.elements.gridSizeOptions.querySelectorAll('.grid-size-option').forEach(option => {
+            option.addEventListener('click', () => {
+                this.elements.gridSizeOptions.querySelectorAll('.grid-size-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+
+        this.elements.themesList.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', () => {
+                // Toggle ce thème
+                option.classList.toggle('selected');
+
+                // Toujours garder au moins un thème sélectionné
+                const hasSelection = Array.from(this.elements.themesList.querySelectorAll('.theme-option')).some(o => o.classList.contains('selected'));
+                if (!hasSelection) {
+                    // Re-sélectionner celui qu'on vient de désélectionner
+                    option.classList.add('selected');
+                    Toast.warning('Tu dois sélectionner au moins un thème !');
+                }
+            });
+        });
+
+        // Afficher la modale
+        this.elements.configModal.classList.add('show');
+    }
+
+    // Fermer la modale de configuration
+    closeConfigModal() {
+        this.elements.configModal.classList.remove('show');
+    }
+
+    // Sauvegarder la configuration
+    async saveConfigModal() {
+        // Récupérer la taille de grille sélectionnée
+        const selectedSizeOption = this.elements.gridSizeOptions.querySelector('.grid-size-option.selected');
+        const newGridSize = parseInt(selectedSizeOption.dataset.size);
+
+        // Récupérer les thèmes sélectionnés
+        const selectedThemeOptions = Array.from(this.elements.themesList.querySelectorAll('.theme-option.selected'));
+        const newSelectedThemes = selectedThemeOptions.map(option => option.dataset.theme);
+
+        // Vérifier qu'au moins un thème est sélectionné
+        if (newSelectedThemes.length === 0) {
+            Toast.error('Tu dois sélectionner au moins un thème !');
+            return;
+        }
+
+        // Vérifier si la configuration a changé
+        const configChanged = newGridSize !== this.config.gridSize ||
+                             JSON.stringify(newSelectedThemes.sort()) !== JSON.stringify(this.config.selectedThemes.sort());
+
+        // Mettre à jour la config
+        this.config.gridSize = newGridSize;
+        this.config.selectedThemes = newSelectedThemes;
+        this.gridSize = newGridSize;
+
+        // Sauvegarder dans localStorage
+        this.saveConfig();
+
+        // Fermer la modale
+        this.closeConfigModal();
+
+        // Si la config a changé et qu'une partie est en cours, demander si on veut recommencer
+        if (configChanged && this.foundWords.size > 0) {
+            const restart = await confirm('La configuration a changé. Voulez-vous redémarrer une nouvelle partie avec les nouveaux réglages ?');
+            if (restart) {
+                await this.deleteSavedGame();
+                this.startNewGame();
+            }
+        } else if (configChanged) {
+            Toast.success('Configuration sauvegardée !');
+        }
+    }
+
+    startNewGame() {
+        console.log('🎮 Starting new game with config:', this.config);
+
+        // Utiliser uniquement les thèmes sélectionnés dans la config
+        const availableThemes = this.config.selectedThemes.filter(theme => this.wordLists[theme]);
+        console.log('📚 Available themes:', availableThemes);
+
+        // Si aucun thème disponible, afficher une erreur
+        if (availableThemes.length === 0) {
+            Toast.error('Aucun thème disponible avec cette configuration');
+            return;
+        }
+
+        // Mélanger TOUS les mots de TOUS les thèmes sélectionnés
+        let allWords = [];
+        availableThemes.forEach(themeSlug => {
+            if (this.wordLists[themeSlug]) {
+                console.log(`  Adding ${this.wordLists[themeSlug].length} words from theme "${themeSlug}"`);
+                allWords = allWords.concat(this.wordLists[themeSlug]);
+            }
+        });
+        console.log(`🎯 Total words pool: ${allWords.length} words`);
+
+        // Calculer le nombre de mots en fonction de la taille de grille
+        const numWords = this.getWordCountForGridSize(this.gridSize);
+        console.log(`📐 Grid size: ${this.gridSize}, Words to select: ${numWords}`);
+
+        // Sélectionner aléatoirement parmi tous les mots disponibles
+        this.words = this.shuffleArray(allWords).slice(0, Math.min(numWords, allWords.length));
+        console.log(`✅ Selected words:`, this.words);
 
         this.foundWords.clear();
         this.hintsUsed = 0;

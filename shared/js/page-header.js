@@ -9,9 +9,10 @@ class PageHeader {
      * @param {Array} [config.actions] - Boutons d'action [{icon, text, id, className}]
      * @param {Array} [config.stats] - Stats à afficher [{label, id, value}]
      * @param {Object} [config.reward] - Badge de récompense {baseCredits, bonusText, size}
+     * @param {Object} [config.rightButton] - Bouton à droite des stats {icon, id}
      */
     static render(config) {
-        const { icon, title, subtitle, actions = [], stats = [], reward = null } = config;
+        const { icon, title, subtitle, actions = [], stats = [], reward = null, rightButton = null } = config;
 
         // Créer le HTML du header
         let headerHTML = `
@@ -57,8 +58,10 @@ class PageHeader {
         headerHTML += '</div>'; // Ferme page-header-top
 
         // Ajouter les stats si présentes
-        if (stats.length > 0) {
+        if (stats.length > 0 || rightButton) {
             headerHTML += '<div class="page-header-stats">';
+
+            // Stats
             stats.forEach(stat => {
                 headerHTML += `
                     <div class="page-header-stat">
@@ -67,6 +70,16 @@ class PageHeader {
                     </div>
                 `;
             });
+
+            // Bouton à droite des stats
+            if (rightButton) {
+                headerHTML += `
+                    <button id="${rightButton.id}" class="page-header-stats-btn" title="Configuration">
+                        ${rightButton.icon}
+                    </button>
+                `;
+            }
+
             headerHTML += '</div>';
         }
 

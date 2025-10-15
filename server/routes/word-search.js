@@ -90,6 +90,18 @@ router.get('/themes/:userId/available',
     );
     const genericWords = genericWordsResult.rows;
 
+    // Ajouter les mots génériques comme un thème séparé
+    if (genericWords.length > 0) {
+      themes.push({
+        id: null,
+        slug: null,
+        name: 'Mots génériques',
+        icon: '📝',
+        words: genericWords,
+        wordCount: genericWords.length
+      });
+    }
+
     // Récupérer uniquement les thèmes que l'utilisateur a débloqués
     if (userCardThemes.length > 0) {
       const placeholders = DBHelpers.buildInClause(userCardThemes);
@@ -117,22 +129,9 @@ router.get('/themes/:userId/available',
         wordsByTheme[word.theme_slug].push(word);
       });
 
-      // Pour chaque thème, combiner avec les mots génériques
+      // Pour chaque thème, ne garder QUE les mots du thème (sans les génériques)
       for (const theme of themesResult.rows) {
-        const themeWords = wordsByTheme[theme.slug] || [];
-
-        // Combiner les mots du thème + les mots génériques en évitant les doublons
-        const allWords = [...themeWords, ...genericWords];
-        const uniqueWordsMap = new Map();
-
-        // Garder seulement le premier mot de chaque texte (dédupliquer par le mot lui-même)
-        allWords.forEach(wordObj => {
-          if (!uniqueWordsMap.has(wordObj.word)) {
-            uniqueWordsMap.set(wordObj.word, wordObj);
-          }
-        });
-
-        theme.words = Array.from(uniqueWordsMap.values());
+        theme.words = wordsByTheme[theme.slug] || [];
         theme.wordCount = theme.words.length;
 
         if (theme.wordCount >= 5) {

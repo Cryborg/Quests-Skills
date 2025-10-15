@@ -181,7 +181,7 @@ async function seedCards() {
             description: 'Lien évolutif entre dinosaures et oiseaux.'
         },
 
-        // JEUX VIDÉO (8 cartes)
+        // JEUX VIDÉO (12 cartes)
         {
             name: 'Mario',
             image: 'mario.webp',
@@ -211,13 +211,6 @@ async function seedCards() {
             description: 'Le hérisson bleu plus rapide que le son.'
         },
         {
-            name: 'Master Chief',
-            image: 'master_chief.webp',
-            category: 'jeux-videos',
-            base_rarity: 'epic',
-            description: 'Spartan légendaire de Halo.'
-        },
-        {
             name: 'Pac-Man',
             image: 'pacman.webp',
             category: 'jeux-videos',
@@ -232,81 +225,11 @@ async function seedCards() {
             description: 'Aventurière intrépide et chasseuse de trésors.'
         },
         {
-            name: 'Kratos',
-            image: 'kratos.webp',
-            category: 'jeux-videos',
-            base_rarity: 'common',
-            description: 'Le Dieu de la Guerre spartiate.'
-        },
-        {
-            name: 'Samus Aran',
-            image: 'samus_aran.webp',
-            category: 'jeux-videos',
-            base_rarity: 'epic',
-            description: 'Chasseuse de primes intergalactique.'
-        },
-        {
             name: 'Cloud Strife',
             image: 'cloud_strife.webp',
             category: 'jeux-videos',
             base_rarity: 'very_rare',
             description: 'Mercenaire à l\'épée démesurée.'
-        },
-        {
-            name: 'Geralt',
-            image: 'geralt.webp',
-            category: 'jeux-videos',
-            base_rarity: 'epic',
-            description: 'Sorceleur chasseur de monstres.'
-        },
-        {
-            name: 'Ezio Auditore',
-            image: 'ezio.webp',
-            category: 'jeux-videos',
-            base_rarity: 'rare',
-            description: 'Maître assassin de la Renaissance.'
-        },
-        {
-            name: 'Gordon Freeman',
-            image: 'gordon_freeman.webp',
-            category: 'jeux-videos',
-            base_rarity: 'rare',
-            description: 'Scientifique devenu héros malgré lui.'
-        },
-        {
-            name: 'Doom Slayer',
-            image: 'doom_slayer.webp',
-            category: 'jeux-videos',
-            base_rarity: 'legendary',
-            description: 'Tueur de démons implacable.'
-        },
-        {
-            name: 'Solid Snake',
-            image: 'solid_snake.webp',
-            category: 'jeux-videos',
-            base_rarity: 'very_rare',
-            description: 'Agent infiltré légendaire.'
-        },
-        {
-            name: 'Marcus Fenix',
-            image: 'marcus_fenix.webp',
-            category: 'jeux-videos',
-            base_rarity: 'rare',
-            description: 'Soldat emblématique de Gears of War.'
-        },
-        {
-            name: 'Commander Shepard',
-            image: 'commander_shepard.webp',
-            category: 'jeux-videos',
-            base_rarity: 'epic',
-            description: 'Sauveur de la galaxie.'
-        },
-        {
-            name: 'Sora',
-            image: 'sora.webp',
-            category: 'jeux-videos',
-            base_rarity: 'rare',
-            description: 'Porteur de la Keyblade.'
         },
         {
             name: 'Aerith',
@@ -323,53 +246,11 @@ async function seedCards() {
             description: 'Chasseuse dans un monde post-apocalyptique.'
         },
         {
-            name: 'Ellie',
-            image: 'ellie.webp',
-            category: 'jeux-videos',
-            base_rarity: 'very_rare',
-            description: 'Survivante courageuse de The Last of Us.'
-        },
-        {
-            name: 'Arthur Morgan',
-            image: 'arthur_morgan.webp',
-            category: 'jeux-videos',
-            base_rarity: 'epic',
-            description: 'Hors-la-loi au grand cœur.'
-        },
-        {
-            name: 'Ryu',
-            image: 'ryu.webp',
-            category: 'jeux-videos',
-            base_rarity: 'common',
-            description: 'Maître du Hadouken.'
-        },
-        {
-            name: 'Scorpion',
-            image: 'scorpion.webp',
-            category: 'jeux-videos',
-            base_rarity: 'rare',
-            description: 'Ninja vengeur aux enfers.'
-        },
-        {
-            name: 'Kazuya Mishima',
-            image: 'kazuya.webp',
-            category: 'jeux-videos',
-            base_rarity: 'rare',
-            description: 'Combattant possédé par le démon.'
-        },
-        {
             name: 'Kirby',
             image: 'kirby.webp',
             category: 'jeux-videos',
             base_rarity: 'common',
             description: 'Boule rose adorable et redoutable.'
-        },
-        {
-            name: 'Mega Man',
-            image: 'mega_man.webp',
-            category: 'jeux-videos',
-            base_rarity: 'rare',
-            description: 'Robot combattant le mal.'
         },
         {
             name: 'Crash Bandicoot',
@@ -384,13 +265,6 @@ async function seedCards() {
             category: 'jeux-videos',
             base_rarity: 'common',
             description: 'Petit dragon violet intrépide.'
-        },
-        {
-            name: 'Nathan Drake',
-            image: 'nathan_drake.webp',
-            category: 'jeux-videos',
-            base_rarity: 'rare',
-            description: 'Aventurier et chasseur de trésors.'
         }
     ];
 

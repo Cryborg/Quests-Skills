@@ -109,6 +109,7 @@
     padding-top: 16px;
     border-top: 1px solid var(--border-color);
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .page-header-stat {
@@ -126,6 +127,32 @@
     color: var(--text-primary);
     font-weight: 600;
     font-size: 1.1rem;
+}
+
+/* Bouton à droite des stats */
+.page-header-stats-btn {
+    margin-left: auto;
+    padding: 8px 12px;
+    background: var(--bg-hover);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-header-stats-btn:hover {
+    background: var(--bg-primary);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.page-header-stats-btn:active {
+    transform: translateY(0);
 }
 
 /* États warning/danger pour les stats d'essais */
