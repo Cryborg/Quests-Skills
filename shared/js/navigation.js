@@ -46,6 +46,11 @@ class NavigationUI {
                         id: 'sudoku'
                     },
                     {
+                        label: 'Mastermind',
+                        href: '/modules/mastermind/index.html',
+                        id: 'mastermind'
+                    },
+                    {
                         label: 'Mots mêlés',
                         href: '/modules/word-search/index.html',
                         id: 'word-search'

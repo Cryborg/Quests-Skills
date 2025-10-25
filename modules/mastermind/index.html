@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Mastermind</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="../../shared/css/theme.css">
+    <link rel="stylesheet" href="../../shared/css/navigation.css">
+    <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="../../shared/css/reward-badge.css">
+    <link rel="stylesheet" href="../../shared/css/victory-animation.css">
+    <link rel="stylesheet" href="css/mastermind.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header injecté automatiquement par PageHeader.render() -->
+
+        <main class="main-content">
+            <!-- Sélection de la difficulté -->
+            <div id="difficulty-selector" class="game-area">
+                <h2>Choisissez votre niveau</h2>
+                <div class="difficulty-buttons">
+                    <button class="btn-primary difficulty-btn" data-level="3">
+                        <div class="difficulty-title">🟢 Facile</div>
+                        <div class="difficulty-desc">3 couleurs (pas de piège)</div>
+                    </button>
+                    <button class="btn-primary difficulty-btn" data-level="4">
+                        <div class="difficulty-title">🟡 Moyen</div>
+                        <div class="difficulty-desc">4 couleurs (+ 1 en trop)</div>
+                    </button>
+                    <button class="btn-primary difficulty-btn" data-level="5">
+                        <div class="difficulty-title">🔴 Difficile</div>
+                        <div class="difficulty-desc">5 couleurs (+ 2 en trop)</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Zone de jeu -->
+            <div id="game-container" class="game-area" style="display: none;">
+                <!-- Palette de couleurs -->
+                <div id="color-palette" class="color-palette"></div>
+
+                <!-- Historique des tentatives (inclut la tentative en cours) -->
+                <div id="attempts-history" class="attempts-history"></div>
+
+                <!-- Animation de victoire -->
+                <div id="victory-overlay" class="victory-overlay">
+                    <div class="victory-content">
+                        <div class="victory-message">GAGNÉ !</div>
+                        <div class="confetti-container" id="confetti-container"></div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="game-actions">
+                    <button id="reset-btn" class="btn-secondary">Recommencer</button>
+                    <button id="back-to-menu-btn" class="btn-secondary">Changer de niveau</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Toast pour les notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <!-- Scripts partagés -->
+    <script src="../../shared/js/common.js"></script>
+    <script src="../../shared/js/auth-ui.js"></script>
+    <script src="../../shared/js/reward-badge.js"></script>
+    <script src="../../shared/js/victory-animation.js"></script>
+
+    <!-- Script du module -->
+    <script src="js/mastermind.js"></script>
+
+    <!-- Initialisation de l'auth -->
+    <script>
+        // Attendre que common.js ait chargé tous les scripts partagés
+        window.addEventListener('common-scripts-loaded', async () => {
+            const isAuth = await authService.init();
+
+            if (!isAuth) {
+                window.location.href = '/';
+            } else {
+                await navigationUI.init();
+                await mastermindGame.init();
+            }
+        });
+    </script>
+</body>
+</html>

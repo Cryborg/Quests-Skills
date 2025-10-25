@@ -1,0 +1,249 @@
+/* Zone de jeu avec position relative pour l'overlay de victoire */
+#game-container {
+    position: relative;
+}
+
+/* Sélection de difficulté */
+.difficulty-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.difficulty-btn {
+    padding: 20px;
+    font-size: 1.1rem;
+}
+
+.difficulty-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.difficulty-desc {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Palette de couleurs */
+.color-palette {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.color-peg {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.color-peg:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.color-peg.selected {
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    transform: scale(1.15);
+}
+
+.color-peg.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.color-peg.disabled::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-50%) rotate(-45deg);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.color-peg.disabled:hover {
+    transform: none;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Couleurs disponibles */
+.color-red { background: linear-gradient(135deg, #ff4444, #cc0000); }
+.color-blue { background: linear-gradient(135deg, #4444ff, #0000cc); }
+.color-green { background: linear-gradient(135deg, #44ff44, #00cc00); }
+.color-yellow { background: linear-gradient(135deg, #ffff44, #cccc00); }
+.color-purple { background: linear-gradient(135deg, #ff44ff, #cc00cc); }
+.color-orange { background: linear-gradient(135deg, #ff9944, #cc6600); }
+.color-cyan { background: linear-gradient(135deg, #44ffff, #00cccc); }
+.color-pink { background: linear-gradient(135deg, #ffaaee, #ff66cc); }
+
+/* Historique des tentatives */
+.attempts-history {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    margin-bottom: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.attempt-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    gap: 15px;
+}
+
+.attempt-row.empty-attempt {
+    opacity: 0.3;
+}
+
+.attempt-row.current-attempt {
+    background: rgba(255, 255, 255, 0.12);
+    outline: 2px solid rgba(100, 200, 255, 0.4);
+    outline-offset: -2px;
+    box-shadow: 0 0 15px rgba(100, 200, 255, 0.2);
+}
+
+.attempt-number {
+    font-weight: bold;
+    min-width: 60px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.pegs-container {
+    display: flex;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+}
+
+.peg-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.peg {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.peg:hover:not(.filled) {
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
+}
+
+.peg.filled {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.peg.locked {
+    border: 3px solid #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    cursor: not-allowed;
+}
+
+.peg.locked:hover {
+    transform: none;
+}
+
+/* Appliquer les couleurs aux pions remplis */
+.peg.color-red { background: linear-gradient(135deg, #ff4444, #cc0000); }
+.peg.color-blue { background: linear-gradient(135deg, #4444ff, #0000cc); }
+.peg.color-green { background: linear-gradient(135deg, #44ff44, #00cc00); }
+.peg.color-yellow { background: linear-gradient(135deg, #ffff44, #cccc00); }
+.peg.color-purple { background: linear-gradient(135deg, #ff44ff, #cc00cc); }
+.peg.color-orange { background: linear-gradient(135deg, #ff9944, #cc6600); }
+.peg.color-cyan { background: linear-gradient(135deg, #44ffff, #00cccc); }
+.peg.color-pink { background: linear-gradient(135deg, #ffaaee, #ff66cc); }
+
+.peg.empty {
+    background: rgba(0, 0, 0, 0.2);
+    cursor: default;
+}
+
+/* Indicateurs de feedback */
+.feedback-indicator {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    border: 2px solid;
+}
+
+.feedback-indicator.correct {
+    background: #22c55e;
+    border-color: #16a34a;
+    color: white;
+}
+
+.feedback-indicator.present {
+    background: #f59e0b;
+    border-color: #d97706;
+    color: white;
+}
+
+.feedback-indicator.absent {
+    background: #ef4444;
+    border-color: #dc2626;
+    color: white;
+}
+
+/* Tentative en cours - maintenant intégrée dans l'historique */
+
+#validate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Animation de victoire - Utilise le CSS partagé victory-animation.css */
+
+/* Responsive */
+@media (max-width: 768px) {
+    .color-peg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .peg {
+        width: 35px;
+        height: 35px;
+    }
+
+    .pegs-container {
+        gap: 8px;
+    }
+
+    .feedback-peg {
+        width: 12px;
+        height: 12px;
+    }
+}

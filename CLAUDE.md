@@ -27,14 +27,25 @@ modules/nom-du-module/
     <link rel="stylesheet" href="../../shared/css/theme.css">
     <link rel="stylesheet" href="../../shared/css/navigation.css">
     <link rel="stylesheet" href="../../shared/css/page-header.css">
+    <link rel="stylesheet" href="../../shared/css/victory-animation.css">
     <link rel="stylesheet" href="css/nom-du-module.css">
 </head>
 <body>
     <div class="container">
         <!-- Header injecté automatiquement par PageHeader.render() -->
 
-        <main>
-            <!-- Contenu du module ici -->
+        <main class="main-content">
+            <div class="game-area">
+                <!-- Contenu du module ici -->
+
+                <!-- Animation de victoire - DANS la zone de jeu -->
+                <div id="victory-overlay" class="victory-overlay">
+                    <div class="victory-content">
+                        <div class="victory-message">GAGNÉ !</div>
+                        <div class="confetti-container" id="confetti-container"></div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- Toast pour les notifications -->
@@ -48,6 +59,7 @@ modules/nom-du-module/
     <script src="../../shared/js/auth-ui.js"></script>
     <script src="../../shared/js/navigation.js"></script>
     <script src="../../shared/js/toast.js"></script>
+    <script src="../../shared/js/victory-animation.js"></script>
 
     <!-- Script du module -->
     <script src="js/nom-du-module.js"></script>
@@ -68,6 +80,19 @@ modules/nom-du-module/
     </script>
 </body>
 </html>
+```
+
+## CSS du module
+
+**IMPORTANT** : Le CSS du module doit inclure `position: relative` sur `.game-area` pour l'overlay de victoire :
+
+```css
+/* nom-du-module.css */
+.game-area {
+    position: relative; /* IMPORTANT pour l'overlay de victoire */
+}
+
+/* Reste du CSS du module... */
 ```
 
 ## Structure JavaScript du module
@@ -152,7 +177,64 @@ PageHeader.render({
 ### 2. Navigation (Sidebar commune)
 La navigation est automatiquement initialisée par `navigationUI.init()` dans le script d'init.
 
-### 3. Toast (Notifications)
+### 3. Animation de victoire
+**IMPORTANT : Pour tout jeu/module, TOUJOURS afficher l'animation de victoire quand l'utilisateur réussit.**
+
+Le système d'animation de victoire est disponible via `shared/js/victory-animation.js` et `shared/css/victory-animation.css`.
+
+**HTML requis :**
+```html
+<head>
+    <!-- ... autres CSS ... -->
+    <link rel="stylesheet" href="../../shared/css/victory-animation.css">
+</head>
+<body>
+    <!-- IMPORTANT: L'overlay doit être DANS la zone de jeu, pas à la racine -->
+    <main class="main-content">
+        <div class="game-area" style="position: relative;">
+            <!-- Contenu du jeu ici -->
+
+            <!-- Animation de victoire - DOIT être dans la zone de jeu -->
+            <div id="victory-overlay" class="victory-overlay">
+                <div class="victory-content">
+                    <div class="victory-message">GAGNÉ !</div>
+                    <div class="confetti-container" id="confetti-container"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../../shared/js/victory-animation.js"></script>
+</body>
+```
+
+**CSS requis :**
+Le parent de `#victory-overlay` doit avoir `position: relative` pour que l'overlay couvre uniquement la zone de jeu :
+```css
+.game-area {
+    position: relative; /* IMPORTANT pour l'overlay de victoire */
+}
+```
+
+**Utilisation en JavaScript :**
+```javascript
+async handleVictory() {
+    // Afficher l'animation de victoire
+    VictoryAnimation.show();
+
+    // Calculer et ajouter les crédits
+    const credits = this.calculateCredits();
+    await this.addCredits(credits);
+
+    // Afficher un toast après l'animation (2 secondes)
+    setTimeout(() => {
+        Toast.success(`Bravo ! +${credits} crédits`);
+    }, 2000);
+}
+```
+
+### 4. Toast (Notifications)
 **IMPORTANT : Ne JAMAIS créer de div feedback custom. TOUJOURS utiliser les toasts.**
 
 Le système de toast est disponible via `shared/js/toast.js` qui est inclus automatiquement.
@@ -321,13 +403,14 @@ Tous les modules utilisent les mêmes classes de layout définies dans `shared/c
 ## Bonnes pratiques
 
 1. **Modularité** : Chaque module doit être autonome et ne pas dépendre des autres modules
-2. **Pas de feedback div custom** : Toujours utiliser les toasts pour les notifications
-3. **Header standardisé** : Toujours utiliser PageHeader.render()
-4. **Navigation commune** : Ne pas créer de navigation custom
-5. **Authentification** : Toujours vérifier l'authentification au chargement
-6. **Crédits** : Utiliser la méthode `addCredits()` pour récompenser l'utilisateur
-7. **Layout standardisé** : Utiliser les classes communes (.container, .game-area, .game-actions, etc.)
-8. **Boutons standardisés** : Utiliser .btn-primary et .btn-secondary
-9. **Responsive** : Le layout s'adapte automatiquement (mobile-first)
-10. **Accessibilité** : Utiliser les attributs ARIA appropriés
+2. **Animation de victoire** : TOUJOURS afficher `VictoryAnimation.show()` quand l'utilisateur gagne
+3. **Pas de feedback div custom** : Toujours utiliser les toasts pour les notifications
+4. **Header standardisé** : Toujours utiliser PageHeader.render()
+5. **Navigation commune** : Ne pas créer de navigation custom
+6. **Authentification** : Toujours vérifier l'authentification au chargement
+7. **Crédits** : Utiliser la méthode `addCredits()` pour récompenser l'utilisateur
+8. **Layout standardisé** : Utiliser les classes communes (.container, .game-area, .game-actions, etc.)
+9. **Boutons standardisés** : Utiliser .btn-primary et .btn-secondary
+10. **Responsive** : Le layout s'adapte automatiquement (mobile-first)
+11. **Accessibilité** : Utiliser les attributs ARIA appropriés
 
