@@ -201,6 +201,13 @@ class MastermindGame {
                     return;
                 }
 
+                // Vérifier si la couleur est déjà utilisée dans la tentative en cours
+                const alreadyUsed = this.currentAttempt.includes(color);
+                if (alreadyUsed) {
+                    Toast.info('Cette couleur est déjà utilisée dans cette tentative');
+                    return;
+                }
+
                 // Trouver le premier emplacement libre (undefined)
                 let firstFreeIndex = -1;
                 for (let i = 0; i < this.secretLength; i++) {
