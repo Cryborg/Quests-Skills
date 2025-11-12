@@ -182,7 +182,7 @@ class AdminImport {
 
             return cards.find(card =>
                 card.name.toLowerCase() === name.toLowerCase() &&
-                card.theme === theme
+                card.category === theme
             );
         } catch (error) {
             console.error('Failed to find V2 card:', error);
