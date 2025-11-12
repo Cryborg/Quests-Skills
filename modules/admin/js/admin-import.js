@@ -47,6 +47,12 @@ class AdminImport {
             return;
         }
 
+        // Vérifier si les événements sont déjà attachés
+        if (importBtn.dataset.eventsAttached === 'true') {
+            console.warn('⚠️ Events already attached, skipping');
+            return;
+        }
+
         // Activer le bouton quand les deux champs sont remplis
         const checkFormValidity = () => {
             const isValid = userSelect.value && jsonInput.value.trim();
@@ -56,22 +62,28 @@ class AdminImport {
         userSelect.addEventListener('change', checkFormValidity);
         jsonInput.addEventListener('input', checkFormValidity);
 
-        importBtn.addEventListener('click', () => {
+        importBtn.addEventListener('click', (e) => {
             console.log('🔘 Import button clicked');
+            e.preventDefault(); // Empêcher tout comportement par défaut
+            e.stopPropagation(); // Empêcher la propagation
             this.handleImport();
-        });
+        }, { once: false }); // Ne pas utiliser once car on veut pouvoir réessayer après annulation
 
+        importBtn.dataset.eventsAttached = 'true';
         console.log('✅ Import events attached successfully');
     }
 
     async handleImport() {
         console.log('🚀 handleImport called');
 
-        // Éviter les appels multiples
+        // Éviter les appels multiples - BLOQUER IMMÉDIATEMENT
         if (this.isImporting) {
             console.warn('⚠️ Import already in progress, ignoring');
             return;
         }
+
+        // Marquer comme en cours IMMÉDIATEMENT pour bloquer les autres clics
+        this.isImporting = true;
 
         const userId = document.getElementById('import-user-select').value;
         const jsonText = document.getElementById('import-json-input').value;
@@ -84,18 +96,17 @@ class AdminImport {
         const selectedUser = this.users.find(u => u.id === parseInt(userId));
         const userName = selectedUser ? selectedUser.username : 'utilisateur inconnu';
 
-        // Confirmation avant import - AVANT de marquer isImporting = true
+        // Confirmation avant import
         const confirmMessage = mergeMode
             ? `Voulez-vous vraiment ajouter ces cartes à la collection de ${userName} ?\n\nLes cartes existantes seront conservées.`
             : `⚠️ ATTENTION ⚠️\n\nVoulez-vous vraiment importer cette collection pour ${userName} ?\n\nToutes les cartes existantes de cet utilisateur seront DÉFINITIVEMENT SUPPRIMÉES avant l'import !`;
 
         if (!confirm(confirmMessage)) {
             console.log('❌ Import cancelled by user');
+            this.isImporting = false; // Remettre à false si annulé
             return;
         }
 
-        // Marquer comme en cours APRÈS la confirmation
-        this.isImporting = true;
         console.log('✅ Import confirmed, starting...');
 
         try {
