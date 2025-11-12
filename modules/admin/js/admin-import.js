@@ -117,12 +117,16 @@ class AdminImport {
                 await this.deleteAllUserCards(userId);
             }
 
+            // Charger toutes les cartes V2 une seule fois
+            resultDiv.innerHTML = '<div class="loading">Chargement des cartes V2...</div>';
+            const v2Cards = await this.loadAllV2Cards();
+
             // Créer un mapping entre les IDs V1 et V2
             resultDiv.innerHTML = '<div class="loading">Import des cartes...</div>';
             const cardMapping = this.mapV1CardsToV2(data.allCards);
 
             // Importer les cartes
-            const importedCards = await this.importCollection(userId, data.collection, cardMapping, mergeMode);
+            const importedCards = await this.importCollection(userId, data.collection, cardMapping, v2Cards, mergeMode);
 
             // Afficher le résultat
             resultDiv.innerHTML = `
@@ -170,9 +174,12 @@ class AdminImport {
         return mapping;
     }
 
-    async importCollection(userId, collection, cardMapping, mergeMode) {
+    async importCollection(userId, collection, cardMapping, v2Cards, mergeMode) {
         let imported = 0;
         let skipped = 0;
+
+        // Préparer un tableau de cartes à ajouter
+        const cardsToAdd = [];
 
         // Pour chaque carte dans la collection V1
         for (const [cardId, cardData] of Object.entries(collection)) {
@@ -185,8 +192,11 @@ class AdminImport {
                     continue;
                 }
 
-                // Trouver la carte correspondante dans la V2 par nom et thème
-                const v2Card = await this.findV2CardByNameAndTheme(v1CardInfo.name, v1CardInfo.theme);
+                // Trouver la carte correspondante dans la V2 (recherche locale)
+                const v2Card = v2Cards.find(card =>
+                    card.name.toLowerCase() === v1CardInfo.name.toLowerCase() &&
+                    card.category === v1CardInfo.theme
+                );
 
                 if (!v2Card) {
                     console.warn(`Card ${v1CardInfo.name} (${v1CardInfo.theme}) not found in V2`);
@@ -194,8 +204,11 @@ class AdminImport {
                     continue;
                 }
 
-                // Ajouter la carte à la collection de l'utilisateur
-                await this.addCardToUser(userId, v2Card.id, cardData.count);
+                // Ajouter au tableau avec le count
+                cardsToAdd.push({
+                    card_id: v2Card.id,
+                    count: cardData.count
+                });
                 imported++;
 
             } catch (error) {
@@ -204,42 +217,45 @@ class AdminImport {
             }
         }
 
+        // Ajouter toutes les cartes en une seule requête
+        if (cardsToAdd.length > 0) {
+            await this.addCardsToUser(userId, cardsToAdd);
+        }
+
         return { imported, skipped };
     }
 
-    async findV2CardByNameAndTheme(name, theme) {
+    async loadAllV2Cards() {
         try {
             const response = await authService.fetchAPI('/cards');
-            const cards = await response.json();
-
-            return cards.find(card =>
-                card.name.toLowerCase() === name.toLowerCase() &&
-                card.category === theme
-            );
+            return await response.json();
         } catch (error) {
-            console.error('Failed to find V2 card:', error);
-            return null;
+            console.error('Failed to load V2 cards:', error);
+            throw new Error('Impossible de charger les cartes V2');
         }
     }
 
-    async addCardToUser(userId, cardId, count) {
+    async addCardsToUser(userId, cardsArray) {
         try {
-            // Ajouter chaque exemplaire de la carte
-            for (let i = 0; i < count; i++) {
-                const response = await authService.fetchAPI(`/users/${userId}/cards`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ card_id: cardId })
-                });
+            console.log(`📤 Adding ${cardsArray.length} cards to user ${userId}`);
 
-                if (!response.ok) {
-                    throw new Error(`Failed to add card: ${response.statusText}`);
-                }
+            const response = await authService.fetchAPI(`/users/${userId}/cards`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ cards: cardsArray })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to add cards: ${response.statusText}`);
             }
+
+            const result = await response.json();
+            console.log(`✅ Successfully added cards:`, result);
+            return result;
         } catch (error) {
-            console.error(`Failed to add card ${cardId} to user ${userId}:`, error);
+            console.error(`Failed to add cards to user ${userId}:`, error);
             throw error;
         }
     }
