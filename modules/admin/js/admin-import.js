@@ -4,6 +4,7 @@ class AdminImport {
     constructor() {
         this.users = [];
         this.importData = null;
+        this.isImporting = false;
     }
 
     async init() {
@@ -66,6 +67,12 @@ class AdminImport {
     async handleImport() {
         console.log('🚀 handleImport called');
 
+        // Éviter les appels multiples
+        if (this.isImporting) {
+            console.warn('⚠️ Import already in progress, ignoring');
+            return;
+        }
+
         const userId = document.getElementById('import-user-select').value;
         const jsonText = document.getElementById('import-json-input').value;
         const mergeMode = document.getElementById('import-merge-mode').checked;
@@ -77,14 +84,19 @@ class AdminImport {
         const selectedUser = this.users.find(u => u.id === parseInt(userId));
         const userName = selectedUser ? selectedUser.username : 'utilisateur inconnu';
 
-        // Confirmation avant import
+        // Confirmation avant import - AVANT de marquer isImporting = true
         const confirmMessage = mergeMode
             ? `Voulez-vous vraiment ajouter ces cartes à la collection de ${userName} ?\n\nLes cartes existantes seront conservées.`
             : `⚠️ ATTENTION ⚠️\n\nVoulez-vous vraiment importer cette collection pour ${userName} ?\n\nToutes les cartes existantes de cet utilisateur seront DÉFINITIVEMENT SUPPRIMÉES avant l'import !`;
 
         if (!confirm(confirmMessage)) {
+            console.log('❌ Import cancelled by user');
             return;
         }
+
+        // Marquer comme en cours APRÈS la confirmation
+        this.isImporting = true;
+        console.log('✅ Import confirmed, starting...');
 
         try {
             // Parser le JSON
@@ -135,6 +147,10 @@ class AdminImport {
                 </div>
             `;
             adminUI.showToast(`Erreur: ${error.message}`, 'error');
+        } finally {
+            // Toujours remettre le flag à false
+            this.isImporting = false;
+            console.log('🏁 Import finished');
         }
     }
 
