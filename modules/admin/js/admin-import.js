@@ -39,6 +39,13 @@ class AdminImport {
         const jsonInput = document.getElementById('import-json-input');
         const importBtn = document.getElementById('import-collection-btn');
 
+        console.log('📋 Attaching import events:', { userSelect, jsonInput, importBtn });
+
+        if (!userSelect || !jsonInput || !importBtn) {
+            console.error('❌ Import elements not found:', { userSelect, jsonInput, importBtn });
+            return;
+        }
+
         // Activer le bouton quand les deux champs sont remplis
         const checkFormValidity = () => {
             const isValid = userSelect.value && jsonInput.value.trim();
@@ -48,14 +55,23 @@ class AdminImport {
         userSelect.addEventListener('change', checkFormValidity);
         jsonInput.addEventListener('input', checkFormValidity);
 
-        importBtn.addEventListener('click', () => this.handleImport());
+        importBtn.addEventListener('click', () => {
+            console.log('🔘 Import button clicked');
+            this.handleImport();
+        });
+
+        console.log('✅ Import events attached successfully');
     }
 
     async handleImport() {
+        console.log('🚀 handleImport called');
+
         const userId = document.getElementById('import-user-select').value;
         const jsonText = document.getElementById('import-json-input').value;
         const mergeMode = document.getElementById('import-merge-mode').checked;
         const resultDiv = document.getElementById('import-result');
+
+        console.log('📊 Import params:', { userId, jsonLength: jsonText?.length, mergeMode });
 
         // Trouver le nom de l'utilisateur sélectionné
         const selectedUser = this.users.find(u => u.id === parseInt(userId));
