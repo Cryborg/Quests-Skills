@@ -8,8 +8,10 @@ class AdminImport {
     }
 
     async init() {
+        console.log('📥 AdminImport.init() called', new Error().stack);
         await this.loadUsers();
         this.attachEvents();
+        console.log('📥 AdminImport.init() finished');
     }
 
     async loadUsers() {
@@ -63,10 +65,14 @@ class AdminImport {
         jsonInput.addEventListener('input', checkFormValidity);
 
         importBtn.addEventListener('click', (e) => {
-            console.log('🔘 Import button clicked');
+            console.log('🔘🔘🔘 Import button clicked', new Date().toISOString());
+            console.log('Event details:', e);
             e.preventDefault(); // Empêcher tout comportement par défaut
             e.stopPropagation(); // Empêcher la propagation
+            e.stopImmediatePropagation(); // Bloquer TOUS les autres listeners
+            console.log('About to call handleImport...');
             this.handleImport();
+            console.log('handleImport call returned');
         }, { once: false }); // Ne pas utiliser once car on veut pouvoir réessayer après annulation
 
         importBtn.dataset.eventsAttached = 'true';
@@ -74,16 +80,18 @@ class AdminImport {
     }
 
     async handleImport() {
-        console.log('🚀 handleImport called');
+        console.log('🚀🚀🚀 handleImport called', new Error().stack);
+        console.log('Current isImporting state:', this.isImporting);
 
         // Éviter les appels multiples - BLOQUER IMMÉDIATEMENT
         if (this.isImporting) {
-            console.warn('⚠️ Import already in progress, ignoring');
+            console.warn('⚠️⚠️⚠️ Import already in progress, BLOCKING THIS CALL');
             return;
         }
 
         // Marquer comme en cours IMMÉDIATEMENT pour bloquer les autres clics
         this.isImporting = true;
+        console.log('✅ isImporting set to TRUE');
 
         const userId = document.getElementById('import-user-select').value;
         const jsonText = document.getElementById('import-json-input').value;
