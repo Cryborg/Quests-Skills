@@ -22,6 +22,7 @@
             <button class="admin-tab-btn" data-tab="cards">🃏 Cartes</button>
             <button class="admin-tab-btn" data-tab="word-search">🔍 Mots Mêlés</button>
             <button class="admin-tab-btn" data-tab="ratings">📊 Notations</button>
+            <button class="admin-tab-btn" data-tab="import">📥 Import V1</button>
         </nav>
 
         <main class="admin-content">
@@ -103,6 +104,54 @@
                 <div id="ratings-stats-container">
                     <!-- Statistiques chargées dynamiquement -->
                     <div class="loading">Chargement des statistiques...</div>
+                </div>
+            </section>
+
+            <!-- Section Import V1 -->
+            <section id="import-section" class="admin-section">
+                <div class="section-header">
+                    <h2>📥 Import de Collection V1</h2>
+                    <p style="color: #8a8aa8;">Importer une collection depuis la version 1 du jeu</p>
+                </div>
+
+                <div class="import-container">
+                    <div class="import-instructions">
+                        <h3>Instructions :</h3>
+                        <ol>
+                            <li>Copiez le JSON exporté depuis la v1 du jeu (via l'admin)</li>
+                            <li>Sélectionnez l'utilisateur de destination</li>
+                            <li>Collez le JSON dans la zone de texte ci-dessous</li>
+                            <li>Cliquez sur "Importer la collection"</li>
+                        </ol>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="import-user-select">Utilisateur de destination :</label>
+                        <select id="import-user-select" required>
+                            <option value="">-- Sélectionner un utilisateur --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="import-json-input">JSON de la collection V1 :</label>
+                        <textarea id="import-json-input" rows="15" placeholder='Collez ici le JSON exporté depuis la v1...'></textarea>
+                    </div>
+
+                    <div class="import-options">
+                        <label>
+                            <input type="checkbox" id="import-merge-mode">
+                            Mode fusion (ajouter aux cartes existantes)
+                        </label>
+                        <small style="color: #b0b0b0; margin-top: 8px; display: block;">
+                            ⚠️ Par défaut, toutes les cartes existantes de l'utilisateur seront supprimées avant l'import
+                        </small>
+                    </div>
+
+                    <button id="import-collection-btn" class="admin-btn-primary" disabled>
+                        📥 Importer la collection
+                    </button>
+
+                    <div id="import-result" class="import-result" style="display: none;"></div>
                 </div>
             </section>
         </main>
@@ -316,6 +365,7 @@
     <script src="js/admin-cards.js"></script>
     <script src="js/admin-word-search.js"></script>
     <script src="js/admin-ratings.js"></script>
+    <script src="js/admin-import.js"></script>
     <script src="js/admin-app.js"></script>
 
     <!-- Auth initialization -->

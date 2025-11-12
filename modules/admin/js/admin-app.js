@@ -19,6 +19,7 @@ async function initAdminPanel() {
     await adminCards.init();
     await WordSearchAdmin.init();
     await adminRatings.init();
+    await adminImport.init();
 
     console.log('✅ Admin panel loaded successfully');
 }
