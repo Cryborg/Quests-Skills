@@ -519,6 +519,27 @@ router.post('/:id/cards', checkOwnership, async (req, res) => {
     }
 });
 
+// DELETE /api/users/:id/cards - Supprimer toutes les cartes d'un utilisateur (admin only)
+router.delete('/:id/cards', requireAdmin, async (req, res) => {
+    try {
+        const userId = parseInt(req.params.id);
+
+        console.log('🗑️ DELETE ALL CARDS for user:', userId);
+
+        // Supprimer toutes les cartes de l'utilisateur
+        const result = await run('DELETE FROM user_cards WHERE user_id = ?', [userId]);
+
+        console.log(`✅ Deleted ${result.changes} cards for user ${userId}`);
+        res.json({
+            message: 'All cards deleted successfully',
+            deleted: result.changes
+        });
+    } catch (error) {
+        console.error('❌ Error deleting user cards:', error);
+        res.status(500).json({ error: 'Failed to delete cards', details: error.message });
+    }
+});
+
 // POST /api/users/:id/cards/:cardId/upgrade - Upgrader une carte
 router.post('/:id/cards/:cardId/upgrade', checkOwnership, async (req, res) => {
     try {

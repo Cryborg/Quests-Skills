@@ -214,27 +214,18 @@ class AdminImport {
 
     async deleteAllUserCards(userId) {
         try {
-            // Récupérer toutes les cartes de l'utilisateur
-            const response = await authService.fetchAPI(`/users/${userId}/cards`);
+            // Supprimer toutes les cartes de l'utilisateur en une seule requête
+            const response = await authService.fetchAPI(`/users/${userId}/cards`, {
+                method: 'DELETE'
+            });
 
             if (!response.ok) {
-                throw new Error(`Failed to fetch user cards: ${response.statusText}`);
+                throw new Error(`Failed to delete user cards: ${response.statusText}`);
             }
 
-            const userCards = await response.json();
-
-            // Supprimer chaque carte
-            for (const userCard of userCards) {
-                const deleteResponse = await authService.fetchAPI(`/users/${userId}/cards/${userCard.id}`, {
-                    method: 'DELETE'
-                });
-
-                if (!deleteResponse.ok) {
-                    console.warn(`Failed to delete card ${userCard.id}:`, deleteResponse.statusText);
-                }
-            }
-
-            console.log(`Deleted ${userCards.length} cards for user ${userId}`);
+            const result = await response.json();
+            console.log(`✅ Deleted ${result.deleted} cards for user ${userId}`);
+            return result.deleted;
         } catch (error) {
             console.error(`Failed to delete user cards:`, error);
             throw error;
